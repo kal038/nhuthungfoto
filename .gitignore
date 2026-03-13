@@ -1,1 +1,37 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Build outputs
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# IDE / Editor
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.DS_Store
+
+# Logs
+*.log
+npm-debug.log*
+
+# Testing
+coverage/
+
+# Tailwind / PostCSS cache
+.cache/
+
+# PRD (excluded per original .gitignore)
 *prd*.md
+
+# Misc
+*.tsbuildinfo
