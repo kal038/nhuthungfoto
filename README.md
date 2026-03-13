@@ -4,16 +4,16 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React + Vite + Tailwind CSS v4 + shadcn/ui |
-| Backend | Node.js + TypeScript + Express |
-| Auth | Supabase Auth (Google OAuth + email/password) |
-| Database | Supabase PostgreSQL |
-| Storage | AWS S3 (ap-southeast-1) |
-| Payments | VietQR (SePay) + Momo |
-| AI Grading | Gemini Flash / GPT-4o-mini |
-| Booking | Calendly API |
+| Layer      | Technology                                    |
+| ---------- | --------------------------------------------- |
+| Frontend   | React + Vite + Tailwind CSS v4 + shadcn/ui    |
+| Backend    | Node.js/Express (Custom) + Supabase (Simple)  |
+| Auth       | Supabase Auth (Google OAuth + email/password) |
+| Database   | Supabase PostgreSQL                           |
+| Storage    | AWS S3 (ap-southeast-1)                       |
+| Payments   | VietQR (SePay) + Momo                         |
+| AI Grading | Gemini Flash / GPT-4o-mini                    |
+| Booking    | Calendly API                                  |
 
 ## Getting Started
 
@@ -74,3 +74,4 @@ nhuthungfoto-site/
 
 - [Technical Design Document](docs/tdd-nhuthungfoto.md)
 - [UI/UX Design Specification](docs/DESIGN.md)
+- [Product Requirement Document](docs/prd-nhuthungfoto-final.md)

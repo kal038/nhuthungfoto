@@ -35,3 +35,6 @@ coverage/
 
 # Misc
 *.tsbuildinfo
+
+# AI brain
+docs/antigravity-brain
