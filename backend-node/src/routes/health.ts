@@ -1,6 +1,6 @@
-import { Router } from 'express';
+import { Router } from 'express'
 
-export const healthRouter = Router();
+export const healthRouter = Router()
 
 healthRouter.get('/health', (_req, res) => {
   res.json({
@@ -8,5 +8,5 @@ healthRouter.get('/health', (_req, res) => {
     service: 'nhuthungfoto-api',
     timestamp: new Date().toISOString(),
     version: '0.1.0',
-  });
-});
+  })
+})

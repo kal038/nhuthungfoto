@@ -1,7 +1,7 @@
-@import "tailwindcss";
-@import "tw-animate-css";
-@import "shadcn/tailwind.css";
-@import "@fontsource-variable/geist";
+@import 'tailwindcss';
+@import 'tw-animate-css';
+@import 'shadcn/tailwind.css';
+@import '@fontsource-variable/geist';
 
 @custom-variant dark (&:is(.dark *));
 
@@ -12,16 +12,16 @@
 
 @theme {
   /* Colors */
-  --color-primary: #18181B;
-  --color-secondary: #3F3F46;
-  --color-cta: #2563EB;
-  --color-background: #FAFAFA;
-  --color-text: #09090B;
-  --color-surface: #FFFFFF;
-  --color-muted: #71717A;
-  --color-border: #E4E4E7;
-  --color-gallery-dark: #0A0A0B;
-  --color-premium-gold: #D97706;
+  --color-primary: #18181b;
+  --color-secondary: #3f3f46;
+  --color-cta: #2563eb;
+  --color-background: #fafafa;
+  --color-text: #09090b;
+  --color-surface: #ffffff;
+  --color-muted: #71717a;
+  --color-border: #e4e4e7;
+  --color-gallery-dark: #0a0a0b;
+  --color-premium-gold: #d97706;
 
   /* Typography */
   --font-heading: 'Be Vietnam Pro', sans-serif;
@@ -66,7 +66,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   font-family: var(--font-heading);
   color: var(--color-primary);
 }
@@ -76,7 +81,9 @@ h1, h2, h3, h4, h5, h6 {
    ========================================= */
 
 @media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after {
+  *,
+  *::before,
+  *::after {
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;

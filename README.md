@@ -26,6 +26,8 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ```bash
 make install
+# or
+just install
 ```
 
 ### Development
@@ -33,18 +35,26 @@ make install
 ```bash
 # Full stack (frontend + backend)
 make up
+# or
+just up
 
 # Frontend only (http://localhost:5173)
 make frontend
+# or
+just frontend
 
 # Backend only (http://localhost:3001)
 make backend
+# or
+just backend
 ```
 
 ### Build
 
 ```bash
 make build
+# or
+just build
 ```
 
 ## Project Structure
@@ -66,7 +76,8 @@ nhuthungfoto-site/
 │   │   └── index.ts    # Server entry point
 │   └── .env.example    # Environment template
 ├── docs/               # PRD, TDD, Design specs
-├── Makefile            # Monorepo orchestration
+├── Makefile            # Monorepo orchestration (legacy)
+├── Justfile            # Modern command runner
 └── README.md
 ```
 

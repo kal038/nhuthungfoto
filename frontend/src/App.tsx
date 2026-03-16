@@ -9,10 +9,30 @@ function App() {
           nhuthungfoto
         </span>
         <div className="hidden md:flex items-center gap-6 text-sm text-secondary">
-          <a href="#" className="hover:text-primary transition-colors duration-200 cursor-pointer">Trang chủ</a>
-          <a href="#" className="hover:text-primary transition-colors duration-200 cursor-pointer">Tác phẩm</a>
-          <a href="#" className="hover:text-primary transition-colors duration-200 cursor-pointer">Khóa học</a>
-          <a href="#" className="hover:text-primary transition-colors duration-200 cursor-pointer">Đặt lịch</a>
+          <a
+            href="#"
+            className="hover:text-primary transition-colors duration-200 cursor-pointer"
+          >
+            Trang chủ
+          </a>
+          <a
+            href="#"
+            className="hover:text-primary transition-colors duration-200 cursor-pointer"
+          >
+            Tác phẩm
+          </a>
+          <a
+            href="#"
+            className="hover:text-primary transition-colors duration-200 cursor-pointer"
+          >
+            Khóa học
+          </a>
+          <a
+            href="#"
+            className="hover:text-primary transition-colors duration-200 cursor-pointer"
+          >
+            Đặt lịch
+          </a>
         </div>
         <button className="bg-cta text-white px-5 py-2 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity duration-200 cursor-pointer">
           Bắt Đầu Học
@@ -37,10 +57,12 @@ function App() {
 
       {/* Placeholder sections */}
       <section className="py-24 px-8 max-w-6xl mx-auto text-center">
-        <h2 className="font-heading text-3xl font-semibold mb-4">Về Nhựt Hùng</h2>
+        <h2 className="font-heading text-3xl font-semibold mb-4">
+          Về Nhựt Hùng
+        </h2>
         <p className="text-secondary text-lg max-w-2xl mx-auto">
-          Hơn 25 năm kinh nghiệm trong lĩnh vực nhiếp ảnh studio, cưới hỏi, và sự kiện. 
-          Cựu giáo viên mỹ thuật và nhiếp ảnh tại trường phổ thông.
+          Hơn 25 năm kinh nghiệm trong lĩnh vực nhiếp ảnh studio, cưới hỏi, và
+          sự kiện. Cựu giáo viên mỹ thuật và nhiếp ảnh tại trường phổ thông.
         </p>
       </section>
     </div>
