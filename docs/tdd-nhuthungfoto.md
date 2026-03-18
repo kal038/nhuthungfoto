@@ -6,13 +6,21 @@ The nhuthungfoto platform follows a **Serverless-First** approach to minimize in
 
 ### 1.1 Core Components
 
-- **Client (React/Vite)**: Hosted on Vercel or Netlify. Communicates with Node.js API and Supabase directly (limited).
+- **Client (React/Vite)**: Hosted on Vercel or Netlify. Uses **TanStack Query (React Query)** for server state management, caching, and data fetching. Communicates with Node.js API and Supabase directly (limited).
 - **Backend API (Node.js/TypeScript)**: Express server handling heavy logic (payments, crediting, AI orchestration, S3 pre-processing).
 - **Auth (Supabase Auth)**: Managed auth service with Google OAuth + email/password. Handles `auth.users` table, JWTs, and session management.
 - **Database (Supabase)**: Persistent storage for users, courses, and submissions. Uses RLS for secure data access.
 - **Object Storage (S3)**: Hosted in `ap-southeast-1` for low-latency image assets.
 - **AI Orchestrator**: Managed service within the backend that interacts with Gemini/GPT APIs for grading and content generation.
 - **Integration Layer**: Calendly (Booking), SePay/Momo (Payments), Google Meet (Coaching).
+
+### 1.2 Frontend Architecture & State Management
+
+The frontend adheres to strict separation of concerns, heavily relying on **TanStack Query (React Query)** to handle all server state.
+
+- **Server State vs Client State**: TanStack Query manages all async data (fetching, caching, loading/error states, cache invalidation). Local React `useState` is used exclusively for ephemeral, trivial UI state (e.g., dropdown toggles, modals).
+- **Data Flow**: UI components are strictly stateless (no inline data fetching). Smart container components or custom hooks (e.g., `useModules()`) use `useQuery` and `useMutation` to interact with the backend API and pass strictly-typed data down to the presentation layer via props.
+- **Caching & Optimistic Updates**: Features like browsing portfolios and courses leverage React Query's built-in caching (`stale-while-revalidate`) for instant navigation. Interactions like submitting photos or updating profiles use optimistic updates to make the app feel instantaneously responsive.
 
 ## 2. Database Schema (Supabase/PostgreSQL)
 
@@ -238,6 +246,8 @@ A photo submission transitions through the following states to ensure credit int
     - _Action_: Logs error and (if credits were deducted) initiates an automated refund.
 
 ## 8. Core API Endpoint Registry
+
+_Note: On the frontend, all endpoints below are wrapped in custom TanStack Query hooks (e.g., `useModulesQuery()`, `useSubmitPhotoMutation()`) to abstract fetching logic, manage cache keys intelligently, and provide automated loading/error states to UI components._
 
 ### 8.1 Public / Auth
 

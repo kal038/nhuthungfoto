@@ -15,7 +15,7 @@ export function HeroSection() {
       />
 
       {/* Dark Gradient Overlay */}
-      <div className="absolute inset-0 bg-gradient-to-b from-black/30 via-black/10 to-black/50" />
+      <div className="absolute inset-0 bg-linear-to-b from-black/30 via-black/10 to-black/50" />
 
       {/* Content */}
       <div className="relative z-10 text-center text-white px-4 max-w-2xl">
@@ -36,7 +36,7 @@ export function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.3 }}
         >
-          Nhiếp ảnh gia • Giảng viên • 25+ năm kinh nghiệm
+          Nhiếp ảnh gia • Giảng viên • 30+ năm kinh nghiệm
         </motion.p>
 
         {/* CTA Button */}
