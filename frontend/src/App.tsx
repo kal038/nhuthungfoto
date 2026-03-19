@@ -1,5 +1,5 @@
-import { Navbar } from '@/components/Navbar'
-import { HeroSection } from '@/components/HeroSection'
+import { Navbar } from '@/components/features/landing/Navbar'
+import { HeroSection } from '@/components/features/landing/HeroSection'
 
 function App() {
   return (
