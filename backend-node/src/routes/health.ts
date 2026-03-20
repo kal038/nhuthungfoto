@@ -1,9 +1,9 @@
-import { Router } from 'express'
+import { Hono } from 'hono'
 
-export const healthRouter = Router()
+export const healthRouter = new Hono()
 
-healthRouter.get('/health', (_req, res) => {
-  res.json({
+healthRouter.get('/health', (c) => {
+  return c.json({
     status: 'ok',
     service: 'nhuthungfoto-api',
     timestamp: new Date().toISOString(),
