@@ -2,15 +2,17 @@
 
 Photography education platform by Nhựt Hùng — learn photography from a 25+ year veteran educator.
 
+![High-Level Architecture](docs/Diagrams/nhuthungfoto-hld.png)
+
 ## Tech Stack
 
 | Layer      | Technology                                    |
 | ---------- | --------------------------------------------- |
 | Frontend   | React + Vite + Tailwind CSS v4 + shadcn/ui    |
-| Backend    | Node.js/Express (Custom) + Supabase (Simple)  |
+| Backend    | Bun/TypeScript (Hono) + Supabase (Simple)     |
 | Auth       | Supabase Auth (Google OAuth + email/password) |
 | Database   | Supabase PostgreSQL                           |
-| Storage    | AWS S3 (ap-southeast-1)                       |
+| Storage    | Cloudflare R2 + AWS SQS                       |
 | Payments   | VietQR (SePay) + Momo                         |
 | AI Grading | Gemini Flash / GPT-4o-mini                    |
 | Booking    | Calendly API                                  |
@@ -19,7 +21,7 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ### Prerequisites
 
-- Node.js 20+
+- Bun 1.1+
 - npm 10+
 
 ### Install

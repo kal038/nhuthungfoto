@@ -9,34 +9,34 @@ default:
 # Install all dependencies
 install:
     cd frontend && npm install
-    cd backend-node && npm install
+    cd backend-node && bun install
 
 # Start frontend server only (http://localhost:5173)
-frontend:
+ui:
     cd frontend && npm run dev
 
 # Start backend server only (http://localhost:3001)
-backend:
-    cd backend-node && npm run dev
+server:
+    cd backend-node && bun run dev
 
 # Start full stack (frontend + backend)
 up: install
     @echo "🚀 Starting nhuthungfoto full-stack..."
-    (cd backend-node && npm run dev) & (cd frontend && npm run dev) & wait
+    (cd backend-node && bun run dev) & (cd frontend && npm run dev) & wait
 
 # Build both applications for production
 build:
-    cd backend-node && npm run build
+    cd backend-node && bun run build
     cd frontend && npm run build
 
 # Run linting and type-checking across the repository
 lint:
-    cd backend-node && npm run lint
+    cd backend-node && bun run lint
     cd frontend && npm run lint
 
 # Format code across the repository
 format:
-    cd backend-node && npm run format
+    cd backend-node && bun run format
     cd frontend && npm run format
 
 # Clean up build artifacts and dependencies
