@@ -1,0 +1,18 @@
+{
+  "$schema": "./node_modules/wrangler/config-schema.json",
+  "name": "nhuthungfoto-api",
+  "main": "src/index.ts",
+  "compatibility_date": "2025-04-01",
+  "compatibility_flags": ["nodejs_compat_v2"],
+
+  // Non-secret environment variables
+  "vars": {
+    "FRONTEND_URL": "http://localhost:5173"
+  },
+
+  // R2 Buckets
+  "r2_buckets": [
+    { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw" },
+    { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public" }
+  ]
+}

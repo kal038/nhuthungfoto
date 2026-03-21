@@ -21,8 +21,9 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ### Prerequisites
 
-- Bun 1.1+
+- Node.js 20+
 - npm 10+
+- Wrangler CLI (`npm install -g wrangler`)
 
 ### Install
 
@@ -45,15 +46,21 @@ make frontend
 # or
 just frontend
 
-# Backend only (http://localhost:3001)
+# Backend only — Cloudflare Workers local dev (http://localhost:8787)
 make backend
 # or
-just backend
+just server
 ```
 
-### Build
+### Deploy
 
 ```bash
+# Deploy backend to Cloudflare Workers
+make deploy
+# or
+just deploy
+
+# Build frontend for production
 make build
 # or
 just build
@@ -66,17 +73,22 @@ nhuthungfoto-site/
 ├── frontend/           # React + Vite + Tailwind + shadcn/ui
 │   ├── src/
 │   │   ├── components/ # shadcn/ui + custom components
+│   │   ├── hooks/      # TanStack Query hooks
 │   │   ├── lib/        # Utilities
+│   │   ├── types/      # TypeScript interfaces
 │   │   ├── App.tsx     # Root component
 │   │   └── index.css   # Design system tokens + Tailwind
 │   └── index.html
-├── backend-node/       # Express API server
+├── backend-node/       # Hono on Cloudflare Workers
 │   ├── src/
 │   │   ├── routes/     # API route handlers
 │   │   ├── middleware/  # Auth, validation, rate limiting
 │   │   ├── services/   # Business logic
-│   │   └── index.ts    # Server entry point
-│   └── .env.example    # Environment template
+│   │   ├── types/      # Env bindings, shared types
+│   │   └── index.ts    # Workers entry point
+│   ├── wrangler.jsonc  # Cloudflare Workers config (R2 bindings)
+│   ├── .dev.vars       # Local secrets (gitignored)
+│   └── .env.example    # Environment reference
 ├── docs/               # PRD, TDD, Design specs
 ├── Makefile            # Monorepo orchestration (legacy)
 ├── Justfile            # Modern command runner

@@ -11,6 +11,10 @@ build/
 .env
 .env.local
 .env.*.local
+.dev.vars
+
+# Cloudflare Workers
+.wrangler/
 
 # IDE / Editor
 .vscode/
@@ -38,3 +42,6 @@ coverage/
 
 # AI brain
 docs/antigravity-brain
+
+#TODO files
+*.todo
