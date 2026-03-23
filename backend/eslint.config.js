@@ -11,7 +11,7 @@ export default defineConfig([
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.node,
+      globals: globals.worker,
     },
     rules: {
       '@typescript-eslint/no-unused-vars': [

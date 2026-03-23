@@ -4,15 +4,19 @@
 
 ![High-Level System Architecture](./Diagrams/nhuthungfoto-hld.png)
 
+![High-Level System Architecture](./Diagrams/nhuthungfoto-hld.png)
+
 The nhuthungfoto platform follows a **Serverless-First** approach to minimize infrastructure overhead and maximize scalability for a single-founder operation.
 
 ### 1.1 Core Components
 
-- **Client (React/Vite)**: Hosted on Vercel or Netlify. Uses **TanStack Query (React Query)** for server state management, caching, and data fetching. Communicates with Node.js API and Supabase directly (limited).
-- **Backend API (Node.js/Hono)**: Lightweight API server hosted on **Fly.io**. Handles JSON-only traffic: auth orchestration, payments, crediting, pre-signed URL generation. Handles **zero image bytes**.
+- **Client (React/Vite)**: Hosted on Vercel or Netlify. Uses **TanStack Query (React Query)** for server state management, caching, and data fetching. Communicates with the API and Supabase directly (limited).
+- **Backend API (Hono on Cloudflare Workers)**: Serverless API on Cloudflare's Edge. Handles JSON-only traffic: auth orchestration, payments, crediting, pre-signed URL generation. Zero image bytes. Uses native R2 bindings for zero-latency storage access.
 - **Image Processing Worker (AWS Lambda)**: Dedicated serverless function triggered natively by SQS. Runs `sharp` for image resizing, format conversion, watermarking, and EXIF preservation. Completely isolated from the API server.
 - **Auth (Supabase Auth)**: Managed auth service with Google OAuth + email/password. Handles `auth.users` table, JWTs, and session management.
 - **Database (Supabase)**: Persistent storage for users, courses, and submissions. Uses RLS for secure data access.
+- **Object Storage (Cloudflare R2)**: S3-compatible API chosen for zero egress bandwidth fees. Globally distributed via Cloudflare's Edge.
+- **Message Queue (AWS SQS)**: Decouples upload requests from image processing. Native Lambda trigger eliminates polling code.
 - **Object Storage (Cloudflare R2)**: S3-compatible API chosen for zero egress bandwidth fees. Globally distributed via Cloudflare's Edge.
 - **Message Queue (AWS SQS)**: Decouples upload requests from image processing. Native Lambda trigger eliminates polling code.
 - **AI Orchestrator**: Managed service within the backend that interacts with Gemini/GPT APIs for grading and content generation.
@@ -20,16 +24,16 @@ The nhuthungfoto platform follows a **Serverless-First** approach to minimize in
 
 ### 1.2 Infrastructure & Hosting
 
-| Component    | Service           | Region            | Free Tier                       | Vendor Lock-in             |
-| ------------ | ----------------- | ----------------- | ------------------------------- | -------------------------- |
-| Frontend     | Vercel / Netlify  | Global Edge       | Generous                        | Low (static export)        |
-| Backend API  | **Fly.io**        | Singapore (`sin`) | 3 shared VMs                    | Low (standard Docker)      |
-| Image Worker | **AWS Lambda**    | `ap-southeast-1`  | 1M invocations + 400K GB-sec/mo | Medium (handler signature) |
-| Queue        | **AWS SQS**       | `ap-southeast-1`  | 1M requests/mo                  | Low (standard SDK)         |
-| Storage      | **Cloudflare R2** | Global Edge       | 10GB storage, 0 egress          | Low (S3-compatible API)    |
-| Database     | **Supabase**      | `ap-southeast-1`  | 500MB DB, 1GB storage           | Low (standard Postgres)    |
+| Component    | Service           | Region           | Free Tier                       | Vendor Lock-in             |
+| ------------ | ----------------- | ---------------- | ------------------------------- | -------------------------- |
+| Frontend     | **CF Pages**      | Global Edge      | Generous                        | Low (static export)        |
+| Backend API  | **CF Workers**    | Global Edge      | 100K req/day (free), then $5/mo | Medium (workerd runtime)   |
+| Image Worker | **AWS Lambda**    | `ap-southeast-1` | 1M invocations + 400K GB-sec/mo | Medium (handler signature) |
+| Queue        | **AWS SQS**       | `ap-southeast-1` | 1M requests/mo                  | Low (standard SDK)         |
+| Storage      | **Cloudflare R2** | Global Edge      | 10GB storage, 0 egress          | Low (S3-compatible API)    |
+| Database     | **Supabase**      | `ap-southeast-1` | 500MB DB, 1GB storage           | Low (standard Postgres)    |
 
-> **Design Rationale**: The API server (Fly.io) and the Worker (Lambda) are fully separated to guarantee fault isolation. A corrupt image crashing the Lambda function has zero impact on API availability. Lambda was chosen over an always-on worker because it has native SQS integration (zero polling code), scales to zero when idle ($0 cost), and provides generous RAM (up to 10GB) for `sharp` processing bursts.
+> **Design Rationale**: The API (Cloudflare Workers) and the Image Worker (Lambda) are fully separated to guarantee fault isolation. Workers was chosen for the API because it scales to zero, has zero cold starts (V8 isolates), and provides native R2 bindings for pre-signed URL generation. Lambda was chosen for image processing because of native SQS integration (zero polling code), generous RAM (up to 10GB) for `sharp` bursts, and $0 cost under the free tier.
 
 ### 1.3 Frontend Architecture & State Management
 
@@ -262,10 +266,10 @@ To minimize backend load, the system uses a **Pre-Signed URL + Queue** pattern f
 
 | Component     | Write Path Load                   | Read Path Load     | Monthly Cost       |
 | ------------- | --------------------------------- | ------------------ | ------------------ |
-| Fly.io API    | ~0 (JSON only)                    | ~0 (not involved)  | $0 (free tier)     |
+| CF Workers    | ~0 (JSON only)                    | ~0 (not involved)  | $0 (free tier)     |
 | Lambda Worker | ~100MB RAM per image, auto-scaled | N/A                | $0 (free tier)     |
 | AWS SQS       | 900K requests/mo                  | N/A                | $0 (under 1M free) |
-| Cloudflare R2 | 10K PUTs/day (raw + processed)    | ~50K GETs/day      | ~$2/mo storage     |
+| Cloudflare R2 | 10K PUTs/day (raw + processed)    | ~50K GETs/day      | ~$15/mo storage    |
 | User Browser  | 20MB × N uploads (native stream)  | ~250MB/day viewing | N/A                |
 
 ### 6.3 Security & Folder Structure
@@ -284,11 +288,12 @@ A photo submission transitions through the following states to ensure credit int
 
 1.  **IDLE**: User selects an assignment.
 2.  **UPLOADING**: Client uploads source image directly to R2 via pre-signed URL; SQS job queued for Lambda processing.
-3.  **PENDING_CREDIT**: Server validates user's `credits_balance`.
-4.  **GRADING**: Credits deducted atomicly; LLM prompt sent to Gemini/GPT.
-5.  **AWAITING_HUNG**: (Only if `review_type == 'HUNG'`) — Move to Hùng's manual review queue after AI grade is complete.
-6.  **COMPLETED**: Final feedback (AI + human) available to user; notification sent.
-7.  **FAILED**: Triggered by upload error, LLM timeout, or credit failure.
+3.  **UPLOADING**: Client uploads source image directly to R2 via pre-signed URL; SQS job queued for Lambda processing.
+4.  **PENDING_CREDIT**: Server validates user's `credits_balance`.
+5.  **GRADING**: Credits deducted atomicly; LLM prompt sent to Gemini/GPT.
+6.  **AWAITING_HUNG**: (Only if `review_type == 'HUNG'`) — Move to Hùng's manual review queue after AI grade is complete.
+7.  **COMPLETED**: Final feedback (AI + human) available to user; notification sent.
+8.  **FAILED**: Triggered by upload error, LLM timeout, or credit failure.
     - _Action_: Logs error and (if credits were deducted) initiates an automated refund.
 
 ## 8. Core API Endpoint Registry
@@ -307,6 +312,7 @@ _Note: On the frontend, all endpoints below are wrapped in custom TanStack Query
 
 ### 8.3 Submissions & Credits
 
+- `POST /v1/submissions`: Initiate a photo upload (returns R2 pre-signed upload URL).
 - `POST /v1/submissions`: Initiate a photo upload (returns R2 pre-signed upload URL).
 - `POST /v1/submissions/:id/grade`: Trigger AI/Human grading flow.
 - `GET /v1/submissions/me`: User's submission history and scores.
@@ -334,6 +340,7 @@ _Note: On the frontend, all endpoints below are wrapped in custom TanStack Query
 ### 10.1 Request Validation
 
 - **Zod**: All incoming payloads (Uploads, Missions, Profiles) are strictly validated against TS-generated Zod schemas.
+- **Image Types**: `image/jpeg`, `image/png`, `image/webp` only. Max size limit direct to R2: 20MB (generous limit to perfectly support DSLR/Mirrorless users without forcing local compression).
 - **Image Types**: `image/jpeg`, `image/png`, `image/webp` only. Max size limit direct to R2: 20MB (generous limit to perfectly support DSLR/Mirrorless users without forcing local compression).
 
 ### 10.2 Rate Limiting
