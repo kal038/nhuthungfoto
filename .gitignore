@@ -49,3 +49,7 @@ docs/antigravity-brain
 #Opencode config
 opencode.json
 .opencode
+
+# AI Agent directories
+.agent/
+.agents/
