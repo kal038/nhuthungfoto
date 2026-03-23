@@ -45,3 +45,7 @@ docs/antigravity-brain
 
 #TODO files
 *.todo
+
+#Opencode config
+opencode.json
+.opencode
