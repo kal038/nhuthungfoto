@@ -9,7 +9,7 @@ default:
 # Install all dependencies
 install:
     cd frontend && npm install
-    cd backend-node && npm install
+    cd backend && npm install
 
 # Start frontend server only (http://localhost:5173)
 ui:
@@ -17,12 +17,12 @@ ui:
 
 # Start backend server only — Cloudflare Workers local dev (http://localhost:8787)
 server:
-    cd backend-node && npx wrangler dev
+    cd backend && npx wrangler dev
 
 # Start full stack (frontend + backend)
 up: install
     @echo "🚀 Starting nhuthungfoto full-stack..."
-    (cd backend-node && npx wrangler dev) & (cd frontend && npm run dev) & wait
+    (cd backend && npx wrangler dev) & (cd frontend && npm run dev) & wait
 
 # Build frontend for production
 build:
@@ -30,20 +30,20 @@ build:
 
 # Deploy backend to Cloudflare Workers
 deploy:
-    cd backend-node && npx wrangler deploy
+    cd backend && npx wrangler deploy
 
 # Run linting and type-checking across the repository
 lint:
-    cd backend-node && npm run lint
+    cd backend && npm run lint
     cd frontend && npm run lint
 
 # Format code across the repository
 format:
-    cd backend-node && npm run format
+    cd backend && npm run format
     cd frontend && npm run format
 
 # Clean up build artifacts and dependencies
 clean:
     @echo "🧹 Cleaning up..."
-    rm -rf frontend/dist backend-node/dist
-    rm -rf frontend/node_modules backend-node/node_modules
+    rm -rf frontend/dist backend/dist
+    rm -rf frontend/node_modules backend/node_modules

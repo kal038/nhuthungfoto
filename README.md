@@ -79,7 +79,7 @@ nhuthungfoto-site/
 │   │   ├── App.tsx     # Root component
 │   │   └── index.css   # Design system tokens + Tailwind
 │   └── index.html
-├── backend-node/       # Hono on Cloudflare Workers
+├── backend/       # Hono on Cloudflare Workers
 │   ├── src/
 │   │   ├── routes/     # API route handlers
 │   │   ├── middleware/  # Auth, validation, rate limiting

@@ -7,4 +7,4 @@ trigger: always_on
 - Check if inside existing repo: `git rev-parse --is-inside-work-tree`
 - Never run `git init` in subdirectories
 - Never commit `.git` folders
-- This is a monorepo: root = main project, frontend/ and backend-node/ are subdirectories only
+- This is a monorepo: root = main project, frontend/ and backend/ are subdirectories only
