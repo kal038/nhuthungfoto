@@ -4,6 +4,8 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ![High-Level Architecture](docs/Diagrams/nhuthungfoto-hld.png)
 
+![High-Level Architecture](docs/Diagrams/nhuthungfoto-hld.png)
+
 ## Tech Stack
 
 | Layer      | Technology                                 |
@@ -21,7 +23,7 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ### Prerequisites
 
-- Node.js 20+
+- Bun 1.1+
 - npm 10+
 - Wrangler CLI (`npm install -g wrangler`)
 

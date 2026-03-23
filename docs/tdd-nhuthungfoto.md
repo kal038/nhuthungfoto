@@ -4,6 +4,8 @@
 
 ![High-Level System Architecture](./Diagrams/nhuthungfoto-hld.png)
 
+![High-Level System Architecture](./Diagrams/nhuthungfoto-hld.png)
+
 The nhuthungfoto platform follows a **Serverless-First** approach to minimize infrastructure overhead and maximize scalability for a single-founder operation.
 
 ### 1.1 Core Components
@@ -13,6 +15,8 @@ The nhuthungfoto platform follows a **Serverless-First** approach to minimize in
 - **Image Processing Worker (AWS Lambda)**: Dedicated serverless function triggered natively by SQS. Runs `sharp` for image resizing, format conversion, watermarking, and EXIF preservation. Completely isolated from the API server.
 - **Auth (Supabase Auth)**: Managed auth service with Google OAuth + email/password. Handles `auth.users` table, JWTs, and session management.
 - **Database (Supabase)**: Persistent storage for users, courses, and submissions. Uses RLS for secure data access.
+- **Object Storage (Cloudflare R2)**: S3-compatible API chosen for zero egress bandwidth fees. Globally distributed via Cloudflare's Edge.
+- **Message Queue (AWS SQS)**: Decouples upload requests from image processing. Native Lambda trigger eliminates polling code.
 - **Object Storage (Cloudflare R2)**: S3-compatible API chosen for zero egress bandwidth fees. Globally distributed via Cloudflare's Edge.
 - **Message Queue (AWS SQS)**: Decouples upload requests from image processing. Native Lambda trigger eliminates polling code.
 - **AI Orchestrator**: Managed service within the backend that interacts with Gemini/GPT APIs for grading and content generation.
@@ -284,11 +288,12 @@ A photo submission transitions through the following states to ensure credit int
 
 1.  **IDLE**: User selects an assignment.
 2.  **UPLOADING**: Client uploads source image directly to R2 via pre-signed URL; SQS job queued for Lambda processing.
-3.  **PENDING_CREDIT**: Server validates user's `credits_balance`.
-4.  **GRADING**: Credits deducted atomicly; LLM prompt sent to Gemini/GPT.
-5.  **AWAITING_HUNG**: (Only if `review_type == 'HUNG'`) — Move to Hùng's manual review queue after AI grade is complete.
-6.  **COMPLETED**: Final feedback (AI + human) available to user; notification sent.
-7.  **FAILED**: Triggered by upload error, LLM timeout, or credit failure.
+3.  **UPLOADING**: Client uploads source image directly to R2 via pre-signed URL; SQS job queued for Lambda processing.
+4.  **PENDING_CREDIT**: Server validates user's `credits_balance`.
+5.  **GRADING**: Credits deducted atomicly; LLM prompt sent to Gemini/GPT.
+6.  **AWAITING_HUNG**: (Only if `review_type == 'HUNG'`) — Move to Hùng's manual review queue after AI grade is complete.
+7.  **COMPLETED**: Final feedback (AI + human) available to user; notification sent.
+8.  **FAILED**: Triggered by upload error, LLM timeout, or credit failure.
     - _Action_: Logs error and (if credits were deducted) initiates an automated refund.
 
 ## 8. Core API Endpoint Registry
@@ -307,6 +312,7 @@ _Note: On the frontend, all endpoints below are wrapped in custom TanStack Query
 
 ### 8.3 Submissions & Credits
 
+- `POST /v1/submissions`: Initiate a photo upload (returns R2 pre-signed upload URL).
 - `POST /v1/submissions`: Initiate a photo upload (returns R2 pre-signed upload URL).
 - `POST /v1/submissions/:id/grade`: Trigger AI/Human grading flow.
 - `GET /v1/submissions/me`: User's submission history and scores.
@@ -334,6 +340,7 @@ _Note: On the frontend, all endpoints below are wrapped in custom TanStack Query
 ### 10.1 Request Validation
 
 - **Zod**: All incoming payloads (Uploads, Missions, Profiles) are strictly validated against TS-generated Zod schemas.
+- **Image Types**: `image/jpeg`, `image/png`, `image/webp` only. Max size limit direct to R2: 20MB (generous limit to perfectly support DSLR/Mirrorless users without forcing local compression).
 - **Image Types**: `image/jpeg`, `image/png`, `image/webp` only. Max size limit direct to R2: 20MB (generous limit to perfectly support DSLR/Mirrorless users without forcing local compression).
 
 ### 10.2 Rate Limiting
