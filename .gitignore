@@ -53,3 +53,10 @@ opencode.json
 # AI Agent directories
 .agent/
 .agents/
+
+#Justfile and Makefile
+Justfile
+Makefile
+
+#Skills lock
+skills-lock.json
