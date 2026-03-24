@@ -13,6 +13,12 @@ export interface Env {
   R2_PORTFOLIO_PUBLIC: R2Bucket
 
   // ---------------------
+  // R2 Buckets (names for aws4fetch)
+  // ---------------------
+  R2_UPLOADS_RAW_NAME: string
+  R2_PORTFOLIO_PUBLIC_NAME: string
+
+  // ---------------------
   // R2 S3-compatible API (secrets — for pre-signed URLs)
   // ---------------------
   R2_ACCESS_KEY_ID: string

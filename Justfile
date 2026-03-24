@@ -5,7 +5,7 @@ set shell := ["zsh", "-c"]
 # Display available recipes
 
 default:
-@just --list
+    @just --list
 
 # Install all dependencies
 
@@ -16,12 +16,12 @@ install:
 # Start frontend server only (http://localhost:5173)
 
 ui:
-cd frontend && npm run dev
+    cd frontend && npm run dev
 
 # Start backend server only - Cloudflare Workers local dev (http://localhost:8787)
 
 server:
-    cd backend && npx wrangler dev
+    cd backend && npm run dev
 
 # Start full stack (frontend + backend)
 
@@ -54,7 +54,6 @@ format:
 # Clean up build artifacts and dependencies
 
 clean:
-    @echo "🧹 Cleaning up..."
     rm -rf frontend/dist backend/dist
     rm -rf frontend/node_modules backend/node_modules
 

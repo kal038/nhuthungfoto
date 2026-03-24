@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
-import { healthRouter } from './routes/health.js'
-import type { Env } from './types/env.js'
+import { healthRouter } from './routes/health'
+import { uploadsRouter } from './routes/uploads'
+import type { Env } from './types/env'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -22,5 +23,6 @@ app.use('*', (c, next) => {
 // Routes
 // ---------------------
 app.route('/v1', healthRouter)
+app.route('/v1/uploads', uploadsRouter)
 
 export default app

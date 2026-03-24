@@ -22,7 +22,7 @@ async function generatePresignedUploadUrl(
 ): Promise<PresignedUrlResult> {
   const client = getR2Client(env)
 
-  const url = `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.R2_UPLOADS_RAW}/${objectKey}?X-Amz-Expires=${EXPIRY_SECONDS}`
+  const url = `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/${env.R2_UPLOADS_RAW_NAME}/${objectKey}?X-Amz-Expires=${EXPIRY_SECONDS}`
 
   const signedRequest = await client.sign(url, {
     method: 'PUT',
