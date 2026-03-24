@@ -6,7 +6,7 @@
   "compatibility_flags": ["nodejs_compat_v2"],
 
   "dev": {
-    "ip": "0.0.0.0",
+    "ip": "0.0.0.0", //to be changed in prod
   },
 
   // Non-secret environment variables
@@ -15,8 +15,18 @@
   },
 
   // R2 Buckets
+  // Production
   "r2_buckets": [
     { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw" },
     { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public" },
   ],
+  // Dev
+  "env": {
+    "dev": {
+      "r2_buckets": [
+        { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev" },
+        { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev" }
+      ],
+    },
+  },
 }

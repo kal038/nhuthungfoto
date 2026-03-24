@@ -6,3 +6,5 @@ Justfile
 opencode.json
 .agent
 .agents
+.wrangler
+wrangler.jsonc
