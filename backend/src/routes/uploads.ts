@@ -14,7 +14,7 @@ uploadsRouter.post('/presign', async (c) => {
     }
     const { fileName, contentType } = result.data //get fileName and contentType only
 
-    const objectKey = `anonymous/${crypto.randomUUID()}/${fileName}` //placeholder for userID
+    const objectKey = `anonymous/${crypto.randomUUID()}/${fileName.replace(/[^a-zA-Z0-9._-]/g, '')}` //placeholder for userID
 
     const presignedUrlResult: PresignedUrlResult =
       await generatePresignedUploadUrl(c.env, objectKey, contentType)
