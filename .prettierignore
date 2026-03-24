@@ -2,3 +2,9 @@ dist
 node_modules
 package-lock.json
 .git
+Justfile
+opencode.json
+.agent
+.agents
+.wrangler
+wrangler.jsonc

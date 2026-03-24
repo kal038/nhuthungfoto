@@ -6,17 +6,35 @@
   "compatibility_flags": ["nodejs_compat_v2"],
 
   "dev": {
-    "ip": "0.0.0.0",
+    "ip": "0.0.0.0", //to be changed in prod
   },
 
   // Non-secret environment variables
   "vars": {
-    "FRONTEND_URL": "http://localhost:5173",
+    "FRONTEND_URL": "https://nhuthungfoto.com",
+    "R2_UPLOADS_RAW_NAME": "uploads-raw",
+    "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public",
   },
 
   // R2 Buckets
+  // Production
   "r2_buckets": [
     { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw" },
     { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public" },
   ],
+  // Dev Environment (wrangler dev --env dev)
+  "env": {
+    "dev": {
+      // These strings override the top-level production ones specifically for local dev
+      "vars": {
+        "FRONTEND_URL": "http://localhost:5173",
+        "R2_UPLOADS_RAW_NAME": "uploads-raw-dev",
+        "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public-dev"
+      },
+      "r2_buckets": [
+        { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev" },
+        { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev" }
+      ]
+    }
+  }
 }
