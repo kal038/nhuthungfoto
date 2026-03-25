@@ -19,6 +19,7 @@ async function generatePresignedUploadUrl(
   env: Env,
   objectKey: string,
   contentType: string,
+  fileSizeBytes: number,
 ): Promise<PresignedUrlResult> {
   const client = getR2Client(env)
 
@@ -28,6 +29,7 @@ async function generatePresignedUploadUrl(
     method: 'PUT',
     headers: {
       'Content-Type': contentType,
+      'Content-Length': fileSizeBytes.toString(),
     },
     aws: {
       signQuery: true,
