@@ -1,0 +1,108 @@
+TASK:
+Implement photo upload to Cloudflare R2 via pre-signed URLs
+
+CONSTRAINTS:
+- Hono on Cloudflare Workers (already set up)
+- **aws4fetch** for pre-signed URL signing (NOT @aws-sdk — fails with DOMParser error in Workers)
+- Zod for request validation (already installed)
+- TanStack React Query for frontend mutations (needs install)
+- No auth yet — use placeholder userId = "anonymous"
+- File types: image/jpeg, image/png, image/webp only
+- Max file size: 20MB
+- Pre-signed URL TTL: 15 minutes
+- API never touches image bytes — client PUTs directly to R2
+- R2 bucket URL format: `https://{CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/{bucket}/{key}`
+
+STEPS:
+
+1. Install aws4fetch, remove unused AWS SDK packages:
+   - cd backend && npm install aws4fetch
+   - cd backend && npm uninstall @aws-sdk/client-s3 @aws-sdk/s3-request-presigner
+
+2. Update backend/src/types/env.ts:
+   - add CLOUDFLARE_ACCOUNT_ID: string (needed to construct R2 S3 URL)
+
+3. Update backend/.env.example and backend/.dev.vars:
+   - add CLOUDFLARE_ACCOUNT_ID entry
+   - remove any references to R2_S3_ENDPOINT (no longer needed, built from account ID)
+
+4. Create backend/src/schemas/upload.ts with:
+   - presignRequestSchema (Zod object)
+     - fileName: non-empty string
+     - contentType: enum image/jpeg | image/png | image/webp
+     - fileSizeBytes: number, min 1, max 20_971_520
+   - export inferred type PresignRequest
+
+5. Create backend/src/services/r2.ts with:
+   - generatePresignedUploadUrl(objectKey, contentType, env)
+   - create AwsClient with { accessKeyId, secretAccessKey, service: 's3', region: 'auto' }
+   - construct bucket URL: `https://${env.CLOUDFLARE_ACCOUNT_ID}.r2.cloudflarestorage.com/uploads-raw/${objectKey}`
+   - call aws.sign(url, { method: 'PUT', headers: { 'Content-Type': contentType }, aws: { signQuery: true } })
+   - return { uploadUrl: signedRequest.url, objectKey, expiresIn: 900 }
+   - export type PresignedUrlResult
+
+6. Create backend/src/routes/uploads.ts with:
+   - uploadsRouter (Hono router)
+   - POST /uploads/presign handler
+   - parse + validate body with presignRequestSchema
+   - generate objectKey: anonymous/{crypto.randomUUID()}/{fileName}
+   - call generatePresignedUploadUrl
+   - return 200 { uploadUrl, objectKey, expiresIn }
+   - return 400 on Zod error, 500 on signing failure
+
+7. Update backend/src/index.ts:
+   - import uploadsRouter from ./routes/uploads.js
+   - add app.route('/v1', uploadsRouter)
+
+8. Verify backend:
+   - npx wrangler dev
+   - curl POST /v1/uploads/presign with valid body → expect 200
+   - curl with invalid body → expect 400
+   - npx wrangler dev --remote → test with real R2 bucket
+   - PUT a file to returned URL → verify with wrangler r2 object get
+
+9. Update frontend/src/lib/api.ts with:
+   - API_BASE_URL from import.meta.env.VITE_API_URL || "http://localhost:8787"
+   - apiClient object with post<T>(path, body) and get<T>(path)
+   - throw ApiError on non-2xx responses
+
+10. Create frontend/src/types/upload.ts with:
+    - PresignRequest { fileName, contentType, fileSizeBytes }
+    - PresignResponse { uploadUrl, objectKey, expiresIn }
+    - UploadProgress { status: idle|uploading|success|error, progress: number, error?: string }
+
+11. Install @tanstack/react-query in frontend:
+    - npm install @tanstack/react-query
+
+12. Update frontend/src/main.tsx:
+    - import QueryClient, QueryClientProvider
+    - create queryClient at module scope
+    - wrap <App> with <QueryClientProvider>
+
+13. Create frontend/src/hooks/mutations/usePresignedUpload.ts with:
+    - useMutation that takes a File object
+    - step 1: client-side validate type + size
+    - step 2: call POST /v1/uploads/presign via apiClient
+    - step 3: PUT file to uploadUrl with Content-Type header
+    - track upload progress via XMLHttpRequest
+    - return { mutate, isPending, isSuccess, isError, error, progress }
+
+14. Create frontend/src/components/features/UploadDropzone.tsx with:
+    - drag-and-drop zone + file input fallback
+    - accept image/jpeg, image/png, image/webp
+    - show states: idle → uploading (progress bar) → success → error (retry)
+    - use usePresignedUpload hook
+    - use framer-motion for animations
+
+15. Update frontend/src/App.tsx:
+    - import and render <UploadDropzone /> temporarily for testing
+    - remove after feature is integrated into proper page
+
+---
+
+**Key difference from the old plan:** Step 5 uses `AwsClient` from `aws4fetch` with `aws.sign(url, { aws: { signQuery: true } })` instead of `S3Client` + `getSignedUrl` from the AWS SDK. This avoids the `DOMParser is not defined` runtime crash, and the library is ~3KB vs ~300KB for the full SDK. We also need `CLOUDFLARE_ACCOUNT_ID` in env to construct the R2 S3 endpoint URL directly.
+
+curl -s -X POST http://localhost:8787/v1/uploads/presign \
+  -H "Content-Type: application/json" \
+  -d '{"fileName": "fake-photo.jpeg", "contentType": "image/jpeg","fileSizeBytes": 1}' \
+  | jq -r '.uploadUrl' | pbcopy
