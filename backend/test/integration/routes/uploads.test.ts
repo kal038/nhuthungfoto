@@ -58,6 +58,8 @@ describe('Uploads Route', () => {
     fileSizeBytes: 1024,
   }
 
+  const invalidRequestEmptyBody = {}
+
   beforeEach(() => {
     app = new Hono<{ Bindings: Env }>()
     app.use('*', async (c, next) => {
@@ -146,6 +148,28 @@ describe('Uploads Route', () => {
         expect.stringMatching(/anonymous\/[a-f0-9-]+\/photo\.jpg/),
         expect.any(Object),
       )
+    })
+
+    it('should sanitize special characters from fileName in object key', async () => {
+      mockSign.mockResolvedValueOnce({ url: 'https://signed.example.com' })
+
+      await postPresign({
+        fileName: 'my photo (1).jpg',
+        contentType: 'image/jpeg',
+        fileSizeBytes: 1024,
+      })
+
+      expect(mockSign).toHaveBeenCalledWith(
+        expect.stringMatching(/anonymous\/[a-f0-9-]+\/myphoto1\.jpg/),
+        expect.any(Object),
+      )
+    })
+
+    it('should return 400 when request body is empty object', async () => {
+      const response = await postPresign(invalidRequestEmptyBody)
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data).toHaveProperty('error')
     })
 
     it('should return 500 when aws4fetch throws error', async () => {
