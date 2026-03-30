@@ -48,11 +48,6 @@ docs/antigravity-brain
 
 #Opencode config
 opencode.json
-.opencode
-
-# AI Agent directories
-.agent/
-.agents/
 
 #Justfile and Makefile
 Justfile
@@ -60,6 +55,3 @@ Makefile
 
 #Skills lock
 skills-lock.json
-
-#Implementation guide
-docs/implementation
