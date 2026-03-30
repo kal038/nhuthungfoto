@@ -60,6 +60,3 @@ Makefile
 
 #Skills lock
 skills-lock.json
-
-#Implementation guide
-docs/implementation
