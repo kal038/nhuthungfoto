@@ -22,6 +22,16 @@
     { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw" },
     { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public" },
   ],
+  "ratelimits": [
+    {
+      "name": "RATE_LIMITER",
+      "namespace_id": "1001",
+      "simple": {
+        "limit": 10,
+        "period": 60
+      }
+    }
+  ],
   // Dev Environment (wrangler dev --env dev)
   "env": {
     "dev": {
@@ -34,6 +44,16 @@
       "r2_buckets": [
         { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev" },
         { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev" }
+      ],
+      "ratelimits": [
+        {
+          "name": "RATE_LIMITER",
+          "namespace_id": "1001",
+          "simple": {
+            "limit": 10,
+            "period": 60
+          }
+        }
       ]
     }
   }

@@ -3,6 +3,7 @@ import { cors } from 'hono/cors'
 import { secureHeaders } from 'hono/secure-headers'
 import { healthRouter } from './routes/health'
 import { uploadsRouter } from './routes/uploads'
+import { myRateLimiter } from './middleware/rateLimit'
 import type { Env } from './types/env'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -10,6 +11,7 @@ const app = new Hono<{ Bindings: Env }>()
 // ---------------------
 // Middleware
 // ---------------------
+app.use('*', myRateLimiter)
 app.use('*', secureHeaders())
 app.use('*', (c, next) => {
   const corsMiddleware = cors({
