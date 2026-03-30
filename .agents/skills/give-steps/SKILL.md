@@ -1,10 +1,6 @@
 ---
-name: implementation-steps
-description: Generate a clear, step-by-step implementation plan for a given engineering task that
-- Is immediately executable by a developer
-- Contains **zero code**
-- Breaks work into atomic, verifiable steps
-- Respects constraints and environment details
+name: give-steps
+description: Generate a clear, step-by-step implementation plan for a given engineering task that is immediately executable by a developer
 ---
 
 **Trigger conditions:**

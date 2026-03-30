@@ -48,7 +48,6 @@ docs/antigravity-brain
 
 #Opencode config
 opencode.json
-.opencode
 
 #Justfile and Makefile
 Justfile
