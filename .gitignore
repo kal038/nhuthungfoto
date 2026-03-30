@@ -50,10 +50,6 @@ docs/antigravity-brain
 opencode.json
 .opencode
 
-# AI Agent directories
-.agent/
-.agents/
-
 #Justfile and Makefile
 Justfile
 Makefile
