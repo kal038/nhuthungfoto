@@ -15,7 +15,7 @@ uploadsRouter.post('/presign', async (c) => {
     }
     const { fileName, contentType, fileSizeBytes } = result.data //get fileName and contentType only
 
-    const userId = c.get('user').id
+    const userId = c.get('user').id //grab user from Hono's extended context
 
     const objectKey = `${userId}/${crypto.randomUUID()}/${fileName.replace(/[^a-zA-Z0-9._-]/g, '')}` //placeholder for userID
 

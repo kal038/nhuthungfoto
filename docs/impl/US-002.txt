@@ -3,10 +3,11 @@ TASK: Add Supabase Auth (email/password) to the nhuthungfoto application, protec
 CONSTRAINTS:
 
 Use @supabase/supabase-js for frontend auth
-Use hono/jwt verify function to validate Supabase-issued JWTs on the backend
+Use hono/jwk middleware to verify Supabase-issued JWTs on the backend using JWKS
 No SaaS auth providers (no Clerk, Auth0)
-Auth is purely JWT-based and stateless — the backend never calls Supabase to validate tokens
-Supabase credentials already exist in the environment (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY)
+Auth is JWT-based - the backend fetches JWKS from Supabase and verifies locally (cached)
+Supabase credentials already exist in the environment (SUPABASE_URL, SUPABASE_ANON_KEY)
+Supabase migrated to new key system (ES256 asymmetric) - JWT secret is no longer used
 Zod is the only validation library on the backend
 Frontend uses React 19, Vite, Tailwind CSS 4, shadcn/ui
 Email confirmation is disabled for now
@@ -16,36 +17,36 @@ PKCE flow is the default in supabase-js and should remain so
 Hono verify() requires three arguments: (token, secret, algorithm) — use HS256
 STEPS:
 
-1. Backend — Add JWT secret to environment:
+1. Backend — Set up Supabase environment for development:
 
-Retrieve the JWT Secret from the Supabase dashboard (Settings > API > JWT Secret)
-Add SUPABASE_JWT_SECRET to backend/.dev.vars for local development
-Run wrangler secret put SUPABASE_JWT_SECRET for production
-Update backend/src/types/env.ts — add SUPABASE_JWT_SECRET: string to the Env interface
+Ensure backend/.dev.vars contains:
+- SUPABASE_URL (dev project URL)
+- SUPABASE_ANON_KEY (dev project anon key)
+Note: SUPABASE_JWT_SECRET and SUPABASE_SERVICE_ROLE_KEY are NOT needed with the new key system
+The new publishable/secret keys cannot be used for offline JWT verification
 
 2. Backend — Create auth middleware:
 
 Create backend/src/middleware/auth.ts
-Define an AuthVariables type with userId: string and userRole: string
-The middleware extracts the Authorization: Bearer <token> header
-Returns 401 JSON if the header is missing or malformed
-Verifies the JWT signature using verify(token, env.SUPABASE_JWT_SECRET, 'HS256') from hono/jwt
-Verifies the exp claim is not expired (handled by verify)
-Extracts sub (user ID) and role from the JWT payload
-Sets userId and userRole on the Hono context via c.set()
+Use hono/jwk middleware to fetch JWKS from Supabase and verify JWTs
+Define an AuthVariables type with id: string, email?: string, role?: string
+The middleware fetches JWKS from ${SUPABASE_URL}/auth/v1/.well-known/jwks.json
 Returns 401 JSON if verification fails
+Extracts sub (user ID), email, role from the JWT payload
+Sets user info on the Hono context via c.set()
 3. Backend — Apply auth middleware to uploads route:
 
 Update backend/src/index.ts — import the auth middleware
 Apply it to /v1/uploads/* using app.use() before app.route('/v1/uploads', uploadsRouter)
 Do NOT apply it to /v1/health
 Add Authorization to the CORS allowHeaders list
-Update the Hono app generic to include Variables: AuthVariables
+Update the Hono app generic to include Variables for auth
+
 4. Backend — Replace anonymous prefix with user ID:
 
 Update backend/src/routes/uploads.ts
 Import AuthVariables type and add it to the router generic
-Replace the hardcoded anonymous/ prefix on the object key with c.get('userId')
+Replace the hardcoded anonymous/ prefix on the object key with c.get('user').id
 Object key format becomes {userId}/{uuid}/{sanitizedFileName}
 
 5. Frontend — Install dependencies:
