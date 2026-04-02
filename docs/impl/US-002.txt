@@ -13,8 +13,8 @@ Frontend uses React 19, Vite, Tailwind CSS 4, shadcn/ui
 Email confirmation is disabled for now
 Only /v1/uploads requires auth; /v1/health stays public
 Frontend routing uses TanStack Router (file-based routing)
-PKCE flow is the default in supabase-js and should remain so
-Hono verify() requires three arguments: (token, secret, algorithm) — use HS256
+PKCE flow is the default in supabase-js should remain so
+Server state management uses TanStack Query - no useState/useEffect hooks
 STEPS:
 
 1. Backend — Set up Supabase environment for development:
@@ -52,6 +52,7 @@ Object key format becomes {userId}/{uuid}/{sanitizedFileName}
 5. Frontend — Install dependencies:
 
 Install @supabase/supabase-js in frontend/
+Install @tanstack/react-query in frontend/
 Install @tanstack/react-router in frontend/
 Install @tanstack/router-plugin as a dev dependency in frontend/
 
@@ -78,13 +79,14 @@ Create a useAuth() hook that consumes the context and throws if used outside the
 
 Update frontend/src/main.tsx — wrap <App /> with <AuthProvider>
 
-8. Frontend — Update API client to attach auth tokens:
+8. Frontend — Set up TanStack Query and API client:
 
-Update frontend/src/lib/api.ts
-Create an apiFetch wrapper that gets the current session via supabase.auth.getSession()
-Attach Authorization: Bearer <access_token> to every request
-Set base URL from import.meta.env.VITE_API_URL
-Handle 401 responses by redirecting to sign-in or raising an auth error
+Install @tanstack/react-query
+Create frontend/src/lib/queryClient.ts — configure QueryClient with default options
+Update frontend/src/main.tsx — wrap <App /> with <QueryClientProvider> AND <AuthProvider>
+Create an apiClient using fetch with Authorization header from supabase.auth.getSession()
+Use createQuery from @tanstack/react-query for data fetching in components
+Handle 401 responses by redirecting to sign-in (useQuery's onError or useEffect)
 Add VITE_API_URL to frontend/.env.local (value: http://localhost:8787 for local dev)
 
 9. Frontend — Create sign-in and sign-up form components:
@@ -123,8 +125,8 @@ Show user email and "Đăng Xuất" button when user is authenticated
 Start backend with wrangler dev --env dev, frontend with npm run dev
 GET /v1/health returns 200 without auth
 POST /v1/uploads/presign without Authorization header returns 401
-Navigate to /sign-up, create a test account, verify user appears in Supabase dashboard
+Navigate to /sign-up, create a test account using TanStack Query mutation, verify user appears in Supabase dashboard
 Navigate to /sign-in, log in, verify Navbar updates to show email and sign-out button
-Trigger presigned URL flow, verify request includes Authorization: Bearer <jwt> and object key uses user UUID instead of anonymous/
+Trigger presigned URL flow using TanStack Query, verify request includes Authorization: Bearer <jwt> and object key uses user UUID instead of anonymous/
 Click sign out, verify session clears and protected API calls return 401
 Send request with Authorization: Bearer invalid-token, verify 401
