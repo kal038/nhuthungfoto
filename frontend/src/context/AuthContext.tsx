@@ -1,15 +1,9 @@
-// hold session, user, and loading states
-// on mount call supbabase auth onAtuthStatechang
-// clean up on unmount
-// expose above states via context
-// expose these methods via context: signIn, signUp, signOut
-
 import { supabase } from '@/lib/supabase'
 import type { Session, User } from '@supabase/supabase-js'
-import { createContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useState } from 'react'
 
 //first define the context shape
-//then create context
+//then create context obj
 //define provider component that contains states and methods, return a jsx that wraps children within context provider
 //create a custom useAuth() hook that consumes the context and throws an error if used outside of the provider
 
@@ -66,7 +60,6 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
     getInitialSession()
 
-    //onAuthStateChange registers a listener on supabase.auth for any changes
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
@@ -75,11 +68,16 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       setLoading(false)
     })
 
-    //unsubscribe when component unmounts by returning in useEffect
     return () => subscription.unsubscribe()
   }, [])
 
   return (
     <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut }}>{children}</AuthContext.Provider>
   )
+}
+
+export const useAuth = () => {
+  const context = useContext(AuthContext)
+  if (!context) throw new Error('useAuth must be used within AuthProvider')
+  return context
 }
