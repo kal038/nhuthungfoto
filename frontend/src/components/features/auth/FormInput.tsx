@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Eye, EyeOff, AlertCircle } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Button } from '@/components/ui/button'
 
 interface FormInputProps {
   id: string
@@ -31,10 +32,7 @@ export function FormInput({
 
   return (
     <div className="space-y-2">
-      <Label
-        htmlFor={id}
-        className="text-sm font-medium text-primary"
-      >
+      <Label htmlFor={id} className="text-sm font-medium text-primary">
         {label}
       </Label>
 
@@ -49,7 +47,7 @@ export function FormInput({
           className={`
             h-11 rounded-lg border-zinc-200 bg-white
             font-body text-base text-primary
-            placeholder:text-muted
+            placeholder:text-muted-foreground
             focus-visible:ring-2 focus-visible:ring-cta focus-visible:border-cta
             transition-all duration-200
             ${isPassword ? 'pr-11' : ''}
@@ -60,19 +58,17 @@ export function FormInput({
         />
 
         {isPassword && (
-          <button
+          <Button
             type="button"
+            variant="ghost"
+            size="icon-xs"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted hover:text-secondary transition-colors duration-200 cursor-pointer"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground hover:bg-transparent"
             aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
             tabIndex={-1}
           >
-            {showPassword ? (
-              <EyeOff className="h-4.5 w-4.5" />
-            ) : (
-              <Eye className="h-4.5 w-4.5" />
-            )}
-          </button>
+            {showPassword ? <EyeOff className="h-4.5 w-4.5" /> : <Eye className="h-4.5 w-4.5" />}
+          </Button>
         )}
       </div>
 

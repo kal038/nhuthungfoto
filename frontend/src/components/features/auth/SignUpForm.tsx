@@ -42,10 +42,8 @@ export function SignUpForm({
     <div className="space-y-8">
       {/* Header */}
       <div className="space-y-2">
-        <h1 className="font-heading text-3xl font-semibold text-primary">
-          Tạo Tài Khoản
-        </h1>
-        <p className="font-body text-muted text-base">
+        <h1 className="font-heading text-3xl font-semibold text-primary">Tạo Tài Khoản</h1>
+        <p className="font-body text-muted-foreground text-base">
           Bắt đầu hành trình nhiếp ảnh của bạn
         </p>
       </div>
@@ -94,7 +92,10 @@ export function SignUpForm({
 
         {/* Global error */}
         {error && (
-          <div className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium" role="alert">
+          <div
+            className="rounded-lg bg-destructive/10 px-4 py-3 text-sm text-destructive font-medium"
+            role="alert"
+          >
             {error}
           </div>
         )}
@@ -122,13 +123,13 @@ export function SignUpForm({
       {/* Separator */}
       <div className="relative">
         <Separator className="bg-zinc-200" />
-        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted font-body">
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted-foreground font-body">
           hoặc
         </span>
       </div>
 
       {/* Footer navigation */}
-      <p className="text-center text-sm text-secondary font-body">
+      <p className="text-center text-sm text-muted-foreground font-body">
         Đã có tài khoản?{' '}
         <Link
           to="/login"

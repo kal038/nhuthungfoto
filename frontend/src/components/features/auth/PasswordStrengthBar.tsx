@@ -24,7 +24,7 @@ const STRENGTH_COLORS: Record<number, string> = {
 }
 
 const STRENGTH_TEXT_COLORS: Record<number, string> = {
-  0: 'text-muted',
+  0: 'text-muted-foreground',
   1: 'text-red-600',
   2: 'text-amber-600',
   3: 'text-emerald-600',
