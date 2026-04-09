@@ -75,11 +75,11 @@ signUp calls supabase.auth.signUp()
 signOut calls supabase.auth.signOut()
 Create a useAuth() hook that consumes the context and throws if used outside the provider
 
-7. Frontend — Wire AuthContext into the app:
+(DONE) 7. Frontend — Wire AuthContext into the app:
 
 Update frontend/src/main.tsx — wrap <App /> with <AuthProvider>
 
-8. Frontend — Set up TanStack Query and API client:
+(WIP) 8. Frontend — Set up TanStack Query and API client:
 
 Install @tanstack/react-query
 Create frontend/src/lib/queryClient.ts — configure QueryClient with default options

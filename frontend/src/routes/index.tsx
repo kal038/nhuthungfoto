@@ -1,7 +1,12 @@
+import { createFileRoute } from '@tanstack/react-router'
 import { Navbar } from '@/components/features/landing/Navbar'
 import { HeroSection } from '@/components/features/landing/HeroSection'
 
-function App() {
+export const Route = createFileRoute('/') ({
+  component: LandingPage,
+})
+
+function LandingPage() {
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -15,5 +20,3 @@ function App() {
     </div>
   )
 }
-
-export default App
