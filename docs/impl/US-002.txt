@@ -125,7 +125,7 @@ Add VITE_API_URL to .env
 13. Verification:
 
 Start backend with wrangler dev --env dev, frontend with npm run dev
-GET /v1/health returns 200 without auth
+GET /v1/health returns 200
 Navigate to /sign-up, create a test account, verify user appears in Supabase dashboard
 Navigate to /sign-in, log in, verify Navbar updates to show email and sign-out button
 Trigger presigned URL flow using TanStack Query, verify request includes Authorization: Bearer <jwt> and object key uses user UUID instead of anonymous/
