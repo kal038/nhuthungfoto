@@ -79,7 +79,7 @@ Create a useAuth() hook that consumes the context and throws if used outside the
 
 Update frontend/src/main.tsx — wrap <App /> with <AuthProvider>
 
-(WIP) 8. Frontend — Set up TanStack Query and API client:
+(DONE) 8. Frontend — Set up TanStack Query and API client:
 
 Install @tanstack/react-query
 Create frontend/src/lib/queryClient.ts — configure QueryClient with default options
