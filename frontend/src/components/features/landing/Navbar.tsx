@@ -1,22 +1,30 @@
 import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
+import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import {
-  Sheet,
-  SheetContent,
-  SheetTrigger,
-  SheetClose,
-  SheetTitle,
-} from '@/components/ui/sheet'
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
+import { useAuth } from '@/context/AuthContext'
+import { useNavigate } from '@tanstack/react-router'
 
 const NAV_LINKS = [
-  { label: 'Trang chủ', href: '#' },
-  { label: 'Tác phẩm', href: '#portfolio' },
-  { label: 'Khóa học', href: '#courses' },
-  { label: 'Đặt lịch', href: '#booking' },
+  { label: 'Trang chủ', href: '/' },
+  { label: 'Tác phẩm', href: '/portfolio' },
+  { label: 'Khóa học', href: '/courses' },
+  { label: 'Đặt lịch', href: '/booking' },
 ]
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const { user, signOut } = useAuth()
+  const navigate = useNavigate()
+  const links = user ? NAV_LINKS : [...NAV_LINKS, { label: 'Đăng Nhập', href: '/login' }]
 
   useEffect(() => {
     const handleScroll = () => {
@@ -25,6 +33,11 @@ export function Navbar() {
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate({ to: '/' })
+  }
 
   return (
     <nav
@@ -54,17 +67,13 @@ export function Navbar() {
 
       {/* Desktop Links */}
       <div className="hidden md:flex items-center gap-6 text-sm">
-        {NAV_LINKS.map((link) => (
+        {links.map((link) => (
           <a
             key={link.label}
             href={link.href}
             className={`
               transition-colors duration-200 cursor-pointer
-              ${
-                isScrolled
-                  ? 'text-zinc-600 hover:text-zinc-900'
-                  : 'text-white/80 hover:text-white'
-              }
+              ${isScrolled ? 'text-zinc-600 hover:text-zinc-900' : 'text-white/80 hover:text-white'}
             `}
           >
             {link.label}
@@ -72,10 +81,46 @@ export function Navbar() {
         ))}
       </div>
 
-      {/* Desktop CTA */}
-      <button className="hidden md:block bg-cta text-white px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity duration-200 cursor-pointer">
-        Bắt Đầu Học
-      </button>
+      {/* Desktop Auth Section */}
+      <div className="hidden md:flex items-center gap-3">
+        {user ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="rounded-full hover:opacity-80 transition-opacity cursor-pointer outline-none">
+                <Avatar className="h-8 w-8">
+                  <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
+                  <AvatarFallback className="bg-cta text-white text-sm font-medium">
+                    {user.user_metadata?.full_name?.[0]?.toUpperCase() ||
+                      user.user_metadata?.name?.[0]?.toUpperCase() ||
+                      user.email?.[0].toUpperCase() ||
+                      'U'}
+                  </AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-48" sideOffset={8}>
+              <DropdownMenuItem className="text-sm cursor-pointer">Hồ sơ</DropdownMenuItem>
+              <DropdownMenuItem className="text-sm cursor-pointer">
+                Khóa học của tôi
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onClick={handleSignOut}
+                className="text-red-600 text-sm cursor-pointer"
+              >
+                Đăng xuất
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <button
+            onClick={() => navigate({ to: '/signup' })}
+            className="bg-cta text-white px-5 py-2 rounded-full text-sm font-semibold hover:opacity-90 transition-opacity duration-200 cursor-pointer"
+          >
+            Bắt Đầu Học
+          </button>
+        )}
+      </div>
 
       {/* Mobile Hamburger */}
       <div className="md:hidden">
@@ -106,7 +151,7 @@ export function Navbar() {
               </SheetClose>
             </div>
             <div className="flex flex-col gap-4">
-              {NAV_LINKS.map((link) => (
+              {links.map((link) => (
                 <SheetClose asChild key={link.label}>
                   <a
                     href={link.href}
@@ -117,11 +162,25 @@ export function Navbar() {
                 </SheetClose>
               ))}
               <hr className="border-zinc-200 my-2" />
-              <SheetClose asChild>
-                <button className="bg-cta text-white w-full py-3 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity duration-200 cursor-pointer">
-                  Bắt Đầu Học
-                </button>
-              </SheetClose>
+              {user ? (
+                <SheetClose asChild>
+                  <button
+                    onClick={handleSignOut}
+                    className="bg-zinc-100 text-zinc-900 w-full py-3 rounded-lg text-sm font-semibold hover:bg-zinc-200 transition-colors duration-200 cursor-pointer"
+                  >
+                    Đăng Xuất
+                  </button>
+                </SheetClose>
+              ) : (
+                <SheetClose asChild>
+                  <button
+                    onClick={() => navigate({ to: '/signup' })}
+                    className="bg-cta text-white w-full py-3 rounded-lg text-sm font-semibold hover:opacity-90 transition-opacity duration-200 cursor-pointer"
+                  >
+                    Bắt Đầu Học
+                  </button>
+                </SheetClose>
+              )}
             </div>
           </SheetContent>
         </Sheet>
