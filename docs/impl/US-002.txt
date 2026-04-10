@@ -3,54 +3,56 @@ TASK: Add Supabase Auth (email/password) to the nhuthungfoto application, protec
 CONSTRAINTS:
 
 Use @supabase/supabase-js for frontend auth
-Use hono/jwt verify function to validate Supabase-issued JWTs on the backend
+Use hono/jwk middleware to verify Supabase-issued JWTs on the backend using JWKS
 No SaaS auth providers (no Clerk, Auth0)
-Auth is purely JWT-based and stateless — the backend never calls Supabase to validate tokens
-Supabase credentials already exist in the environment (SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY)
+Auth is JWT-based - the backend fetches JWKS from Supabase and verifies locally (cached)
+Supabase credentials already exist in the environment (SUPABASE_URL, SUPABASE_ANON_KEY)
+Supabase migrated to new key system (ES256 asymmetric) - JWT secret is no longer used
 Zod is the only validation library on the backend
 Frontend uses React 19, Vite, Tailwind CSS 4, shadcn/ui
 Email confirmation is disabled for now
 Only /v1/uploads requires auth; /v1/health stays public
 Frontend routing uses TanStack Router (file-based routing)
-PKCE flow is the default in supabase-js and should remain so
-Hono verify() requires three arguments: (token, secret, algorithm) — use HS256
+PKCE flow is the default in supabase-js should remain so
+Server state management uses TanStack Query - no useState/useEffect hooks
 STEPS:
 
-1. Backend — Add JWT secret to environment:
+1. Backend — Set up Supabase environment for development:
 
-Retrieve the JWT Secret from the Supabase dashboard (Settings > API > JWT Secret)
-Add SUPABASE_JWT_SECRET to backend/.dev.vars for local development
-Run wrangler secret put SUPABASE_JWT_SECRET for production
-Update backend/src/types/env.ts — add SUPABASE_JWT_SECRET: string to the Env interface
+Ensure backend/.dev.vars contains:
+- SUPABASE_URL (dev project URL)
+- SUPABASE_ANON_KEY (dev project anon key)
+Note: SUPABASE_JWT_SECRET and SUPABASE_SERVICE_ROLE_KEY are NOT needed with the new key system
+The new publishable/secret keys cannot be used for offline JWT verification
 
 2. Backend — Create auth middleware:
 
 Create backend/src/middleware/auth.ts
-Define an AuthVariables type with userId: string and userRole: string
-The middleware extracts the Authorization: Bearer <token> header
-Returns 401 JSON if the header is missing or malformed
-Verifies the JWT signature using verify(token, env.SUPABASE_JWT_SECRET, 'HS256') from hono/jwt
-Verifies the exp claim is not expired (handled by verify)
-Extracts sub (user ID) and role from the JWT payload
-Sets userId and userRole on the Hono context via c.set()
+Use hono/jwk middleware to fetch JWKS from Supabase and verify JWTs
+Define an AuthVariables type with id: string, email?: string, role?: string
+The middleware fetches JWKS from ${SUPABASE_URL}/auth/v1/.well-known/jwks.json
 Returns 401 JSON if verification fails
+Extracts sub (user ID), email, role from the JWT payload
+Sets user info on the Hono context via c.set()
 3. Backend — Apply auth middleware to uploads route:
 
 Update backend/src/index.ts — import the auth middleware
 Apply it to /v1/uploads/* using app.use() before app.route('/v1/uploads', uploadsRouter)
 Do NOT apply it to /v1/health
 Add Authorization to the CORS allowHeaders list
-Update the Hono app generic to include Variables: AuthVariables
+Update the Hono app generic to include Variables for auth
+
 4. Backend — Replace anonymous prefix with user ID:
 
 Update backend/src/routes/uploads.ts
 Import AuthVariables type and add it to the router generic
-Replace the hardcoded anonymous/ prefix on the object key with c.get('userId')
+Replace the hardcoded anonymous/ prefix on the object key with c.get('user').id
 Object key format becomes {userId}/{uuid}/{sanitizedFileName}
 
 5. Frontend — Install dependencies:
 
 Install @supabase/supabase-js in frontend/
+Install @tanstack/react-query in frontend/
 Install @tanstack/react-router in frontend/
 Install @tanstack/router-plugin as a dev dependency in frontend/
 
@@ -73,20 +75,17 @@ signUp calls supabase.auth.signUp()
 signOut calls supabase.auth.signOut()
 Create a useAuth() hook that consumes the context and throws if used outside the provider
 
-7. Frontend — Wire AuthContext into the app:
+(DONE) 7. Frontend — Wire AuthContext into the app:
 
 Update frontend/src/main.tsx — wrap <App /> with <AuthProvider>
 
-8. Frontend — Update API client to attach auth tokens:
+(DONE) 8. Frontend — Set up TanStack Query and API client:
 
-Update frontend/src/lib/api.ts
-Create an apiFetch wrapper that gets the current session via supabase.auth.getSession()
-Attach Authorization: Bearer <access_token> to every request
-Set base URL from import.meta.env.VITE_API_URL
-Handle 401 responses by redirecting to sign-in or raising an auth error
-Add VITE_API_URL to frontend/.env.local (value: http://localhost:8787 for local dev)
+Install @tanstack/react-query
+Create frontend/src/lib/queryClient.ts — configure QueryClient with default options
+Update frontend/src/main.tsx — wrap <App /> with <QueryClientProvider> AND <AuthProvider>
 
-9. Frontend — Create sign-in and sign-up form components:
+(DONE) 9. Frontend — Create sign-in and sign-up form components:
 
 Create frontend/src/components/features/auth/SignInForm.tsx
 Email and password inputs using shadcn Input and Button
@@ -100,7 +99,7 @@ Form submission calls signUp() from useAuth()
 Display success message
 Link to sign-in page
 
-10. Frontend — Add TanStack Router:
+(DONE) 10. Frontend — Add TanStack Router:
 
 Add the TanStack Router Vite plugin to frontend/vite.config.ts
 Create frontend/src/routes/__root.tsx — root layout rendering Navbar and <Outlet />
@@ -110,20 +109,25 @@ Create frontend/src/routes/sign-up.tsx — renders SignUpForm
 The route tree file frontend/src/routeTree.gen.ts is auto-generated by the plugin
 Update frontend/src/App.tsx — replace current content with RouterProvider using the generated route tree
 
-11. Frontend — Update Navbar with auth state:
+(DONE) 11. Frontend — Update Navbar with auth state:
 
 Update the existing Navbar component
 Show "Đăng Nhập" button when user is not authenticated, navigates to /sign-in
 Show user email and "Đăng Xuất" button when user is authenticated
 "Đăng Xuất" calls signOut() from useAuth()
 
-12. Verification:
+(WIP) 12. Send an authenticated request to backend - Use Tanstack Query to request presign URL from backend
+Create API client helper to attach JWT key in header upon every request
+Key obtained from auth getSession() data
+Process response appropriately, on 401 re-direct to log-in page, on 200 grab the signed URL to upload the photo 
+Add VITE_API_URL to .env
+
+13. Verification:
 
 Start backend with wrangler dev --env dev, frontend with npm run dev
 GET /v1/health returns 200 without auth
-POST /v1/uploads/presign without Authorization header returns 401
 Navigate to /sign-up, create a test account, verify user appears in Supabase dashboard
 Navigate to /sign-in, log in, verify Navbar updates to show email and sign-out button
-Trigger presigned URL flow, verify request includes Authorization: Bearer <jwt> and object key uses user UUID instead of anonymous/
+Trigger presigned URL flow using TanStack Query, verify request includes Authorization: Bearer <jwt> and object key uses user UUID instead of anonymous/
 Click sign out, verify session clears and protected API calls return 401
 Send request with Authorization: Bearer invalid-token, verify 401

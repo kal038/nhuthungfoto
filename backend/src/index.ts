@@ -4,6 +4,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { healthRouter } from './routes/health'
 import { uploadsRouter } from './routes/uploads'
 import { myRateLimiter } from './middleware/rateLimit'
+import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -25,6 +26,7 @@ app.use('*', (c, next) => {
 // Routes
 // ---------------------
 app.route('/v1', healthRouter)
+app.use('/v1/uploads/*', authMiddleware)
 app.route('/v1/uploads', uploadsRouter)
 
 export default app
