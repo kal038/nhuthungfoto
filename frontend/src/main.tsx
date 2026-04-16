@@ -6,11 +6,11 @@ import { AuthProvider } from './context/AuthContext'
 import { myQueryClient } from '@/lib/queryClient'
 import { routeTree } from './routeTree.gen'
 import './index.css'
-
+import { apiFetch } from './lib/apiFetch'
 // Create the router instance
 const router = createRouter({ routeTree })
+;(window as any).apiFetch = apiFetch
 
-// Register the router for type safety
 declare module '@tanstack/react-router' {
   interface Register {
     router: typeof router

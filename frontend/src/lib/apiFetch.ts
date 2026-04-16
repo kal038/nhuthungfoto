@@ -6,13 +6,14 @@ export async function apiFetch<T>(path: string): Promise<T> {
   const {
     data: { session },
   } = await supabase.auth.getSession()
+
   const newHeader = new Headers()
   if (session) {
     newHeader.set('Authorization', `Bearer ${session.access_token}`)
   }
 
   const uri = `${API_BASE_URL}/${path.replace(/^\/+|\/+$/g, '')}`
-  const response = await fetch(uri, { headers: newHeader })
+  const response = await fetch(uri)
 
   if (!response.ok) {
     throw new Error(`HTTP Error! Status: ${response.status}`)
