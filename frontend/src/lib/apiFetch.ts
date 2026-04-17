@@ -2,7 +2,7 @@ import { supabase } from './supabase'
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
 
-export async function apiFetch<T>(path: string): Promise<T> {
+export async function apiFetch<T>(path: string, body?: unknown): Promise<T> {
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -13,7 +13,14 @@ export async function apiFetch<T>(path: string): Promise<T> {
   }
 
   const uri = `${API_BASE_URL}/${path.replace(/^\/+|\/+$/g, '')}`
-  const response = await fetch(uri)
+
+  const options: RequestInit = { headers: newHeader }
+  if (body !== undefined) {
+    newHeader.set('Content-Type', 'application/json')
+    options.body = JSON.stringify(body)
+  }
+
+  const response = await fetch(uri, options)
 
   if (!response.ok) {
     throw new Error(`HTTP Error! Status: ${response.status}`)

@@ -1,6 +1,12 @@
 import { usePhotoUploadQueue } from '@/hooks/usePhotoUploadQueue'
 import { PhotoUploadPanel } from '@/components/features/upload'
 
+interface PhotoUploadContainerProps {
+  maxFiles?: number
+  maxFileSizeMB?: number
+  onUploadComplete?: (results: { id: string; objectKey: string; status: 'success' | 'error' }[]) => void
+}
+
 /**
  * Smart container that wires the `usePhotoUploadQueue` hook
  * into the `PhotoUploadPanel` presenter.
@@ -8,24 +14,18 @@ import { PhotoUploadPanel } from '@/components/features/upload'
  * Usage:
  * ```tsx
  * <PhotoUploadContainer />
+ * <PhotoUploadContainer onUploadComplete={handleUpload} />
  * ```
  */
-export function PhotoUploadContainer() {
+export function PhotoUploadContainer({
+  maxFiles = 10,
+  maxFileSizeMB = 20,
+  onUploadComplete,
+}: PhotoUploadContainerProps) {
   const upload = usePhotoUploadQueue({
-    maxFiles: 10,
-    maxFileSizeMB: 20,
-    onUploadComplete: (results) => {
-      const succeeded = results.filter((r) => r.status === 'success')
-      const failed = results.filter((r) => r.status === 'error')
-
-      if (succeeded.length > 0) {
-        // TODO: Notify parent / invalidate queries / navigate
-        console.log(`${succeeded.length} ảnh tải lên thành công`, succeeded)
-      }
-      if (failed.length > 0) {
-        console.warn(`${failed.length} ảnh tải lên thất bại`, failed)
-      }
-    },
+    maxFiles,
+    maxFileSizeMB,
+    onUploadComplete,
   })
 
   return (
