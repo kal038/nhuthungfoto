@@ -1,16 +1,14 @@
 import { useState, useCallback, useRef } from 'react'
 import type { UploadableFile, UploadStateMap } from '@/types/upload'
-import {
-  ACCEPTED_IMAGE_TYPES,
-  DEFAULT_MAX_FILE_SIZE_MB,
-  DEFAULT_MAX_FILES,
-} from '@/types/upload'
+import { ACCEPTED_IMAGE_TYPES, DEFAULT_MAX_FILE_SIZE_MB, DEFAULT_MAX_FILES } from '@/types/upload'
 import { useUploadPhotoMutation } from '@/hooks/mutations/useUploadPhotoMutation'
 
 interface UsePhotoUploadOptions {
   maxFiles?: number
   maxFileSizeMB?: number
-  onUploadComplete?: (results: { id: string; objectKey: string; status: 'success' | 'error' }[]) => void
+  onUploadComplete?: (
+    results: { id: string; objectKey: string; status: 'success' | 'error' }[],
+  ) => void
 }
 
 /**
@@ -63,9 +61,7 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
           const error = validateFile(file)
 
           uploadable.push({ id, file, preview: URL.createObjectURL(file) })
-          newStates[id] = error
-            ? { status: 'error', errorMessage: error }
-            : { status: 'idle' }
+          newStates[id] = error ? { status: 'error', errorMessage: error } : { status: 'idle' }
         }
 
         setUploadStates((prev) => ({ ...prev, ...newStates }))
@@ -112,6 +108,7 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Lỗi không xác định'
         setUploadStates((prev) => ({ ...prev, [id]: { status: 'error', errorMessage: message } }))
+        console.log(message)
         results.push({ id, objectKey: '', status: 'error' })
       }
     }
