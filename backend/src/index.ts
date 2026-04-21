@@ -23,10 +23,13 @@ app.use('*', (c, next) => {
 })
 
 // ---------------------
-// Routes
+// Routes Public
+// ---------------------
+app.route('/health', healthRouter)
+// ---------------------
+// Routes Protected
 // ---------------------
 app.use('/v1/*', authMiddleware)
-app.route('/v1', healthRouter)
 app.route('/v1/presign', uploadsRouter)
 
 export default app

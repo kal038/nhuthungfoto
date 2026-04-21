@@ -1,0 +1,109 @@
+TASK: Add a portfolio photo carousel to the landing page. The Worker lists objects from the R2_PORTFOLIO_PUBLIC bucket and returns URLs. The browser fetches image bytes directly from R2's public URL — no image bytes flow through the Worker.
+
+CONSTRAINTS:
+
+Backend uses Hono on Cloudflare Workers
+R2_PORTFOLIO_PUBLIC binding already exists in wrangler.jsonc and Env type
+Portfolio endpoint is PUBLIC — no auth required (auth middleware only guards /v1/*)
+Frontend uses React 19, Vite, Tailwind CSS 4, shadcn/ui, TanStack Router, TanStack Query
+No new npm packages required on the backend
+Carousel UI uses existing design system (index.css tokens, shadcn/ui)
+R2 public bucket base URL supplied via VITE_R2_PUBLIC_BASE_URL env var (set to Cloudflare public bucket URL or custom domain)
+Image bytes fetched directly from R2 by the browser — Worker only marshals the key list
+Portfolio objects stored under prefix "portfolio/" in the bucket
+Endpoint mounted at /portfolio (top-level, outside /v1/* auth guard)
+Server state via TanStack Query — no useState/useEffect for data fetching
+
+STEPS:
+
+1. Backend — Add portfolio schema:
+
+Create backend/src/schema/portfolio.ts
+Export PortfolioPhoto type: { key: string; url: string; uploaded: string }
+Export PortfolioListResult type: { photos: PortfolioPhoto[] }
+
+2. Backend — Add portfolio route:
+
+Create backend/src/routes/portfolio.ts
+Import Hono and Env type
+Create portfolioRouter = new Hono<{ Bindings: Env }>()
+Add GET / handler:
+  - Call c.env.R2_PORTFOLIO_PUBLIC.list({ prefix: 'portfolio/', limit: 50 })
+  - Map listed.objects to PortfolioPhoto[] — key, uploaded (obj.uploaded.toISOString()), url left empty (client builds URL)
+  - Return c.json({ photos }) with 200
+Export portfolioRouter
+
+3. Backend — Mount portfolio route:
+
+Update backend/src/index.ts
+Import portfolioRouter from './routes/portfolio'
+Add app.route('/portfolio', portfolioRouter) BEFORE the /v1/* auth middleware line
+Do NOT place it under /v1/* — it must stay public
+
+4. Backend — CORS update:
+
+In backend/src/index.ts cors() config, confirm allowHeaders includes 'Authorization'
+No change needed if already correct — portfolio endpoint is GET with no custom headers
+
+5. Frontend — Add env var:
+
+Add to frontend/.env.local:
+  VITE_R2_PUBLIC_BASE_URL=https://<your-account>.r2.dev
+  (or custom domain e.g. https://cdn.nhuthungfoto.com once configured)
+Add same key to frontend/.env.example for documentation
+
+6. Frontend — Add portfolio types:
+
+Create frontend/src/types/portfolio.ts
+Export PortfolioPhoto type: { key: string; url: string; uploaded: string }
+Export PortfolioListResponse type: { photos: PortfolioPhoto[] }
+
+7. Frontend — Create usePortfolioPhotos query hook:
+
+Create frontend/src/hooks/queries/usePortfolioPhotos.ts
+Use useQuery from @tanstack/react-query
+queryKey: ['portfolio-photos']
+queryFn:
+  - fetch(`${import.meta.env.VITE_API_URL}/portfolio`)
+  - Parse JSON as PortfolioListResponse
+  - Map photos: append `${import.meta.env.VITE_R2_PUBLIC_BASE_URL}/${photo.key}` as url field
+staleTime: 5 * 60 * 1000 (photos rarely change)
+Return the query result
+
+8. Frontend — Build PortfolioCarousel presenter component:
+
+Create frontend/src/components/features/landing/PortfolioCarousel.tsx
+Props: photos: PortfolioPhoto[], isLoading: boolean, isError: boolean
+Loading state: skeleton placeholder cards (3 grey shimmer boxes)
+Error state: simple "Không thể tải ảnh" message
+Render: horizontal scroll row of <img> tags — src={photo.url}, loading="lazy", decoding="async"
+Each img wrapped in styled card div with hover zoom transition (CSS transform scale)
+No JS carousel lib — CSS scroll-snap on container is sufficient
+Export as named export PortfolioCarousel
+
+9. Frontend — Build PortfolioSection container component:
+
+Create frontend/src/components/features/landing/PortfolioSection.tsx
+Call usePortfolioPhotos()
+Pass { photos, isLoading, isError } to <PortfolioCarousel />
+Wrap in <section id="portfolio"> with heading "Tác Phẩm"
+Export as named export PortfolioSection
+
+10. Frontend — Wire into landing page:
+
+Update frontend/src/routes/index.tsx
+Import PortfolioSection
+Replace the placeholder <section id="portfolio"> block with <PortfolioSection />
+
+11. Verification:
+
+Start backend: wrangler dev --env dev
+Start frontend: npm run dev
+GET http://localhost:8787/portfolio returns { photos: [...] } without Authorization header
+GET http://localhost:8787/v1/health still works
+Landing page at http://localhost:5173 renders portfolio section
+With 0 objects in bucket: empty state renders without crash
+Upload a test .jpg to portfolio-public bucket under portfolio/ prefix using wrangler:
+  npx wrangler r2 object put portfolio-public-dev/portfolio/test.jpg --file ./test.jpg --env dev
+Refresh landing page — test.jpg card appears in carousel
+Browser network tab: image request goes to R2 URL directly, NOT to localhost:8787
