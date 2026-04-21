@@ -25,8 +25,8 @@ app.use('*', (c, next) => {
 // ---------------------
 // Routes
 // ---------------------
+app.use('/v1/*', authMiddleware)
 app.route('/v1', healthRouter)
-app.use('v1/presign/*', authMiddleware)
-app.route('v1/presign', uploadsRouter)
+app.route('/v1/presign', uploadsRouter)
 
 export default app

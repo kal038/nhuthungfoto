@@ -1,5 +1,6 @@
 import { supabase } from './supabase'
 
+const API_VERSION = import.meta.env.VITE_API_VER || 'v1'
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
 
 export async function apiFetch<T>(
@@ -16,7 +17,7 @@ export async function apiFetch<T>(
     newHeader.set('Authorization', `Bearer ${session.access_token}`)
   }
 
-  const uri = `${API_BASE_URL}/${path.replace(/^\/+|\/+$/g, '')}`
+  const uri = `${API_BASE_URL}/${API_VERSION}/${path.replace(/^\/+|\/+$/g, '')}`
 
   const options: RequestInit = { headers: newHeader, method }
   if (body !== undefined) {

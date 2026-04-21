@@ -1,0 +1,13 @@
+{
+  "rules": [
+    {
+      "allowed": {
+        "origins": ["http://localhost:5173", "https://nhuthungfoto.com"],
+        "methods": ["PUT", "GET"],
+        "headers": ["Content-Type", "Content-Length", "*"]
+      },
+      "exposeHeaders": ["ETag"],
+      "maxAgeSeconds": 3600
+    }
+  ]
+}
