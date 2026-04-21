@@ -1,4 +1,4 @@
-import { X, CheckCircle2, AlertCircle, Loader2 } from 'lucide-react'
+import { X, CheckCircle2, AlertCircle } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import type { UploadableFile, UploadFileState } from '@/types/upload'
 
@@ -36,7 +36,13 @@ export function PhotoUploadThumbnail({
       {/* Overlay — uploading */}
       {status === 'uploading' && (
         <div className="absolute inset-0 flex items-center justify-center bg-black/40">
-          <Loader2 className="size-6 animate-spin text-white" />
+          <style>{`@keyframes thumbnail-spin { to { transform: rotate(360deg); } }`}</style>
+          <div
+            className="upload-spinner size-7 rounded-full border-[2.5px] border-white/30 border-t-white"
+            style={{
+              animation: 'thumbnail-spin 0.75s linear infinite',
+            }}
+          />
         </div>
       )}
 
