@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import type { UploadableFile, UploadStateMap } from '@/types/upload'
 import { ACCEPTED_IMAGE_TYPES, DEFAULT_MAX_FILE_SIZE_MB, DEFAULT_MAX_FILES } from '@/types/upload'
 import { useUploadPhotoMutation } from '@/hooks/mutations/useUploadPhotoMutation'
@@ -29,6 +29,17 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
 
   const uploadPhoto = useUploadPhotoMutation()
 
+  // ─── Cleanup blob URLs on unmount ────────────────────────
+
+  const filesRef = useRef(files)
+  filesRef.current = files
+
+  useEffect(() => {
+    return () => {
+      for (const file of filesRef.current) URL.revokeObjectURL(file.preview)
+    }
+  }, [])
+
   // ─── Validation ──────────────────────────────────────────
 
   const validateFile = useCallback(
@@ -48,27 +59,25 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
 
   const handleFilesSelected = useCallback(
     (newFiles: File[]) => {
-      setFiles((prev) => {
-        const remaining = maxFiles - prev.length
-        if (remaining <= 0) return prev
+      const remaining = maxFiles - files.length
+      if (remaining <= 0) return
 
-        const batch = newFiles.slice(0, remaining)
-        const uploadable: UploadableFile[] = []
-        const newStates: UploadStateMap = {}
+      const batch = newFiles.slice(0, remaining)
+      const uploadable: UploadableFile[] = []
+      const newStates: UploadStateMap = {}
 
-        for (const file of batch) {
-          const id = crypto.randomUUID()
-          const error = validateFile(file)
+      for (const file of batch) {
+        const id = crypto.randomUUID()
+        const error = validateFile(file)
 
-          uploadable.push({ id, file, preview: URL.createObjectURL(file) })
-          newStates[id] = error ? { status: 'error', errorMessage: error } : { status: 'idle' }
-        }
+        uploadable.push({ id, file, preview: URL.createObjectURL(file) })
+        newStates[id] = error ? { status: 'error', errorMessage: error } : { status: 'idle' }
+      }
 
-        setUploadStates((prev) => ({ ...prev, ...newStates }))
-        return [...prev, ...uploadable]
-      })
+      setUploadStates((prev) => ({ ...prev, ...newStates }))
+      setFiles((prev) => [...prev, ...uploadable])
     },
-    [maxFiles, validateFile],
+    [maxFiles, validateFile, files],
   )
 
   // ─── Remove ──────────────────────────────────────────────
