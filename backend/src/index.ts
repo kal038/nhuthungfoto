@@ -26,6 +26,7 @@ app.use('*', (c, next) => {
 // Routes Public
 // ---------------------
 app.route('/health', healthRouter)
+
 // ---------------------
 // Routes Protected
 // ---------------------
