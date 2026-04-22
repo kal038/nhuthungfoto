@@ -1,6 +1,12 @@
 import { useMutation } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
 
+interface PresignRequest {
+  fileName: string
+  contentType: string
+  fileSizeBytes: number
+}
+
 interface PresignURLResult {
   uploadUrl: string
   objectKey: string
@@ -17,7 +23,13 @@ interface UploadPhotoResult {
  * 2. PUT file directly to storage via fetch.
  */
 async function uploadPhoto(file: File): Promise<UploadPhotoResult> {
-  const presign = await apiFetch<PresignURLResult>('presign-url')
+  const body: PresignRequest = {
+    fileName: file.name,
+    contentType: file.type,
+    fileSizeBytes: file.size,
+  }
+
+  const presign = await apiFetch<PresignURLResult>('/presign', body, 'POST')
 
   const res = await fetch(presign.uploadUrl, {
     method: 'PUT',

@@ -116,7 +116,7 @@ Show "Đăng Nhập" button when user is not authenticated, navigates to /sign-i
 Show user email and "Đăng Xuất" button when user is authenticated
 "Đăng Xuất" calls signOut() from useAuth()
 
-(WIP) 12. Send an authenticated request to backend - Use Tanstack Query to request presign URL from backend
+(DONE) 12. Send an authenticated request to backend - Use Tanstack Query to request presign URL from backend
 Create API client helper to attach JWT key in header upon every request
 Key obtained from auth getSession() data
 Process response appropriately, on 401 re-direct to log-in page, on 200 grab the signed URL to upload the photo 

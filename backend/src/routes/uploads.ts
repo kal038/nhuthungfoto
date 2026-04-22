@@ -6,7 +6,7 @@ import { generatePresignedUploadUrl } from '../services/r2'
 
 const uploadsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
-uploadsRouter.post('/presign', async (c) => {
+uploadsRouter.post('/', async (c) => {
   try {
     const body = await c.req.json()
     const result = presignRequestSchema.safeParse(body)

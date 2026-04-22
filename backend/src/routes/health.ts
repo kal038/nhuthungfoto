@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 
 export const healthRouter = new Hono()
 
-healthRouter.get('/health', (c) => {
+healthRouter.get('/', (c) => {
   return c.json({
     status: 'ok',
     service: 'nhuthungfoto-api',

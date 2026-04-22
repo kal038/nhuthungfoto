@@ -46,9 +46,6 @@ docs/antigravity-brain
 #TODO files
 *.todo
 
-#Opencode config
-opencode.json
-
 #Justfile and Makefile
 Justfile
 Makefile
