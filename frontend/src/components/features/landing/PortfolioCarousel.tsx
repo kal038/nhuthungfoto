@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, motionValue, useTransform, type MotionValue } from 'framer-motion'
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import type { PortfolioPhoto } from '@/types/portfolio'
 import type { CarouselApi } from '@/components/ui/carousel'
@@ -12,10 +12,14 @@ import {
 /** How many slides around current to eagerly preload */
 const PRELOAD_RANGE = 2
 
+/** Static fallback so useTransform hooks can always run. */
+const STATIC_ZERO = motionValue(0)
+
 interface PortfolioCarouselProps {
   photos: PortfolioPhoto[]
   isLoading: boolean
   isError: boolean
+  scrollProgress?: MotionValue<number>
 }
 
 function SkeletonSlide() {
@@ -48,17 +52,25 @@ function useAdjacentPreload(photos: PortfolioPhoto[], currentIndex: number) {
   }, [photos, currentIndex])
 }
 
-export function PortfolioCarousel({ photos, isLoading, isError }: PortfolioCarouselProps) {
+export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }: PortfolioCarouselProps) {
   const [current, setCurrent] = useState(0) // 1-based for display
   const [count, setCount] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<CarouselApi>(undefined)
+
+  const progress = scrollProgress ?? STATIC_ZERO
+  const isScrollLinked = !!scrollProgress
 
   // 0-based index for preloading logic
   const currentSlideIndex = current > 0 ? current - 1 : 0
 
   // Preload adjacent slide images in background
   useAdjacentPreload(photos, currentSlideIndex)
+
+  // Scroll-driven animations for the carousel
+  const carouselOpacity = useTransform(progress, [0.6, 1], [0, 1])
+  const carouselY = useTransform(progress, [0.6, 1], [40, 0])
+  const controlsOpacity = useTransform(progress, [0.7, 1], [0, 1])
 
   // Store API ref and wire up select listener with proper cleanup
   const handleSetApi = useCallback((api: CarouselApi) => {
@@ -107,10 +119,16 @@ export function PortfolioCarousel({ photos, isLoading, isError }: PortfolioCarou
   return (
     <motion.div
       ref={sectionRef}
-      initial={{ opacity: 0, y: 30 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, amount: 0.15 }}
-      transition={{ duration: 0.6, ease: 'easeOut' }}
+      // Use scroll-driven animation when linked, else fall back to whileInView
+      {...(isScrollLinked
+        ? { style: { opacity: carouselOpacity, y: carouselY } }
+        : {
+            initial: { opacity: 0, y: 30 },
+            whileInView: { opacity: 1, y: 0 },
+            viewport: { once: true, amount: 0.15 },
+            transition: { duration: 0.6, ease: 'easeOut' },
+          }
+      )}
       className="relative"
     >
       <Carousel setApi={handleSetApi} opts={{ align: 'center', loop: true }} className="w-full">
@@ -138,30 +156,35 @@ export function PortfolioCarousel({ photos, isLoading, isError }: PortfolioCarou
       </Carousel>
 
       {/* Navigation arrows — outside Carousel to avoid Embla pointer interference */}
-      <button
+      <motion.button
         type="button"
         aria-label="Previous slide"
         onClick={scrollPrev}
+        style={isScrollLinked ? { opacity: controlsOpacity } : undefined}
         className="absolute left-2 top-1/2 z-10 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/50 active:scale-95 touch-manipulation sm:left-4 lg:left-8"
       >
         <ChevronLeftIcon className="h-5 w-5" />
-      </button>
-      <button
+      </motion.button>
+      <motion.button
         type="button"
         aria-label="Next slide"
         onClick={scrollNext}
+        style={isScrollLinked ? { opacity: controlsOpacity } : undefined}
         className="absolute right-2 top-1/2 z-10 -translate-y-1/2 flex h-12 w-12 items-center justify-center rounded-full border border-white/20 bg-black/30 text-white backdrop-blur-md transition-colors hover:bg-black/50 active:scale-95 touch-manipulation sm:right-4 lg:right-8"
       >
         <ChevronRightIcon className="h-5 w-5" />
-      </button>
+      </motion.button>
 
       {/* Counter */}
       {count > 0 && (
-        <div className="mt-6 flex justify-center">
+        <motion.div
+          className="mt-6 flex justify-center"
+          style={isScrollLinked ? { opacity: controlsOpacity } : undefined}
+        >
           <span className="text-sm font-medium tabular-nums text-muted">
             {String(current).padStart(2, '0')} / {String(count).padStart(2, '0')}
           </span>
-        </div>
+        </motion.div>
       )}
     </motion.div>
   )

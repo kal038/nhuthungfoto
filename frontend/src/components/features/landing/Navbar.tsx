@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react'
 import { Menu, X } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
-import { Button } from '@/components/ui/button'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -32,7 +31,7 @@ export function Navbar() {
       const scrollY = window.scrollY
       setIsScrolled(scrollY > 80)
       // Fade out navbar when scrolling past the hero/carousel area (~120vh)
-      setIsVisible(scrollY < window.innerHeight * 1.2)
+      setIsVisible(scrollY < window.innerHeight * 0.4)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
