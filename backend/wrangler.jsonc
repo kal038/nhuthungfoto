@@ -43,7 +43,7 @@
       },
       "r2_buckets": [
         { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev" },
-        { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev" }
+        { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev" , "remote": true}
       ],
       "ratelimits": [
         {
