@@ -22,13 +22,17 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false)
+  const [isVisible, setIsVisible] = useState(true)
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
   const links = user ? NAV_LINKS : [...NAV_LINKS, { label: 'Đăng Nhập', href: '/login' }]
 
   useEffect(() => {
     const handleScroll = () => {
-      setIsScrolled(window.scrollY > 80)
+      const scrollY = window.scrollY
+      setIsScrolled(scrollY > 80)
+      // Fade out navbar when scrolling past the hero/carousel area (~120vh)
+      setIsVisible(scrollY < window.innerHeight * 1.2)
     }
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
@@ -46,12 +50,13 @@ export function Navbar() {
         flex items-center justify-between
         px-6 py-3
         rounded-xl
-        transition-all duration-300
+        transition-all duration-500
         ${
           isScrolled
             ? 'bg-white/90 backdrop-blur-xl shadow-lg border border-zinc-200/50'
             : 'bg-white/10 backdrop-blur-sm border border-white/20'
         }
+        ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'}
       `}
     >
       {/* Logo / Brand */}

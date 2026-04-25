@@ -5,8 +5,8 @@ export function PortfolioSection() {
   const { data: photos = [], isLoading, isError } = usePortfolioPhotos()
 
   return (
-    <section id="portfolio" className="py-24 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
-      <div className="mb-8 flex items-end justify-between">
+    <section id="portfolio" className="py-24">
+      <div className="mb-8 flex items-end justify-between px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
         <h2 className="font-heading text-3xl font-semibold text-primary">
           Tác Phẩm
         </h2>
