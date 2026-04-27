@@ -59,19 +59,10 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, ease: 'easeOut', delay: 0.3 }}
         >
-          Nhiếp ảnh gia • Giảng viên • 30+ năm kinh nghiệm
+          Nhiếp ảnh gia • Giảng viên
         </motion.p>
 
         {/* CTA Button */}
-        <motion.a
-          href="#portfolio"
-          className="inline-block bg-cta text-white px-8 py-3 rounded-lg text-base font-semibold hover:opacity-90 transition-opacity duration-200 cursor-pointer shadow-glow"
-          initial={{ opacity: 0, y: 10 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: 'easeOut', delay: 0.5 }}
-        >
-          Khám Phá Tác Phẩm
-        </motion.a>
       </motion.div>
 
       {/* Scroll Indicator — fades out first on scroll */}

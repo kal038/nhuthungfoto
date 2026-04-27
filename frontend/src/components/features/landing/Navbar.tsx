@@ -19,7 +19,7 @@ const LEFT_LINKS = [
 
 const RIGHT_LINKS = [
   { label: 'Giới thiệu', href: '/about' },
-  { label: 'Liên hệ', href: '/contact' },
+  { label: 'Liên hệ', href: '#contact' },
 ]
 
 export function Navbar() {
@@ -40,7 +40,7 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 px-6 py-5">
+    <nav className="absolute top-0 left-0 right-0 z-50 px-6 py-5">
       {/* Desktop layout: 3 links — logo — 3 links */}
       <div className="hidden md:flex items-center justify-center">
         {/* Left links */}

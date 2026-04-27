@@ -23,7 +23,7 @@ interface PortfolioCarouselProps {
 }
 
 function SkeletonSlide() {
-  return <div className="h-[85vh] w-full animate-pulse rounded-2xl bg-muted sm:h-screen" />
+  return <div className="h-[70vh] w-full animate-pulse rounded-2xl bg-muted" />
 }
 
 function ErrorState() {
@@ -135,7 +135,7 @@ export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }
         <CarouselContent className="-ml-4">
           {photos.map((photo, index) => (
             <CarouselItem key={photo.key} className="pl-4 basis-full">
-              <div className="group relative h-[85vh] w-full overflow-hidden rounded-2xl bg-muted sm:h-screen">
+              <div className="group relative h-[70vh] w-full overflow-hidden rounded-2xl bg-muted">
                 <img
                   src={photo.url}
                   alt={`Ảnh ${extractCategory(photo.key)}`}
@@ -175,17 +175,7 @@ export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }
         <ChevronRightIcon className="h-5 w-5" />
       </motion.button>
 
-      {/* Counter */}
-      {count > 0 && (
-        <motion.div
-          className="mt-6 flex justify-center"
-          style={isScrollLinked ? { opacity: controlsOpacity } : undefined}
-        >
-          <span className="text-sm font-medium tabular-nums text-muted">
-            {String(current).padStart(2, '0')} / {String(count).padStart(2, '0')}
-          </span>
-        </motion.div>
-      )}
+
     </motion.div>
   )
 }

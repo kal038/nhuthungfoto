@@ -2,6 +2,7 @@ import { useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Navbar } from '@/components/features/landing/Navbar'
 import { HeroCarouselTransition } from '@/components/features/landing/HeroCarouselTransition'
+import { Footer } from '@/components/features/landing/Footer'
 
 export const Route = createFileRoute('/')(
   {
@@ -23,6 +24,7 @@ function LandingPage() {
     <div className="min-h-screen bg-background">
       <Navbar />
       <HeroCarouselTransition />
+      <Footer />
     </div>
   )
 }
