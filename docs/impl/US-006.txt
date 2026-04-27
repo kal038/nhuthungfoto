@@ -1,0 +1,141 @@
+TASK: Build the submission recording flow and the modules frontend — POST /v1/submissions persists upload metadata to Postgres after R2 upload, and users can browse modules via list and detail pages.
+
+CONSTRAINTS:
+
+- Backend: Hono on Cloudflare Workers, existing auth middleware, Supabase service client helper
+- Frontend: React 19, TanStack Router, TanStack Query, shadcn/ui, existing upload mutation hook
+- Submission is created AFTER the client successfully PUTs the file to R2 via the presigned URL
+- The submission endpoint receives: moduleId (optional), objectKey, contentType, fileSizeBytes
+- Frontend module pages use the existing design system (index.css tokens, shadcn/ui Card, Badge, Button)
+- No new npm packages required
+- Dashboard shell is a reusable layout for authenticated pages (modules, upload, future dashboard)
+- File-based routing: TanStack Router auto-generates route tree from frontend/src/routes/
+
+STEPS:
+
+1. Backend — Create submission schema:
+
+Create backend/src/schema/submission.ts
+Import { z } from 'zod'
+Export createSubmissionSchema:
+  - moduleId: z.string().uuid().optional()
+  - objectKey: z.string().min(1)
+  - contentType: z.enum(['image/jpeg', 'image/png', 'image/webp'])
+  - fileSizeBytes: z.number().int().min(1).max(20_971_520)
+Export type CreateSubmission = z.infer<typeof createSubmissionSchema>
+
+2. Backend — Create submissions route:
+
+Create backend/src/routes/submissions.ts
+Import Hono, Env, createServiceClient, authMiddleware, createSubmissionSchema
+Create submissionsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
+Add POST / handler:
+  - Parse and validate body with createSubmissionSchema.safeParse
+  - If invalid, return c.json({ error: result.error.issues }, 400)
+  - const userId = c.get('user').id
+  - const { moduleId, objectKey } = result.data
+  - Build original_photo_url: `${c.env.R2_PUBLIC_BASE_URL}/${objectKey}` (add R2_PUBLIC_BASE_URL to Env type if missing)
+  - const supabase = createServiceClient(c.env)
+  - Insert into submissions: { user_id: userId, module_id: moduleId || null, original_photo_url, status: 'UPLOADED', review_type: 'AI' }
+  - Return c.json({ submission: data }, 201)
+Add GET /me handler:
+  - const userId = c.get('user').id
+  - const supabase = createServiceClient(c.env)
+  - Select from submissions where user_id = userId, order by created_at desc
+  - Return c.json({ submissions: data ?? [] }, 200)
+Export submissionsRouter
+
+3. Backend — Update Env type and mount route:
+
+Update backend/src/types/env.ts
+Add `R2_PUBLIC_BASE_URL: string` to the Env interface
+Update backend/src/index.ts
+Import submissionsRouter
+Add app.route('/v1/submissions', submissionsRouter) AFTER the auth middleware line
+The submissions router is protected by the existing /v1/* auth guard
+
+4. Frontend — Update upload mutation to create submission after R2 PUT:
+
+Update frontend/src/hooks/mutations/useUploadPhotoMutation.ts
+Add optional moduleId parameter to the mutation:
+  - Change uploadPhoto signature to accept { file: File; moduleId?: string }
+  - After successful R2 PUT, call apiFetch to POST /v1/submissions with:
+      moduleId (if provided), objectKey, contentType, fileSizeBytes
+  - Return { objectKey, submissionId: submissionData.submission.id }
+Update the useMutation to accept the combined payload
+
+5. Frontend — Create module types:
+
+Create or update frontend/src/types/module.ts
+Export interface Module { id: string; title: string; slug: string; description: string; content_url?: string; content_markdown?: string; level: string; track: string; sequence_order: number; is_free: boolean; created_at: string }
+Export interface Submission { id: string; user_id: string; module_id?: string; original_photo_url: string; processed_photo_url?: string; status: string; review_type: string; created_at: string }
+
+6. Frontend — Create modules list page:
+
+Create frontend/src/routes/modules.tsx
+Import { createFileRoute } from '@tanstack/react-router'
+Import { useModules } from '@/hooks/queries/useModules'
+Import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+Import { Badge } from '@/components/ui/badge'
+Import { Link } from '@tanstack/react-router'
+Component ModulesPage:
+  - const { data, isLoading, isError } = useModules()
+  - Loading state: show 3 skeleton card placeholders (grey pulse divs)
+  - Error state: show 'Không thể tải danh sách khóa học'
+  - Render a responsive grid (1 col mobile, 2 md, 3 lg) of cards
+  - Each card shows title, description excerpt, level badge, track badge
+  - Card is wrapped in <Link to="/modules/$slug" params={{ slug: module.slug }}>
+Export route with createFileRoute('/modules')
+
+7. Frontend — Create module detail page:
+
+Create frontend/src/routes/modules/$slug.tsx
+Import { createFileRoute } from '@tanstack/react-router'
+Import { useModule } from '@/hooks/queries/useModule'
+Import { Badge } from '@/components/ui/badge'
+Import { Button } from '@/components/ui/button'
+Component ModuleDetailPage:
+  - const { slug } = Route.useParams()
+  - const { data, isLoading, isError } = useModule(slug)
+  - Loading: skeleton placeholder
+  - Error / not found: 'Không tìm thấy module'
+  - Render: title (h1), description (p), level badge, track badge
+  - Render content_markdown as plain text in a styled pre/code block for now (no MD parser yet)
+  - Add 'Nộp bài' button that navigates to /upload?moduleId={module.id}
+Export route with createFileRoute('/modules/$slug')
+
+8. Frontend — Create dashboard shell layout:
+
+Create frontend/src/components/layout/DashboardShell.tsx
+Import { useAuth } from '@/context/AuthContext'
+Import { Link, Outlet } from '@tanstack/react-router'
+Import { Button } from '@/components/ui/button'
+Component DashboardShell:
+  - Top nav bar with brand name 'nhuthungfoto', links: Khóa học (/modules), Tải ảnh (/upload)
+  - Right side: user email (from useAuth), 'Đăng xuất' button calling signOut()
+  - Main content area renders <Outlet />
+  - Use min-h-screen bg-background and container mx-auto px-4 py-6
+This layout is used as a parent wrapper for authenticated routes
+
+9. Frontend — Restructure routes with dashboard shell:
+
+Update frontend/src/routes/__root.tsx
+Replace current Outlet-only layout with DashboardShell wrapping Outlet
+Remove TanStackRouterDevtools from production-visible layout or keep it at bottom
+Update frontend/src/routes/index.tsx
+Keep landing page as-is (it renders its own Navbar, Hero, Footer)
+This page does NOT use the dashboard shell — it is marketing-focused
+Ensure /modules, /upload, /modules/$slug all inherit the root layout automatically
+
+10. Verification:
+
+Upload a photo while logged in:
+  - R2 PUT succeeds
+  - POST /v1/submissions returns 201 with a submission object containing id and status='UPLOADED'
+GET /v1/submissions/me returns the newly created submission in the array
+/modules page renders a grid of 3 cards from seeded data
+/modules/composition-basics renders detail with correct title and description
+Clicking 'Nộp bài' on detail page navigates to /upload?moduleId=xxx
+Upload mutation reads moduleId from URL query param and includes it in submission payload
+Unauthenticated user can view /modules and /modules/$slug (public)
+Unauthenticated user hitting /upload is redirected to /login by ProtectedRoute
