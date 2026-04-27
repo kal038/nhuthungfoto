@@ -12,7 +12,7 @@ import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from '@tanstack/react-router'
 
 const LEFT_LINKS = [
-  { label: 'Tác phẩm', href: '/portfolio' },
+  { label: 'Tác phẩm', href: '#carousel' },
   { label: 'Khóa học', href: '/courses' },
   { label: 'Đặt lịch', href: '/booking' },
 ]
@@ -40,7 +40,7 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="absolute top-0 left-0 right-0 z-50 px-6 py-5">
+    <nav id="navbar" className="absolute top-0 left-0 right-0 z-50 px-6 py-5">
       {/* Desktop layout: 3 links — logo — 3 links */}
       <div className="hidden md:flex items-center justify-center">
         {/* Left links */}

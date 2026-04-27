@@ -39,7 +39,7 @@ export function HeroCarouselTransition() {
       </div>
 
       {/* Portfolio section positioned at the end of the scroll runway */}
-      <div className="relative z-10 snap-start overflow-visible">
+      <div id="carousel" className="relative z-10 snap-start overflow-visible">
         <PortfolioSection scrollProgress={scrollYProgress} />
       </div>
     </div>

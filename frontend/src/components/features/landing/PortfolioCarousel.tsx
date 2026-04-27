@@ -3,11 +3,7 @@ import { motion, motionValue, useTransform, type MotionValue } from 'framer-moti
 import { ChevronLeftIcon, ChevronRightIcon } from 'lucide-react'
 import type { PortfolioPhoto } from '@/types/portfolio'
 import type { CarouselApi } from '@/components/ui/carousel'
-import {
-  Carousel,
-  CarouselContent,
-  CarouselItem,
-} from '@/components/ui/carousel'
+import { Carousel, CarouselContent, CarouselItem } from '@/components/ui/carousel'
 
 /** How many slides around current to eagerly preload */
 const PRELOAD_RANGE = 2
@@ -23,7 +19,7 @@ interface PortfolioCarouselProps {
 }
 
 function SkeletonSlide() {
-  return <div className="h-[70vh] w-full animate-pulse rounded-2xl bg-muted" />
+  return <div className="h-[82vh] aspect-[4/5] max-w-[92vw] mx-auto animate-pulse rounded-2xl bg-muted" />
 }
 
 function ErrorState() {
@@ -41,7 +37,7 @@ function useAdjacentPreload(photos: PortfolioPhoto[], currentIndex: number) {
     const indices = new Set<number>()
     for (let offset = -PRELOAD_RANGE; offset <= PRELOAD_RANGE; offset++) {
       // Wrap for loop mode
-      const idx = ((currentIndex + offset) % photos.length + photos.length) % photos.length
+      const idx = (((currentIndex + offset) % photos.length) + photos.length) % photos.length
       indices.add(idx)
     }
 
@@ -52,9 +48,13 @@ function useAdjacentPreload(photos: PortfolioPhoto[], currentIndex: number) {
   }, [photos, currentIndex])
 }
 
-export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }: PortfolioCarouselProps) {
+export function PortfolioCarousel({
+  photos,
+  isLoading,
+  isError,
+  scrollProgress,
+}: PortfolioCarouselProps) {
   const [current, setCurrent] = useState(0) // 1-based for display
-  const [count, setCount] = useState(0)
   const sectionRef = useRef<HTMLDivElement>(null)
   const apiRef = useRef<CarouselApi>(undefined)
 
@@ -76,7 +76,6 @@ export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }
   const handleSetApi = useCallback((api: CarouselApi) => {
     if (!api) return
     apiRef.current = api
-    setCount(api.scrollSnapList().length)
     setCurrent(api.selectedScrollSnap() + 1)
 
     const onSelect = () => {
@@ -127,15 +126,14 @@ export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }
             whileInView: { opacity: 1, y: 0 },
             viewport: { once: true, amount: 0.15 },
             transition: { duration: 0.6, ease: 'easeOut' },
-          }
-      )}
+          })}
       className="relative"
     >
       <Carousel setApi={handleSetApi} opts={{ align: 'center', loop: true }} className="w-full">
         <CarouselContent className="-ml-4">
           {photos.map((photo, index) => (
             <CarouselItem key={photo.key} className="pl-4 basis-full">
-              <div className="group relative h-[70vh] w-full overflow-hidden rounded-2xl bg-muted">
+              <div className="group relative h-[82vh] aspect-[4/5] max-w-[92vw] mx-auto overflow-hidden rounded-2xl bg-muted">
                 <img
                   src={photo.url}
                   alt={`Ảnh ${extractCategory(photo.key)}`}
@@ -174,8 +172,6 @@ export function PortfolioCarousel({ photos, isLoading, isError, scrollProgress }
       >
         <ChevronRightIcon className="h-5 w-5" />
       </motion.button>
-
-
     </motion.div>
   )
 }

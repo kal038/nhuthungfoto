@@ -14,11 +14,16 @@ export function Footer() {
 
       <div className="mx-auto max-w-4xl px-6 py-20 text-center">
         {/* Brand */}
-        <img
-          src="/images/signature.png"
-          alt="nhuthungfoto"
-          className="inline-block h-16 mb-6 opacity-80"
-        />
+        <a 
+          href="#navbar"
+          className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
+        >
+          <img
+            src="/images/signature.png"
+            alt="nhuthungfoto"
+            className="inline-block h-16 mb-6 opacity-80 hover:opacity-100 transition-opacity"
+          />
+        </a>
 
         {/* Social links */}
         <div className="group flex items-center justify-center gap-8 mb-12">
