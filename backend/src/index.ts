@@ -6,6 +6,7 @@ import { uploadsRouter } from './routes/uploads'
 import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
+import { portfolioRouter } from './routes/portfolio'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -26,6 +27,7 @@ app.use('*', (c, next) => {
 // Routes Public
 // ---------------------
 app.route('/health', healthRouter)
+app.route('/portfolio', portfolioRouter)
 
 // ---------------------
 // Routes Protected

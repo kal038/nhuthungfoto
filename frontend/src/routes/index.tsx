@@ -1,22 +1,30 @@
+import { useEffect } from 'react'
 import { createFileRoute } from '@tanstack/react-router'
 import { Navbar } from '@/components/features/landing/Navbar'
-import { HeroSection } from '@/components/features/landing/HeroSection'
+import { HeroCarouselTransition } from '@/components/features/landing/HeroCarouselTransition'
+import { Footer } from '@/components/features/landing/Footer'
 
-export const Route = createFileRoute('/') ({
+export const Route = createFileRoute('/')(
+  {
   component: LandingPage,
 })
 
 function LandingPage() {
+  // Enable scroll-snap on the page-level scroll container (html)
+  // so hero → carousel morph snaps cleanly between zones
+  useEffect(() => {
+    const html = document.documentElement
+    html.style.scrollSnapType = 'y mandatory'
+    return () => {
+      html.style.scrollSnapType = ''
+    }
+  }, [])
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
-      <HeroSection />
-
-      {/* Placeholder scroll target for CTA */}
-      <section id="portfolio" className="py-24 px-8 max-w-6xl mx-auto text-center">
-        <h2 className="font-heading text-3xl font-semibold mb-4 text-primary">Tác Phẩm</h2>
-        <p className="text-secondary text-lg max-w-2xl mx-auto">Portfolio content coming soon.</p>
-      </section>
+      <HeroCarouselTransition />
+      <Footer />
     </div>
   )
 }

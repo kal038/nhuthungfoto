@@ -18,7 +18,11 @@
     },
     "chrome-devtools": {
       "type": "local",
-      "command": ["npx", "-y", "chrome-devtools-mcp@latest"]
+      "command": [
+        "npx",
+        "-y",
+        "chrome-devtools-mcp@latest"
+      ]
     },
     "github-mcp": {
       "type": "local",
@@ -26,6 +30,15 @@
         "sh",
         "-c",
         "docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN=$OC_GITHUB_PAT ghcr.io/github/github-mcp-server"
+      ],
+      "enabled": true
+    },
+    "shadcn": {
+      "type": "local",
+      "command": [
+        "npx",
+        "shadcn@latest",
+        "mcp"
       ],
       "enabled": true
     }
