@@ -34,12 +34,12 @@ export function HeroCarouselTransition() {
   return (
     <div ref={containerRef} className="relative" style={{ height: '200vh' }}>
       {/* Hero sticks at top while user scrolls through the runway */}
-      <div className="sticky top-0 h-screen">
+      <div className="sticky top-0 h-screen snap-start">
         <HeroSection scrollProgress={scrollYProgress} />
       </div>
 
       {/* Portfolio section positioned at the end of the scroll runway */}
-      <div className="relative z-10">
+      <div className="relative z-10 snap-start">
         <PortfolioSection scrollProgress={scrollYProgress} />
       </div>
     </div>
