@@ -1,23 +1,11 @@
--- ============================================
--- nhuthungfoto — Initial Schema Migration
--- ============================================
--- Run this in Supabase SQL Editor or via
--- supabase db push
--- ============================================
-
 -- 1. ENUMS
 -- ============================================
 
 CREATE TYPE skill_level AS ENUM ('BEGINNER', 'INTERMEDIATE', 'ADVANCED');
-
 CREATE TYPE specialty_track AS ENUM ('PORTRAIT', 'STREET', 'TRAVEL', 'PRODUCT');
-
 CREATE TYPE submission_status AS ENUM ('UPLOADED', 'GRADING', 'AWAITING_HUNG', 'COMPLETED', 'FAILED');
-
 CREATE TYPE review_type AS ENUM ('AI', 'HUNG');
-
 CREATE TYPE transaction_type AS ENUM ('PURCHASE', 'SPEND', 'REFUND', 'STARTER_BONUS');
-
 CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'EXPIRED', 'CANCELLED');
 
 -- 2. TABLES
@@ -33,15 +21,12 @@ CREATE TABLE public.profiles (
   locale text DEFAULT 'vi',
   updated_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY profiles_select_own
   ON public.profiles
   FOR SELECT
   TO authenticated
   USING (auth.uid() = id);
-
 CREATE POLICY profiles_update_own
   ON public.profiles
   FOR UPDATE
@@ -64,15 +49,12 @@ CREATE TABLE public.modules (
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.modules ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY modules_select_all
   ON public.modules
   FOR SELECT
   TO anon, authenticated
   USING (true);
-
 CREATE POLICY modules_admin_write
   ON public.modules
   FOR ALL
@@ -91,21 +73,17 @@ CREATE TABLE public.submissions (
   review_type review_type DEFAULT 'AI',
   created_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.submissions ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY submissions_select_own
   ON public.submissions
   FOR SELECT
   TO authenticated
   USING (auth.uid() = user_id);
-
 CREATE POLICY submissions_insert_own
   ON public.submissions
   FOR INSERT
   TO authenticated
   WITH CHECK (auth.uid() = user_id);
-
 CREATE POLICY submissions_admin_all
   ON public.submissions
   FOR ALL
@@ -125,9 +103,7 @@ CREATE TABLE public.reviews (
   audio_url text,
   created_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.reviews ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY reviews_select_own
   ON public.reviews
   FOR SELECT
@@ -143,9 +119,7 @@ CREATE TABLE public.credit_history (
   metadata jsonb,
   created_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.credit_history ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY credit_history_select_own
   ON public.credit_history
   FOR SELECT
@@ -163,9 +137,7 @@ CREATE TABLE public.payments (
   raw_payload jsonb,
   created_at timestamptz DEFAULT now()
 );
-
 ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
-
 CREATE POLICY payments_select_own
   ON public.payments
   FOR SELECT
