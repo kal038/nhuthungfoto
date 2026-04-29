@@ -58,15 +58,6 @@ Add GET /:slug handler (PUBLIC):
   - Return c.json({ module: data }, 200)
 Export modulesRouter
 
-5. Backend — Mount new routes in index.ts:
-
-Update backend/src/index.ts
-Import modulesRouter from './routes/modules'
-Import profilesRouter from './routes/profiles'
-Add app.route('/v1/modules', modulesRouter) BEFORE the `app.use('/v1/*', authMiddleware)` line — modules are public
-Add app.route('/v1/profiles', profilesRouter) AFTER the auth middleware — profiles are protected
-Ensure the existing uploads router stays under /v1/presign and remains protected
-
 6. Frontend — Fix signup to pass fullName to Supabase metadata:
 
 Update frontend/src/context/AuthContext.tsx
