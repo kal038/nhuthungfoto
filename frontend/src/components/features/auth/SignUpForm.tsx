@@ -43,9 +43,6 @@ export function SignUpForm({
       {/* Header */}
       <div className="space-y-2">
         <h1 className="font-heading text-3xl font-semibold text-primary">Tạo Tài Khoản</h1>
-        <p className="font-body text-muted-foreground text-base">
-          Bắt đầu hành trình nhiếp ảnh của bạn
-        </p>
       </div>
 
       {/* Form */}
