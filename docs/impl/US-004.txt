@@ -132,11 +132,6 @@ Create function `public.spend_credits(user_id uuid, amount integer)`:
 - Security definer
 - Body: UPDATE public.profiles SET credits_balance = credits_balance - amount, updated_at = now() WHERE id = user_id AND credits_balance >= amount RETURNING credits_balance;
 
-3. Apply the migration:
-
-If using Supabase CLI: `supabase db push`
-If using dashboard: copy-paste the entire SQL file into the Supabase SQL Editor and run
-
 4. Seed starter modules:
 
 Insert 3 rows into `public.modules` with real data:
