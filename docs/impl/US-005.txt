@@ -1,0 +1,119 @@
+TASK: Complete the auth system and build the core read API — protected routes in the frontend, auto-profile creation on signup, and the modules/profiles API endpoints.
+
+CONSTRAINTS:
+
+- Backend: Hono on Cloudflare Workers, existing JWKS auth middleware at backend/src/middleware/auth.ts
+- Frontend: React 19, TanStack Router, TanStack Query, existing AuthContext at frontend/src/context/AuthContext.tsx
+- Signup must capture fullName and pass it to Supabase user_metadata so the database trigger populates profiles.full_name
+- The existing profiles trigger reads `raw_user_meta_data->>'full_name'`
+- API endpoints return JSON; use Zod only if request body validation is needed (path params can be simple checks)
+- Server state management uses TanStack Query — no useState/useEffect for data fetching
+- Protected routes redirect unauthenticated users to /login
+- Backend needs `@supabase/supabase-js` to query the database from protected routes
+- Use Supabase service role key for backend-to-Supabase queries to bypass RLS
+
+STEPS:
+
+1. Backend — Install Supabase client:
+
+cd backend && npm install @supabase/supabase-js
+
+2. Backend — Create Supabase service client helper:
+
+Create backend/src/lib/supabase.ts
+Import { createClient } from '@supabase/supabase-js'
+Export function createServiceClient(env: Env) that returns createClient(env.SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
+This client bypasses RLS and must only be used inside protected handlers
+
+3. Backend — Create profiles route:
+
+Create backend/src/routes/profiles.ts
+Import Hono, Env, createServiceClient, authMiddleware
+Create profilesRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
+Apply authMiddleware to the router or let index.ts handle it
+Add GET /me handler:
+  - const userId = c.get('user').id
+  - const supabase = createServiceClient(c.env)
+  - const { data, error } = await supabase.from('profiles').select('*').eq('id', userId).single()
+  - If error or no data, return c.json({ error: 'Profile not found' }, 404)
+  - Return c.json({ profile: data }, 200)
+Export profilesRouter
+
+4. Backend — Create modules route:
+
+Create backend/src/routes/modules.ts
+Import Hono, Env, createServiceClient
+Create modulesRouter = new Hono<{ Bindings: Env }>()
+Add GET / handler (PUBLIC):
+  - const supabase = createServiceClient(c.env)
+  - const { data, error } = await supabase.from('modules').select('*').order('sequence_order', { ascending: true })
+  - If error, return c.json({ error: error.message }, 500)
+  - Return c.json({ modules: data ?? [] }, 200)
+Add GET /:slug handler (PUBLIC):
+  - const slug = c.req.param('slug')
+  - if (!slug) return c.json({ error: 'Slug required' }, 400)
+  - const supabase = createServiceClient(c.env)
+  - const { data, error } = await supabase.from('modules').select('*').eq('slug', slug).single()
+  - If error or no data, return c.json({ error: 'Module not found' }, 404)
+  - Return c.json({ module: data }, 200)
+Export modulesRouter
+
+6. Frontend — Fix signup to pass fullName to Supabase metadata:
+
+Update frontend/src/context/AuthContext.tsx
+Change signUp signature to: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>
+In signUp body, update the Supabase call:
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { data: { full_name: fullName } }
+  })
+Update frontend/src/routes/signup.tsx
+In handleSubmit, pass fullName as the third argument:
+  const { error: signUpError } = await signUp(email, password, fullName)
+
+7. Frontend — Create protected route guard:
+
+Create frontend/src/components/features/auth/ProtectedRoute.tsx
+Import { useAuth } from '@/context/AuthContext'
+Import { Navigate } from '@tanstack/react-router'
+Props: { children: React.ReactNode }
+Component logic:
+  - const { user, loading } = useAuth()
+  - if (loading) return <div className="p-8 text-center">Đang tải...</div>
+  - if (!user) return <Navigate to="/login" />
+  - return <>{children}</>
+
+8. Frontend — Protect the upload route:
+
+Update frontend/src/routes/upload.tsx
+Import ProtectedRoute from '@/components/features/auth/ProtectedRoute'
+Wrap the existing page content inside <ProtectedRoute>...</ProtectedRoute>
+Unauthenticated users navigating to /upload are redirected to /login
+
+9. Frontend — Create TanStack Query hooks:
+
+Create frontend/src/hooks/queries/useModules.ts
+  - Import { useQuery } from '@tanstack/react-query'
+  - Import { apiFetch } from '@/lib/apiFetch'
+  - Export function useModules() with queryKey ['modules'], queryFn that calls apiFetch<{ modules: Module[] }>('modules'), staleTime: 5 * 60 * 1000
+
+Create frontend/src/hooks/queries/useModule.ts
+  - Export function useModule(slug: string) with queryKey ['module', slug], queryFn that calls apiFetch<{ module: Module }>(`modules/${slug}`), enabled: !!slug
+
+Create frontend/src/hooks/queries/useProfile.ts
+  - Export function useProfile() with queryKey ['profile', 'me'], queryFn that calls apiFetch<{ profile: Profile }>('profiles/me'), staleTime: 60 * 1000
+
+Add the Module and Profile types to frontend/src/types/index.ts or create dedicated type files if they do not exist.
+
+10. Verification:
+
+Start backend: wrangler dev --env dev
+Start frontend: npm run dev
+GET http://localhost:8787/v1/modules returns { modules: [...] } without Authorization header
+GET http://localhost:8787/v1/modules/composition-basics returns single module without auth
+GET http://localhost:8787/v1/profiles/me returns 401 without Authorization header
+GET http://localhost:8787/v1/profiles/me with valid Bearer token returns the user's profile
+Sign up via frontend with full name — verify profile row created in Supabase with full_name populated
+Navigate to /upload while logged out — verify redirect to /login
+Navigate to /upload while logged in — verify upload page renders

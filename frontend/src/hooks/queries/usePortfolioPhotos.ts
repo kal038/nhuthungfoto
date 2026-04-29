@@ -11,13 +11,13 @@ export function usePortfolioPhotos() {
       const res = await fetch(`${API_URL}/portfolio`)
       if (!res.ok) throw new Error('Failed to fetch portfolio photos')
       const data: PortfolioListResponse = await res.json()
-      return data.photos.map((photo) => ({
-        key: photo.key,
+      const photos: PortfolioPhoto[] = data.photos.map((photo) => ({
+        ...photo,
         url: `${BASE_URL}/${photo.key}`,
-        uploaded: photo.uploaded,
       }))
+
+      return photos
     },
-    staleTime: 5 * 60 * 1000,
+    staleTime: 15 * 60 * 1000,
   })
 }
-

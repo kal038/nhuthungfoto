@@ -1,0 +1,151 @@
+TASK: Migrate the full Supabase database schema — all 6 tables, enums, RLS policies, indexes, and the auto-profile trigger — so the application has a persistent data layer.
+
+CONSTRAINTS:
+
+- Supabase managed PostgreSQL
+- Use Supabase CLI migrations (`supabase migration new`) or raw SQL files in backend/db/
+- RLS must be enabled on every table in `public`
+- The `public.profiles` table extends `auth.users` via a database trigger
+- All IDs use `uuid` with `gen_random_uuid()` default
+- Timestamps use `timestamptz`
+- Enums are Postgres custom types
+- Indexes follow the naming convention `idx_<table>_<column>`
+- No changes to existing backend or frontend code — this is pure schema work
+- Migrations should be idempotent where possible (use `IF NOT EXISTS`)
+
+STEPS:
+
+1. Initialize migration directory:
+
+Create backend/db/migrations/ if it does not exist
+If Supabase CLI is installed, run: `supabase migration new initial_schema`
+Otherwise, create the file manually as backend/db/migrations/000001_initial_schema.sql
+
+2. Write the full schema migration:
+
+Open 000001_initial_schema.sql and add the following in order:
+
+Create enum types:
+- `skill_level` with values: 'BEGINNER', 'INTERMEDIATE', 'ADVANCED'
+- `specialty_track` with values: 'PORTRAIT', 'STREET', 'TRAVEL', 'PRODUCT'
+- `submission_status` with values: 'UPLOADED', 'GRADING', 'AWAITING_HUNG', 'COMPLETED', 'FAILED'
+- `review_type` with values: 'AI', 'HUNG'
+- `transaction_type` with values: 'PURCHASE', 'SPEND', 'REFUND', 'STARTER_BONUS'
+- `payment_status` with values: 'PENDING', 'SUCCESS', 'EXPIRED', 'CANCELLED'
+
+Create `public.profiles` table:
+- `id`: uuid, PRIMARY KEY, references auth.users(id) ON DELETE CASCADE
+- `full_name`: text
+- `credits_balance`: integer, DEFAULT 0
+- `skill_level`: skill_level, DEFAULT 'BEGINNER'
+- `phone_verified`: boolean, DEFAULT false
+- `locale`: text, DEFAULT 'vi'
+- `updated_at`: timestamptz, DEFAULT now()
+- Enable Row Level Security
+- Add policy `profiles_select_own`: SELECT for authenticated users where auth.uid() = id
+- Add policy `profiles_update_own`: UPDATE for authenticated users where auth.uid() = id
+
+Create `public.modules` table:
+- `id`: uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+- `title`: text, NOT NULL
+- `slug`: text, UNIQUE, NOT NULL
+- `description`: text
+- `content_url`: text
+- `content_markdown`: text
+- `level`: skill_level, DEFAULT 'BEGINNER'
+- `track`: specialty_track, DEFAULT 'PORTRAIT'
+- `sequence_order`: integer, DEFAULT 0
+- `is_free`: boolean, DEFAULT true
+- `created_at`: timestamptz, DEFAULT now()
+- `updated_at`: timestamptz, DEFAULT now()
+- Enable Row Level Security
+- Add policy `modules_select_all`: SELECT for all (anon + auth)
+- Add policy `modules_admin_write`: ALL for authenticated users where auth.uid() IN (SELECT id FROM auth.users WHERE raw_user_meta_data->>'role' = 'admin') — or use a simpler check if no admin role exists yet, e.g. return true for now and restrict later via service role
+
+Create `public.submissions` table:
+- `id`: uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+- `user_id`: uuid, references public.profiles(id) ON DELETE CASCADE
+- `module_id`: uuid, references public.modules(id) ON DELETE SET NULL
+- `original_photo_url`: text
+- `processed_photo_url`: text
+- `status`: submission_status, DEFAULT 'UPLOADED'
+- `review_type`: review_type, DEFAULT 'AI'
+- `created_at`: timestamptz, DEFAULT now()
+- Enable Row Level Security
+- Add policy `submissions_select_own`: SELECT for authenticated where auth.uid() = user_id
+- Add policy `submissions_insert_own`: INSERT for authenticated where auth.uid() = user_id
+- Add policy `submissions_admin_all`: ALL for authenticated where true — restrict to service role later if preferred
+
+Create `public.reviews` table:
+- `id`: uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+- `submission_id`: uuid, references public.submissions(id) ON DELETE CASCADE
+- `overall_score`: integer, CHECK (overall_score BETWEEN 1 AND 100)
+- `category_scores`: jsonb
+- `ai_feedback`: text
+- `hung_comments`: text
+- `annotation_data`: jsonb
+- `audio_url`: text
+- `created_at`: timestamptz, DEFAULT now()
+- Enable Row Level Security
+- Add policy `reviews_select_own`: SELECT for authenticated where auth.uid() = (SELECT user_id FROM public.submissions WHERE id = submission_id)
+
+Create `public.credit_history` table:
+- `id`: uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+- `user_id`: uuid, references public.profiles(id) ON DELETE CASCADE
+- `amount`: integer, NOT NULL
+- `type`: transaction_type, NOT NULL
+- `metadata`: jsonb
+- `created_at`: timestamptz, DEFAULT now()
+- Enable Row Level Security
+- Add policy `credit_history_select_own`: SELECT for authenticated where auth.uid() = user_id
+
+Create `public.payments` table:
+- `id`: uuid, PRIMARY KEY, DEFAULT gen_random_uuid()
+- `user_id`: uuid, references public.profiles(id) ON DELETE CASCADE
+- `amount`: bigint, NOT NULL
+- `provider`: text, NOT NULL
+- `status`: payment_status, DEFAULT 'PENDING'
+- `external_ref`: text, UNIQUE, NOT NULL
+- `raw_payload`: jsonb
+- `created_at`: timestamptz, DEFAULT now()
+- Enable Row Level Security
+- Add policy `payments_select_own`: SELECT for authenticated where auth.uid() = user_id
+
+Create indexes:
+- `idx_profiles_user_id` on profiles(id)
+- `idx_modules_slug` on modules(slug)
+- `idx_submissions_user_id` on submissions(user_id)
+- `idx_submissions_status` on submissions(status)
+- `idx_payments_external_ref` on payments(external_ref)
+- `idx_credit_history_user_id` on credit_history(user_id)
+
+Create trigger function `public.handle_new_user()`:
+- Returns trigger
+- Language plpgsql
+- Security definer
+- Body: INSERT INTO public.profiles (id, full_name) VALUES (new.id, new.raw_user_meta_data->>'full_name'); RETURN new;
+- Attach trigger `on_auth_user_created` on `auth.users` AFTER INSERT, executing `public.handle_new_user()`
+
+Create function `public.spend_credits(user_id uuid, amount integer)`:
+- Returns integer (new balance)
+- Language plpgsql
+- Security definer
+- Body: UPDATE public.profiles SET credits_balance = credits_balance - amount, updated_at = now() WHERE id = user_id AND credits_balance >= amount RETURNING credits_balance;
+
+4. Seed starter modules:
+
+Insert 3 rows into `public.modules` with real data:
+- slug: 'composition-basics', title: 'Cơ bản về Bố cục', description: 'Học rule of thirds, leading lines, và framing.', level: 'BEGINNER', track: 'PORTRAIT', sequence_order: 1
+- slug: 'lighting-101', title: 'Ánh sáng Nhiếp ảnh 101', description: 'Natural light, golden hour, và shadow control.', level: 'BEGINNER', track: 'PORTRAIT', sequence_order: 2
+- slug: 'portrait-posing', title: 'Tạo dáng Chân dung', description: 'Hướng dẫn tạo dáng cho mẫu chân dung.', level: 'INTERMEDIATE', track: 'PORTRAIT', sequence_order: 3
+
+5. Verification:
+
+Sign up a new test user via Supabase Auth (email/password)
+Query `public.profiles` — verify a row was auto-created with matching `id` and `full_name`
+Verify `auth.users` has the new user and `public.profiles` has the matching row
+Run as anon: `SELECT * FROM public.modules` — should return 3 rows
+Run as anon: `SELECT * FROM public.profiles` — should return 0 rows (RLS blocks)
+Run as owner: `SELECT * FROM public.profiles WHERE id = auth.uid()` — should return own row
+Test `spend_credits` RPC with insufficient balance — should return no rows
+Test `spend_credits` with sufficient balance — should return updated balance and verify `credit_history` row was inserted manually
