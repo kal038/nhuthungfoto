@@ -11,7 +11,7 @@ CREATE TYPE payment_status AS ENUM ('PENDING', 'SUCCESS', 'EXPIRED', 'CANCELLED'
 -- 2. TABLES
 -- ============================================
 
--- profiles (extends auth.users)
+-- profiles (extends auth.users), create new profile on auth.users insertion
 CREATE TABLE public.profiles (
   id uuid PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
   full_name text,
@@ -32,7 +32,7 @@ CREATE POLICY profiles_update_own
   FOR UPDATE
   TO authenticated
   USING (auth.uid() = id)
-  WITH CHECK (auth.uid() = id);
+  WITH CHECK (auth.uid() = id); -- disallow changing profile_id, always == auth.id
 
 -- modules
 CREATE TABLE public.modules (
