@@ -13,7 +13,7 @@ interface PresignURLResult {
   expiresIn: number
 }
 
-interface UploadPhotoResult {
+export interface UploadPhotoResult {
   objectKey: string
 }
 
@@ -22,7 +22,7 @@ interface UploadPhotoResult {
  * 1. Fetch presigned URL from backend.
  * 2. PUT file directly to storage via fetch.
  */
-async function uploadPhoto(file: File): Promise<UploadPhotoResult> {
+export async function uploadPhoto(file: File): Promise<UploadPhotoResult> {
   const body: PresignRequest = {
     fileName: file.name,
     contentType: file.type,

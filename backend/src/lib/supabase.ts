@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
+import type { Database } from '../types/database.types'
 import { type Env } from '../types/env'
 
 export function createServiceClient(env: Env) {
@@ -10,7 +11,7 @@ export function createServiceClient(env: Env) {
     )
   }
 
-  return createClient(SUPABASE_URL, SUPABASE_SECRET_KEY, {
+  return createClient<Database>(SUPABASE_URL, SUPABASE_SECRET_KEY, {
     auth: {
       persistSession: false,
       autoRefreshToken: false,

@@ -1,0 +1,1 @@
+../../../backend/src/types/database.types.ts

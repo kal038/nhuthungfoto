@@ -6,7 +6,7 @@ const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
 export async function apiFetch<T>(
   path: string,
   body?: unknown,
-  method: 'GET' | 'POST' | 'PUT' | 'DELETE' = 'GET',
+  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
 ): Promise<T> {
   const {
     data: { session },
