@@ -41,4 +41,9 @@ export interface Env {
   // Config vars
   // ---------------------
   FRONTEND_URL: string
+
+  // ---------------------
+  // Environment
+  // ---------------------
+  ENVIRONMENT?: string
 }

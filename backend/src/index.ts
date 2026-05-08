@@ -1,5 +1,6 @@
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
+import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
 import { healthRouter } from './routes/health'
 import { uploadsRouter } from './routes/uploads'
@@ -7,12 +8,14 @@ import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
 import { portfolioRouter } from './routes/portfolio'
+import { profileRouter } from './routes/profile'
 
 const app = new Hono<{ Bindings: Env }>()
 
 // ---------------------
 // Middleware
 // ---------------------
+app.use('*', logger())
 app.use('*', myRateLimiter)
 app.use('*', secureHeaders())
 app.use('*', (c, next) => {
@@ -34,5 +37,6 @@ app.route('/portfolio', portfolioRouter)
 // ---------------------
 app.use('/v1/*', authMiddleware)
 app.route('/v1/presign', uploadsRouter)
+app.route('/v1/profile', profileRouter)
 
 export default app

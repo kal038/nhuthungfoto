@@ -141,6 +141,7 @@ export type Database = {
           full_name: string | null
           id: string
           locale: string | null
+          phone: string | null
           phone_verified: boolean | null
           skill_level: Database["public"]["Enums"]["skill_level"] | null
           updated_at: string | null
@@ -150,6 +151,7 @@ export type Database = {
           full_name?: string | null
           id: string
           locale?: string | null
+          phone?: string | null
           phone_verified?: boolean | null
           skill_level?: Database["public"]["Enums"]["skill_level"] | null
           updated_at?: string | null
@@ -159,6 +161,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           locale?: string | null
+          phone?: string | null
           phone_verified?: boolean | null
           skill_level?: Database["public"]["Enums"]["skill_level"] | null
           updated_at?: string | null
