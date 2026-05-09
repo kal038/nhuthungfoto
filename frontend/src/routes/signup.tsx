@@ -41,7 +41,7 @@ function SignUpContainer() {
     }
 
     setIsLoading(true)
-    const { error: signUpError } = await signUp(email, password)
+    const { error: signUpError } = await signUp(email, password, fullName)
     setIsLoading(false)
 
     if (signUpError) {

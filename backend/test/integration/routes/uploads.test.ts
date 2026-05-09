@@ -61,9 +61,10 @@ describe('Uploads Route', () => {
   const invalidRequestEmptyBody = {}
 
   beforeEach(() => {
-    app = new Hono<{ Bindings: Env }>()
+    app = new Hono<{ Bindings: Env; Variables: { user: { id: string } } }>()
     app.use('*', async (c, next) => {
       c.env = mockEnv
+      c.set('user', { id: 'test-user' })
       await next()
     })
     app.use('*', (c, next) => {
@@ -73,12 +74,16 @@ describe('Uploads Route', () => {
       })
       return corsMiddleware(c, next)
     })
-    app.route('/v1/uploads', uploadsRouter)
+    app.route('/v1/presign', uploadsRouter)
+    app.onError((err, c) => {
+      console.error(err)
+      return c.json({ error: 'Internal Server Error' }, 500)
+    })
     vi.clearAllMocks()
   })
 
   function postPresign(body: unknown, headers?: Record<string, string>) {
-    return app.request('/v1/uploads/presign', {
+    return app.request('/v1/presign', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', ...headers },
       body: JSON.stringify(body),
@@ -130,7 +135,7 @@ describe('Uploads Route', () => {
     })
 
     it('should return 500 when request body is not JSON', async () => {
-      const response = await app.request('/v1/uploads/presign', {
+      const response = await app.request('/v1/presign', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: 'not json',
@@ -145,7 +150,7 @@ describe('Uploads Route', () => {
       await postPresign(validRequest)
 
       expect(mockSign).toHaveBeenCalledWith(
-        expect.stringMatching(/anonymous\/[a-f0-9-]+\/photo\.jpg/),
+        expect.stringMatching(/test-user\/[a-f0-9-]+\/photo\.jpg/),
         expect.any(Object),
       )
     })
@@ -160,7 +165,7 @@ describe('Uploads Route', () => {
       })
 
       expect(mockSign).toHaveBeenCalledWith(
-        expect.stringMatching(/anonymous\/[a-f0-9-]+\/myphoto1\.jpg/),
+        expect.stringMatching(/test-user\/[a-f0-9-]+\/myphoto1\.jpg/),
         expect.any(Object),
       )
     })
@@ -179,7 +184,7 @@ describe('Uploads Route', () => {
 
       expect(response.status).toBe(500)
       const data = await response.json()
-      expect(data).toHaveProperty('error', 'Failed to generate presigned URL')
+      expect(data).toHaveProperty('error', 'Internal Server Error')
     })
 
     it('should use AwsClient with correct credentials', async () => {
@@ -230,7 +235,7 @@ describe('Uploads Route', () => {
     it('should include CORS headers in response', async () => {
       mockSign.mockResolvedValueOnce({ url: 'https://signed.example.com' })
 
-      const response = await app.request('/v1/uploads/presign', {
+      const response = await app.request('/v1/presign', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
