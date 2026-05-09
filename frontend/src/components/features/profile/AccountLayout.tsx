@@ -1,4 +1,5 @@
 import { cn } from '@/lib/utils'
+import { Link } from '@tanstack/react-router'
 
 const sidebarLinks = [
   { label: 'Hồ sơ', href: '/profile', active: true },
@@ -12,6 +13,27 @@ interface AccountLayoutProps {
 export function AccountLayout({ children, className }: AccountLayoutProps) {
   return (
     <div className="min-h-screen bg-white">
+      <header className="border-b border-zinc-100">
+        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+          <Link to="/" className="inline-flex items-center gap-2 group">
+            <svg
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              className="h-7 w-7 text-zinc-900 transition-colors duration-200 group-hover:text-zinc-600"
+            >
+              <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z" />
+              <circle cx="12" cy="13" r="3" />
+            </svg>
+            <span className="text-lg font-semibold tracking-wide text-zinc-900 font-heading transition-colors duration-200 group-hover:text-zinc-600">
+              nhuthungfoto
+            </span>
+          </Link>
+        </div>
+      </header>
       <div className="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="flex flex-col gap-8 md:flex-row md:gap-12">
           <aside className="w-full shrink-0 md:w-48">
