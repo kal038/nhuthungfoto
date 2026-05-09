@@ -93,7 +93,9 @@ export function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48" sideOffset={8}>
-                <DropdownMenuItem className="text-sm cursor-pointer">Hồ sơ</DropdownMenuItem>
+                <DropdownMenuItem className="text-sm cursor-pointer" onClick={() => navigate({ to: '/profile' })}>
+                  Hồ sơ
+                </DropdownMenuItem>
                 <DropdownMenuItem className="text-sm cursor-pointer">
                   Khóa học của tôi
                 </DropdownMenuItem>
@@ -162,14 +164,24 @@ export function Navbar() {
               ))}
               <hr className="border-white/10 my-2" />
               {user ? (
-                <SheetClose asChild>
-                  <button
-                    onClick={handleSignOut}
-                    className="bg-white/10 text-white w-full py-3 rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors duration-200 cursor-pointer"
-                  >
-                    Đăng Xuất
-                  </button>
-                </SheetClose>
+                <>
+                  <SheetClose asChild>
+                    <a
+                      href="/profile"
+                      className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2"
+                    >
+                      Hồ sơ
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <button
+                      onClick={handleSignOut}
+                      className="bg-white/10 text-white w-full py-3 rounded-lg text-sm font-semibold hover:bg-white/20 transition-colors duration-200 cursor-pointer"
+                    >
+                      Đăng Xuất
+                    </button>
+                  </SheetClose>
+                </>
               ) : (
                 <SheetClose asChild>
                   <button

@@ -26,6 +26,12 @@ app.use('*', (c, next) => {
   return corsMiddleware(c, next)
 })
 
+// Global error handler (ensures CORS headers on uncaught errors)
+app.onError((err, c) => {
+  console.error(err)
+  return c.json({ error: 'Internal Server Error' }, 500)
+})
+
 // ---------------------
 // Routes Public
 // ---------------------

@@ -14,8 +14,9 @@ export async function getUserProfile(userId: string): Promise<UserProfile> {
 
 export function useUserProfile(userId: string) {
   return useQuery<UserProfile>({
-    queryKey: ['user-profile', userId],
+    queryKey: userId ? ['user-profile', userId] : ['user-profile', '_none'],
     queryFn: () => getUserProfile(userId),
     staleTime: 15 * 60 * 1000,
+    enabled: !!userId,
   })
 }

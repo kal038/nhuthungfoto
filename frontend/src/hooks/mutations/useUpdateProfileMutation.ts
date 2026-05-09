@@ -5,6 +5,7 @@ import type { UserProfile } from '@/hooks/queries/useUserProfile'
 interface UpdateProfileBody {
   fullName?: string
   phone?: string
+  avatarUrl?: string
 }
 
 export async function updateProfile(body: UpdateProfileBody): Promise<UserProfile> {
