@@ -19,12 +19,13 @@ profileRouter.patch('/', async (c) => {
     return c.json({ error: result.error.issues }, 400)
   }
 
-  const { fullName, phone } = result.data
+  const { fullName, phone, avatarUrl } = result.data
   const supabase = createServiceClient(c.env)
 
   const updatePayload: {
     full_name?: string
     phone?: string
+    avatar_url?: string | null
     updated_at?: string
   } = {
     updated_at: new Date().toISOString(),
@@ -36,6 +37,10 @@ profileRouter.patch('/', async (c) => {
 
   if (phone !== undefined) {
     updatePayload.phone = phone
+  }
+
+  if (avatarUrl !== undefined) {
+    updatePayload.avatar_url = avatarUrl || null
   }
 
   const { data, error } = await supabase
