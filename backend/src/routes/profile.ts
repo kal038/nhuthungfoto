@@ -1,8 +1,9 @@
 import { Hono } from 'hono'
-import type { Env } from '../types/env'
-import type { AuthVars } from '../middleware/auth'
-import { createServiceClient } from '../lib/supabase'
-import { updateProfileSchema } from '../schema/profile'
+import type { Env } from '@/types/env'
+import type { AuthVars } from '@/middleware/auth'
+import { createServiceClient } from '@/lib/supabase'
+import { updateProfileSchema } from '@/schema/profile'
+import { AppError, BadRequestError } from '@/lib/errors'
 
 const profileRouter = new Hono<{
   Bindings: Env
@@ -12,7 +13,9 @@ const profileRouter = new Hono<{
 // PATCH /v1/profile — update current user's profile
 profileRouter.patch('/', async (c) => {
   const userId = c.get('user').id
-  const body = await c.req.json()
+  const body = await c.req.json().catch(() => {
+    throw new BadRequestError('Request body must be valid JSON')
+  })
 
   const result = updateProfileSchema.safeParse(body)
   if (!result.success) {
@@ -52,7 +55,7 @@ profileRouter.patch('/', async (c) => {
 
   if (error) {
     console.error('Error updating profile:', error)
-    return c.json({ error: 'Failed to update profile' }, 500)
+    throw new AppError('Failed to update profile', 502)
   }
 
   return c.json(data, 200)

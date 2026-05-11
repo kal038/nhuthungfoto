@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { updateProfileSchema } from '../../../src/schema/profile'
+import { updateProfileSchema } from '@/schema/profile'
 
 describe('updateProfileSchema', () => {
   describe('fullName', () => {

@@ -1,6 +1,6 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '../types/database.types'
-import { type Env } from '../types/env'
+import type { Database } from '@/types/database.types'
+import { type Env } from '@/types/env'
 
 export function createServiceClient(env: Env) {
   const { SUPABASE_URL, SUPABASE_SECRET_KEY } = env

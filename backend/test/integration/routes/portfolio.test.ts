@@ -1,8 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import type { Env } from '../../../src/types/env'
-import { portfolioRouter } from '../../../src/routes/portfolio'
+import type { Env } from '@/types/env'
+import { portfolioRouter } from '@/routes/portfolio'
+import { AppError } from '@/lib/errors'
 
 describe('Portfolio Route', () => {
   let app: Hono<{ Bindings: Env }>
@@ -142,10 +143,17 @@ describe('Portfolio Route', () => {
         await next()
       })
       app.route('/portfolio', portfolioRouter)
+      app.onError((err, c) => {
+        console.error(err)
+        if (err instanceof AppError) {
+          return c.json({ error: err.message }, err.status)
+        }
+        return c.json({ error: 'Internal Server Error' }, 500)
+      })
 
       const response = await app.request('/portfolio')
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(502)
       const data = await response.json()
       expect(data).toHaveProperty('error', 'Failed to load portfolio')
       expect(mockR2Bucket.list).toHaveBeenCalledTimes(3)

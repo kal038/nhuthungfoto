@@ -57,3 +57,6 @@ clean:
     rm -rf frontend/dist backend/dist
     rm -rf frontend/node_modules backend/node_modules
 
+check-type:
+    cd backend && npx tsc --noEmit
+    cd frontend && npx tsc -b

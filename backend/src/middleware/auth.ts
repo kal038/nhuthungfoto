@@ -10,7 +10,7 @@
 // Basically Supabase is now the authoritative figure for issuing JWTs
 // You (your backend) can now only verify the integrity of the token with a JWKS fetched from Supabase
 
-import type { Env } from '../types/env'
+import type { Env } from '@/types/env'
 import { createMiddleware } from 'hono/factory'
 import { jwk } from 'hono/jwk'
 

@@ -1,13 +1,17 @@
 import { Hono } from 'hono'
-import type { Env } from '../types/env'
-import type { AuthVars } from '../middleware/auth'
-import { presignRequestSchema, type PresignedUrlResult } from '../schema/upload'
-import { generatePresignedUploadUrl } from '../services/r2'
+import type { Env } from '@/types/env'
+import type { AuthVars } from '@/middleware/auth'
+import { presignRequestSchema, type PresignedUrlResult } from '@/schema/upload'
+import { generatePresignedUploadUrl } from '@/services/r2'
+import { AppError, BadRequestError } from '@/lib/errors'
 
 const uploadsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
 uploadsRouter.post('/', async (c) => {
-  const body = await c.req.json()
+  const body = await c.req.json().catch(() => {
+    throw new BadRequestError('Request body must be valid JSON')
+  })
+
   const result = presignRequestSchema.safeParse(body)
   if (!result.success) {
     return c.json({ error: result.error.issues }, 400)
@@ -23,7 +27,10 @@ uploadsRouter.post('/', async (c) => {
     objectKey,
     contentType,
     fileSizeBytes,
-  )
+  ).catch((err) => {
+    console.error('Presign error:', err)
+    throw new AppError('Failed to generate presigned URL', 502)
+  })
 
   return c.json(presignedUrlResult, 200)
 })

@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import type { ContentfulStatusCode } from 'hono/utils/http-status'
 import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
@@ -9,6 +10,7 @@ import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
 import { portfolioRouter } from './routes/portfolio'
 import { profileRouter } from './routes/profile'
+import { AppError } from './lib/errors'
 
 const app = new Hono<{ Bindings: Env }>()
 
@@ -29,6 +31,11 @@ app.use('*', (c, next) => {
 // Global error handler (ensures CORS headers on uncaught errors)
 app.onError((err, c) => {
   console.error(err)
+
+  if (err instanceof AppError) {
+    return c.json({ error: err.message }, err.status as ContentfulStatusCode)
+  }
+
   return c.json({ error: 'Internal Server Error' }, 500)
 })
 
