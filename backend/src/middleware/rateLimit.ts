@@ -1,5 +1,5 @@
 import { rateLimiter } from 'hono-rate-limiter'
-import type { Env } from '../types/env'
+import type { Env } from '@/types/env'
 
 export const myRateLimiter = rateLimiter<{ Bindings: Env }>({
   binding: (c) => c.env.RATE_LIMITER,

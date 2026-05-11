@@ -1,7 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Hono } from 'hono'
-import type { Env } from '../../../src/types/env'
-import { profileRouter } from '../../../src/routes/profile'
+import type { Env } from '@/types/env'
+import { profileRouter } from '@/routes/profile'
+import { AppError } from '@/lib/errors'
 
 const mockFrom = vi.fn()
 const mockUpdate = vi.fn()
@@ -43,6 +44,13 @@ describe('Profile Route', () => {
       await next()
     })
     app.route('/v1/profile', profileRouter)
+    app.onError((err, c) => {
+      console.error(err)
+      if (err instanceof AppError) {
+        return c.json({ error: err.message }, err.status)
+      }
+      return c.json({ error: 'Internal Server Error' }, 500)
+    })
     vi.clearAllMocks()
   })
 
@@ -188,7 +196,7 @@ describe('Profile Route', () => {
       expect(data).toHaveProperty('error')
     })
 
-    it('should return 500 when Supabase update fails', async () => {
+    it('should return 502 when Supabase update fails', async () => {
       mockSingle.mockResolvedValueOnce({
         data: null,
         error: { message: 'Database error' },
@@ -196,19 +204,21 @@ describe('Profile Route', () => {
 
       const response = await patchProfile({ fullName: 'John Doe' })
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(502)
       const data = await response.json()
       expect(data).toHaveProperty('error', 'Failed to update profile')
     })
 
-    it('should return 500 when request body is not JSON', async () => {
+    it('should return 400 when request body is not JSON', async () => {
       const response = await app.request('/v1/profile', {
         method: 'PATCH',
         headers: { 'Content-Type': 'text/plain' },
         body: 'not json',
       })
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'Request body must be valid JSON')
     })
 
     it('should use the user id from context for the eq clause', async () => {

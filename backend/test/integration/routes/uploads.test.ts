@@ -1,9 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { Hono } from 'hono'
 import { cors } from 'hono/cors'
-import type { Env } from '../../../src/types/env'
-import { uploadsRouter } from '../../../src/routes/uploads'
+import type { Env } from '@/types/env'
+import { uploadsRouter } from '@/routes/uploads'
 import { AwsClient } from 'aws4fetch'
+import { AppError } from '@/lib/errors'
 
 // Test Hono routing
 // Test Zod validation
@@ -77,6 +78,9 @@ describe('Uploads Route', () => {
     app.route('/v1/presign', uploadsRouter)
     app.onError((err, c) => {
       console.error(err)
+      if (err instanceof AppError) {
+        return c.json({ error: err.message }, err.status)
+      }
       return c.json({ error: 'Internal Server Error' }, 500)
     })
     vi.clearAllMocks()
@@ -134,14 +138,16 @@ describe('Uploads Route', () => {
       expect(data).toHaveProperty('error')
     })
 
-    it('should return 500 when request body is not JSON', async () => {
+    it('should return 400 when request body is not JSON', async () => {
       const response = await app.request('/v1/presign', {
         method: 'POST',
         headers: { 'Content-Type': 'text/plain' },
         body: 'not json',
       })
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'Request body must be valid JSON')
     })
 
     it('should generate unique object key with UUID', async () => {
@@ -177,14 +183,14 @@ describe('Uploads Route', () => {
       expect(data).toHaveProperty('error')
     })
 
-    it('should return 500 when aws4fetch throws error', async () => {
+    it('should return 502 when aws4fetch throws error', async () => {
       mockSign.mockRejectedValueOnce(new Error('AWS error'))
 
       const response = await postPresign(validRequest)
 
-      expect(response.status).toBe(500)
+      expect(response.status).toBe(502)
       const data = await response.json()
-      expect(data).toHaveProperty('error', 'Internal Server Error')
+      expect(data).toHaveProperty('error', 'Failed to generate presigned URL')
     })
 
     it('should use AwsClient with correct credentials', async () => {

@@ -1,6 +1,7 @@
 import { Hono } from 'hono'
-import type { Env } from '../types/env'
-import type { PortfolioPhotoResult } from '../schema/portfolio'
+import type { Env } from '@/types/env'
+import type { PortfolioPhotoResult } from '@/schema/portfolio'
+import { AppError } from '@/lib/errors'
 
 const portfolioRouter = new Hono<{ Bindings: Env }>()
 
@@ -32,25 +33,23 @@ async function listWithRetry(
 }
 
 portfolioRouter.get('/', async (c) => {
-  try {
-    const r2Result = await listWithRetry(
-      c.env.R2_PORTFOLIO_PUBLIC,
-      { prefix: 'prefix/', limit: 50 },
-      3,
-      100,
-    )
-
-    const photos = r2Result.objects.map((obj) => ({
-      key: obj.key,
-      uploaded: obj.uploaded.toISOString(),
-    }))
-
-    const response: PortfolioPhotoResult = { photos }
-    return c.json(response, 200)
-  } catch (err) {
+  const r2Result = await listWithRetry(
+    c.env.R2_PORTFOLIO_PUBLIC,
+    { prefix: 'prefix/', limit: 50 },
+    3,
+    100,
+  ).catch((err) => {
     console.error('Portfolio fetch failed after retries:', err)
-    return c.json({ error: 'Failed to load portfolio' }, 500)
-  }
+    throw new AppError('Failed to load portfolio', 502)
+  })
+
+  const photos = r2Result.objects.map((obj) => ({
+    key: obj.key,
+    uploaded: obj.uploaded.toISOString(),
+  }))
+
+  const response: PortfolioPhotoResult = { photos }
+  return c.json(response, 200)
 })
 
 export { portfolioRouter }

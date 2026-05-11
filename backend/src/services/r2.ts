@@ -1,6 +1,6 @@
 import { AwsClient } from 'aws4fetch'
-import type { Env } from '../types/env'
-import type { PresignedUrlResult } from '../schema/upload'
+import type { Env } from '@/types/env'
+import type { PresignedUrlResult } from '@/schema/upload'
 
 //service to generate presigned upload url using aws4fetch
 

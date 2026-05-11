@@ -1,7 +1,7 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, beforeEach } from 'vitest'
 import { Hono } from 'hono'
-import type { Env } from '../../../src/types/env'
-import { authMiddleware } from '../../../src/middleware/auth'
+import type { Env } from '@/types/env'
+import { authMiddleware } from '@/middleware/auth'
 
 // Mock hono/jwk so we can control auth behavior without real crypto
 describe('authMiddleware', () => {
