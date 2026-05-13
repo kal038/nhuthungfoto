@@ -7,6 +7,8 @@ export type Json =
   | Json[]
 
 export type Database = {
+  // Allows to automatically instantiate createClient with right options
+  // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "14.4"
   }
@@ -137,6 +139,8 @@ export type Database = {
         Row: {
           avatar_url: string | null
           credits_balance: number | null
+          email: string | null
+          email_verified: boolean | null
           full_name: string | null
           id: string
           locale: string | null
@@ -148,6 +152,8 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           credits_balance?: number | null
+          email?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           id: string
           locale?: string | null
@@ -159,6 +165,8 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           credits_balance?: number | null
+          email?: string | null
+          email_verified?: boolean | null
           full_name?: string | null
           id?: string
           locale?: string | null
@@ -222,7 +230,7 @@ export type Database = {
           processed_photo_url: string | null
           review_type: Database["public"]["Enums"]["review_type"] | null
           status: Database["public"]["Enums"]["submission_status"] | null
-          user_id: string | null
+          user_id: string
         }
         Insert: {
           created_at?: string | null
@@ -232,7 +240,7 @@ export type Database = {
           processed_photo_url?: string | null
           review_type?: Database["public"]["Enums"]["review_type"] | null
           status?: Database["public"]["Enums"]["submission_status"] | null
-          user_id?: string | null
+          user_id: string
         }
         Update: {
           created_at?: string | null
@@ -242,7 +250,7 @@ export type Database = {
           processed_photo_url?: string | null
           review_type?: Database["public"]["Enums"]["review_type"] | null
           status?: Database["public"]["Enums"]["submission_status"] | null
-          user_id?: string | null
+          user_id?: string
         }
         Relationships: [
           {

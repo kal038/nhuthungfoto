@@ -5,6 +5,13 @@ import { createServiceClient } from '@/lib/supabase'
 import { updateProfileSchema } from '@/schema/profile'
 import { AppError, BadRequestError } from '@/lib/errors'
 
+interface Payload {
+  full_name?: string
+  phone?: string
+  avatar_url?: string
+  updated_at: string
+}
+
 const profileRouter = new Hono<{
   Bindings: Env
   Variables: { user: AuthVars }
@@ -17,38 +24,34 @@ profileRouter.patch('/', async (c) => {
     throw new BadRequestError('Request body must be valid JSON')
   })
 
+  // unmarshall body safely
   const result = updateProfileSchema.safeParse(body)
   if (!result.success) {
     return c.json({ error: result.error.issues }, 400)
   }
 
   const { fullName, phone, avatarUrl } = result.data
-  const supabase = createServiceClient(c.env)
+  const spb = createServiceClient(c.env)
 
-  const updatePayload: {
-    full_name?: string
-    phone?: string
-    avatar_url?: string | null
-    updated_at?: string
-  } = {
+  const payload: Payload = {
     updated_at: new Date().toISOString(),
   }
 
   if (fullName !== undefined) {
-    updatePayload.full_name = fullName
+    payload.full_name = fullName
   }
 
   if (phone !== undefined) {
-    updatePayload.phone = phone
+    payload.phone = phone
   }
 
   if (avatarUrl !== undefined) {
-    updatePayload.avatar_url = avatarUrl || null
+    payload.avatar_url = avatarUrl
   }
 
-  const { data, error } = await supabase
+  const { data, error } = await spb
     .from('profiles')
-    .update(updatePayload)
+    .update(payload)
     .eq('id', userId)
     .select()
     .single()

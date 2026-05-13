@@ -8,5 +8,4 @@ export const updateProfileSchema = z.object({
     .optional()
     .or(z.literal('')),
   avatarUrl: z.string().url('Invalid URL').optional().or(z.literal('')),
-  email: z.string().email('Invalid Email').optional().or(z.literal('')),
 })
