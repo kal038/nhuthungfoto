@@ -72,6 +72,8 @@ describe('Uploads Route', () => {
       const corsMiddleware = cors({
         origin: mockEnv.FRONTEND_URL || 'http://localhost:5173',
         credentials: true,
+        allowHeaders: ['Authorization', 'Content-Type'],
+        allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
       })
       return corsMiddleware(c, next)
     })

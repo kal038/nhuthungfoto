@@ -46,7 +46,7 @@ profileRouter.patch('/', async (c) => {
   }
 
   if (avatarUrl !== undefined) {
-    payload.avatar_url = avatarUrl
+    payload.avatar_url = avatarUrl === '' ? null : avatarUrl
   }
 
   const { data, error } = await spb

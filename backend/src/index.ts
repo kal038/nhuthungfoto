@@ -18,17 +18,18 @@ const app = new Hono<{ Bindings: Env }>()
 // Middleware
 // ---------------------
 app.use('*', logger())
-app.use('*', myRateLimiter)
-app.use('*', secureHeaders())
 app.use('*', (c, next) => {
   const corsMiddleware = cors({
     origin: c.env.FRONTEND_URL || 'http://localhost:5173',
     credentials: true,
+    allowHeaders: ['Authorization', 'Content-Type'],
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
   })
   return corsMiddleware(c, next)
 })
+app.use('*', myRateLimiter)
+app.use('*', secureHeaders())
 
-// Global error handler (ensures CORS headers on uncaught errors)
 app.onError((err, c) => {
   console.error(err)
 
