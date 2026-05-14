@@ -21,5 +21,6 @@ export function useUpdateProfileMutation() {
       // Invalidate the profile query so it refetches
       queryClient.invalidateQueries({ queryKey: ['user-profile'] })
     },
+    onError: (err) => console.error(err),
   })
 }
