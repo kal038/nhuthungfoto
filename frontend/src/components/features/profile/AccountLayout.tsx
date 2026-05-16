@@ -1,9 +1,7 @@
 import { cn } from '@/lib/utils'
 import { Link } from '@tanstack/react-router'
 
-const sidebarLinks = [
-  { label: 'Hồ sơ', href: '/profile', active: true },
-]
+const sidebarLinks = [{ label: 'Hồ sơ', href: '/profile', active: true }]
 
 interface AccountLayoutProps {
   children: React.ReactNode
@@ -49,7 +47,7 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
                     'text-sm transition-colors duration-150',
                     link.active
                       ? 'font-medium text-zinc-900'
-                      : 'text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500'
+                      : 'text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500',
                   )}
                 >
                   {link.label}
@@ -57,9 +55,7 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
               ))}
             </nav>
           </aside>
-          <main className={cn('min-w-0 flex-1', className)}>
-            {children}
-          </main>
+          <main className={cn('min-w-0 flex-1', className)}>{children}</main>
         </div>
       </div>
     </div>

@@ -5,14 +5,20 @@ import { authMiddleware } from '@/middleware/auth'
 
 // Mock hono/jwk so we can control auth behavior without real crypto
 describe('authMiddleware', () => {
-  let app: Hono<{ Bindings: Env; Variables: { user: { id: string; email?: string; role: string } } }>
+  let app: Hono<{
+    Bindings: Env
+    Variables: { user: { id: string; email?: string; role: string } }
+  }>
 
   const mockEnv: Env = {
     SUPABASE_URL: 'https://test.supabase.co',
   } as Env
 
   beforeEach(() => {
-    app = new Hono<{ Bindings: Env; Variables: { user: { id: string; email?: string; role: string } } }>()
+    app = new Hono<{
+      Bindings: Env
+      Variables: { user: { id: string; email?: string; role: string } }
+    }>()
     app.use('*', async (c, next) => {
       c.env = mockEnv
       await next()

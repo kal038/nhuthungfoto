@@ -1,9 +1,6 @@
 import { Upload, ImagePlus } from 'lucide-react'
 import { cn } from '@/lib/utils'
-import {
-  ACCEPTED_IMAGE_TYPES,
-  DEFAULT_MAX_FILE_SIZE_MB,
-} from '@/types/upload'
+import { ACCEPTED_IMAGE_TYPES, DEFAULT_MAX_FILE_SIZE_MB } from '@/types/upload'
 
 interface PhotoUploadDropZoneProps {
   /** Callback when user selects files via input or drop. */
@@ -78,16 +75,10 @@ export function PhotoUploadDropZone({
       <div
         className={cn(
           'flex size-14 items-center justify-center rounded-full transition-colors',
-          isDragActive
-            ? 'bg-blue-100 text-[var(--color-cta)]'
-            : 'bg-zinc-100 text-zinc-400',
+          isDragActive ? 'bg-blue-100 text-[var(--color-cta)]' : 'bg-zinc-100 text-zinc-400',
         )}
       >
-        {isDragActive ? (
-          <Upload className="size-6" />
-        ) : (
-          <ImagePlus className="size-6" />
-        )}
+        {isDragActive ? <Upload className="size-6" /> : <ImagePlus className="size-6" />}
       </div>
 
       {/* Text */}
@@ -104,9 +95,7 @@ export function PhotoUploadDropZone({
       </div>
 
       {/* Hint */}
-      <p className="text-xs text-zinc-400">
-        JPG, PNG hoặc WebP • Tối đa {maxFileSizeMB}MB mỗi ảnh
-      </p>
+      <p className="text-xs text-zinc-400">JPG, PNG hoặc WebP • Tối đa {maxFileSizeMB}MB mỗi ảnh</p>
     </div>
   )
 }

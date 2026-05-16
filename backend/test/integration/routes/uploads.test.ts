@@ -99,8 +99,7 @@ describe('Uploads Route', () => {
   // Presign endpoint suite
   describe('POST /v1/uploads/presign', () => {
     it('should return 200 with presigned URL result', async () => {
-      const mockSignedUrl =
-        'https://signed.r2.cloudflarestorage.com/bucket/key?sig=abc'
+      const mockSignedUrl = 'https://signed.r2.cloudflarestorage.com/bucket/key?sig=abc'
       mockSign.mockResolvedValueOnce({ url: mockSignedUrl })
 
       const response = await postPresign(validRequest)
@@ -252,9 +251,7 @@ describe('Uploads Route', () => {
         body: JSON.stringify(validRequest),
       })
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
-        'http://localhost:5173',
-      )
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173')
     })
   })
 })

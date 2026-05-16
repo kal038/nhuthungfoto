@@ -34,9 +34,7 @@ export function ProfileForm({
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold text-zinc-900 font-heading">
-          Chỉnh sửa hồ sơ
-        </h1>
+        <h1 className="text-xl font-semibold text-zinc-900 font-heading">Chỉnh sửa hồ sơ</h1>
         <Badge
           variant="secondary"
           className="gap-1 bg-emerald-50 text-emerald-700 border-emerald-200"
@@ -50,9 +48,7 @@ export function ProfileForm({
       <div className="flex items-center gap-6">
         <ProfileAvatar url={data.avatarUrl} name={displayName} size="xl" />
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-zinc-900">
-            {displayName}
-          </span>
+          <span className="text-sm font-medium text-zinc-900">{displayName}</span>
           <button
             type="button"
             onClick={handleAvatarChange}
@@ -67,9 +63,7 @@ export function ProfileForm({
 
       {/* Basic Information */}
       <div className="space-y-6">
-        <h2 className="text-base font-semibold text-zinc-900 font-heading">
-          Thông tin cơ bản
-        </h2>
+        <h2 className="text-base font-semibold text-zinc-900 font-heading">Thông tin cơ bản</h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <ProfileField label="Họ và tên" error={errors?.fullName}>

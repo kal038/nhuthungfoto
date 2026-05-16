@@ -4,8 +4,7 @@ import { Navbar } from '@/components/features/landing/Navbar'
 import { HeroCarouselTransition } from '@/components/features/landing/HeroCarouselTransition'
 import { Footer } from '@/components/features/landing/Footer'
 
-export const Route = createFileRoute('/')(
-  {
+export const Route = createFileRoute('/')({
   component: LandingPage,
 })
 

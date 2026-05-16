@@ -19,11 +19,7 @@ const DEFAULT_FILE_STATE = {
  *
  * Stateless presenter — maps files → thumbnails.
  */
-export function PhotoUploadFileList({
-  files,
-  uploadStates,
-  onRemove,
-}: PhotoUploadFileListProps) {
+export function PhotoUploadFileList({ files, uploadStates, onRemove }: PhotoUploadFileListProps) {
   if (files.length === 0) return null
 
   return (

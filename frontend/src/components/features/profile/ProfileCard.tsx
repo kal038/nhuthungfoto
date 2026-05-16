@@ -12,7 +12,7 @@ export function ProfileCard({ children, className }: ProfileCardProps) {
         'w-full max-w-md mx-auto',
         'bg-white rounded-lg shadow-md',
         'p-6 sm:p-8',
-        className
+        className,
       )}
     >
       {children}

@@ -14,7 +14,7 @@ export function Footer() {
 
       <div className="mx-auto max-w-4xl px-6 py-20 text-center">
         {/* Brand */}
-        <a 
+        <a
           href="#navbar"
           className="inline-block focus:outline-none focus-visible:ring-2 focus-visible:ring-white/50 rounded"
         >

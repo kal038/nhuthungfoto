@@ -27,10 +27,7 @@ export function AuthLayout({ children }: AuthLayoutProps) {
         <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/30 to-black/60" />
 
         {/* Branding content */}
-        <motion.div
-          className="relative z-10 text-center text-white px-8 max-w-lg"
-          {...fadeInUp}
-        >
+        <motion.div className="relative z-10 text-center text-white px-8 max-w-lg" {...fadeInUp}>
           <h1 className="font-heading text-4xl xl:text-5xl font-bold mb-4 leading-tight">
             nhuthungfoto
           </h1>

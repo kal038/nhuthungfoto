@@ -53,12 +53,8 @@ export function PhotoUploadPanel({
   maxFileSizeMB = DEFAULT_MAX_FILE_SIZE_MB,
 }: PhotoUploadPanelProps) {
   const hasFiles = files.length > 0
-  const allUploaded = hasFiles && files.every(
-    (f) => uploadStates[f.id]?.status === 'success',
-  )
-  const hasIdle = files.some(
-    (f) => !uploadStates[f.id] || uploadStates[f.id].status === 'idle',
-  )
+  const allUploaded = hasFiles && files.every((f) => uploadStates[f.id]?.status === 'success')
+  const hasIdle = files.some((f) => !uploadStates[f.id] || uploadStates[f.id].status === 'idle')
   const canUpload = hasFiles && hasIdle && !isUploading
 
   return (
@@ -86,22 +82,14 @@ export function PhotoUploadPanel({
         )}
 
         {/* File previews grid */}
-        <PhotoUploadFileList
-          files={files}
-          uploadStates={uploadStates}
-          onRemove={onRemove}
-        />
+        <PhotoUploadFileList files={files} uploadStates={uploadStates} onRemove={onRemove} />
 
         {/* Footer: file count + upload button */}
         {hasFiles && (
           <div className="flex items-center justify-between">
             <p className="text-sm text-zinc-500">
               {files.length} / {maxFiles} ảnh
-              {allUploaded && (
-                <span className="ml-2 text-emerald-600">
-                  • Tải lên hoàn tất ✓
-                </span>
-              )}
+              {allUploaded && <span className="ml-2 text-emerald-600">• Tải lên hoàn tất ✓</span>}
             </p>
 
             {canUpload && (

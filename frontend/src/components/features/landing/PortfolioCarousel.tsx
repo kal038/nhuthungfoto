@@ -19,7 +19,9 @@ interface PortfolioCarouselProps {
 }
 
 function SkeletonSlide() {
-  return <div className="h-[82vh] aspect-[4/5] max-w-[92vw] mx-auto animate-pulse rounded-2xl bg-muted" />
+  return (
+    <div className="h-[82vh] aspect-[4/5] max-w-[92vw] mx-auto animate-pulse rounded-2xl bg-muted" />
+  )
 }
 
 function ErrorState() {

@@ -109,7 +109,8 @@ describe('Portfolio Route', () => {
 
     it('should retry on R2 list failure and succeed on second attempt', async () => {
       const mockR2Bucket = {
-        list: vi.fn()
+        list: vi
+          .fn()
           .mockRejectedValueOnce(new Error('Network error'))
           .mockResolvedValueOnce({
             objects: [createMockR2Object('prefix/photo.jpg', new Date('2024-01-01'))],
@@ -165,7 +166,8 @@ describe('Portfolio Route', () => {
       vi.useFakeTimers({ shouldAdvanceTime: true })
 
       const mockR2Bucket = {
-        list: vi.fn()
+        list: vi
+          .fn()
           .mockRejectedValueOnce(new Error('Error 1'))
           .mockRejectedValueOnce(new Error('Error 2'))
           .mockResolvedValueOnce({
@@ -221,9 +223,7 @@ describe('Portfolio Route', () => {
         headers: { Origin: 'http://localhost:5173' },
       })
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
-        'http://localhost:5173',
-      )
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173')
     })
   })
 })

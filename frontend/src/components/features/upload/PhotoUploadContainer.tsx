@@ -4,7 +4,9 @@ import { PhotoUploadPanel } from '@/components/features/upload'
 interface PhotoUploadContainerProps {
   maxFiles?: number
   maxFileSizeMB?: number
-  onUploadComplete?: (results: { id: string; objectKey: string; status: 'success' | 'error' }[]) => void
+  onUploadComplete?: (
+    results: { id: string; objectKey: string; status: 'success' | 'error' }[],
+  ) => void
 }
 
 /**

@@ -12,11 +12,7 @@ interface PhotoUploadThumbnailProps {
  * Single photo thumbnail with status overlay.
  * Stateless presenter.
  */
-export function PhotoUploadThumbnail({
-  file,
-  uploadState,
-  onRemove,
-}: PhotoUploadThumbnailProps) {
+export function PhotoUploadThumbnail({ file, uploadState, onRemove }: PhotoUploadThumbnailProps) {
   const { status, errorMessage } = uploadState
   const isRemovable = status !== 'uploading'
 
@@ -86,9 +82,7 @@ export function PhotoUploadThumbnail({
           status !== 'idle' && 'hidden',
         )}
       >
-        <p className="truncate text-[10px] font-medium text-white">
-          {file.file.name}
-        </p>
+        <p className="truncate text-[10px] font-medium text-white">{file.file.name}</p>
         <p className="text-[10px] text-white/70">
           {(file.file.size / (1024 * 1024)).toFixed(1)} MB
         </p>

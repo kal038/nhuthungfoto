@@ -1,9 +1,5 @@
 import { cn } from '@/lib/utils'
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from '@/components/ui/avatar'
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 
 interface ProfileAvatarProps {
   url: string | null
@@ -26,14 +22,8 @@ function getInitials(name: string): string {
 
 export function ProfileAvatar({ url, name, size = 'lg' }: ProfileAvatarProps) {
   return (
-    <Avatar
-      className={cn(sizeClasses[size], 'ring-2 ring-zinc-100')}
-    >
-      <AvatarImage
-        src={url ?? undefined}
-        alt={name}
-        className="object-cover"
-      />
+    <Avatar className={cn(sizeClasses[size], 'ring-2 ring-zinc-100')}>
+      <AvatarImage src={url ?? undefined} alt={name} className="object-cover" />
       <AvatarFallback className="bg-zinc-100 text-zinc-600 font-heading text-xl">
         {getInitials(name || 'User')}
       </AvatarFallback>

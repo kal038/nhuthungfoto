@@ -10,9 +10,7 @@ export function ProfileField({ label, error, children, helperText }: ProfileFiel
     <div className="space-y-1.5">
       <label className="text-sm font-medium text-zinc-900 font-body">
         {label}
-        {helperText && (
-          <span className="font-normal text-zinc-400 ml-1">{helperText}</span>
-        )}
+        {helperText && <span className="font-normal text-zinc-400 ml-1">{helperText}</span>}
       </label>
       {children}
       {error && (

@@ -48,9 +48,7 @@ export function PasswordStrengthBar({ password }: PasswordStrengthBarProps) {
           />
         ))}
       </div>
-      <p className={`text-xs font-medium ${STRENGTH_TEXT_COLORS[level]}`}>
-        {label}
-      </p>
+      <p className={`text-xs font-medium ${STRENGTH_TEXT_COLORS[level]}`}>{label}</p>
     </div>
   )
 }
