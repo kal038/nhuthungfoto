@@ -7,8 +7,8 @@ import { AppError, BadRequestError } from '@/lib/errors'
 
 interface Payload {
   full_name?: string
-  phone?: string
-  avatar_url?: string
+  phone?: string | null
+  avatar_url?: string | null
   updated_at: string
 }
 
@@ -42,7 +42,7 @@ profileRouter.patch('/', async (c) => {
   }
 
   if (phone !== undefined) {
-    payload.phone = phone
+    payload.phone = phone === '' ? null : phone
   }
 
   if (avatarUrl !== undefined) {
