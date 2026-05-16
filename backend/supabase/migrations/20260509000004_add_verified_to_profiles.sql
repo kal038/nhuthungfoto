@@ -7,7 +7,7 @@ CREATE OR REPLACE FUNCTION public.handle_new_user()
 RETURNS TRIGGER AS $$
 BEGIN
   INSERT INTO public.profiles (id, full_name, email, phone_verified, email_verified)
-  VALUES (new.id, new.raw_user_meta_data->>'full_name', new.email, new.raw_user_meta_data->>'phone_verified', new.raw_user_meta_data->>'email_verified');
+    VALUES (new.id, new.raw_user_meta_data->>'full_name', new.email, (new.raw_user_meta_data->>'phone_verified')::boolean, (new.raw_user_meta_data->>'email_verified')::boolean);
   RETURN new;
 END;
 $$ LANGUAGE plpgsql SECURITY DEFINER;
