@@ -40,12 +40,14 @@ function ProfileContainer() {
 
   useEffect(() => {
     if (profile && user) {
-      setFormData({
-        fullName: profile.full_name ?? '',
-        email: user.email ?? '',
-        phone: profile.phone ?? '',
-        skillLevel: profile.skill_level ?? 'BEGINNER',
-        avatarUrl: profile.avatar_url ?? user.user_metadata?.avatar_url ?? null,
+      queueMicrotask(() => {
+        setFormData({
+          fullName: profile.full_name ?? '',
+          email: user.email ?? '',
+          phone: profile.phone ?? '',
+          skillLevel: profile.skill_level ?? 'BEGINNER',
+          avatarUrl: profile.avatar_url ?? user.user_metadata?.avatar_url ?? null,
+        })
       })
     }
   }, [profile, user])

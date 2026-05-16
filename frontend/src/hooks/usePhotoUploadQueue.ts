@@ -31,8 +31,11 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
 
   // ─── Cleanup blob URLs on unmount ────────────────────────
 
-  const filesRef = useRef(files)
-  filesRef.current = files
+  const filesRef = useRef<UploadableFile[]>([])
+
+  useEffect(() => {
+    filesRef.current = files
+  })
 
   useEffect(() => {
     return () => {
