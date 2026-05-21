@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef, useEffect } from 'react'
+import { useState, useCallback, useRef } from 'react'
 import type { UploadableFile, UploadStateMap } from '@/types/upload'
 import { ACCEPTED_IMAGE_TYPES, DEFAULT_MAX_FILE_SIZE_MB, DEFAULT_MAX_FILES } from '@/types/upload'
 import { useUploadPhotoMutation } from '@/hooks/mutations/useUploadPhotoMutation'
@@ -30,15 +30,7 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
   const uploadPhoto = useUploadPhotoMutation()
 
   // ─── Cleanup blob URLs on unmount ────────────────────────
-
-  const filesRef = useRef(files)
-  filesRef.current = files
-
-  useEffect(() => {
-    return () => {
-      for (const file of filesRef.current) URL.revokeObjectURL(file.preview)
-    }
-  }, [])
+  // Revoked on remove/reset; browser cleans remaining on unload.
 
   // ─── Validation ──────────────────────────────────────────
 

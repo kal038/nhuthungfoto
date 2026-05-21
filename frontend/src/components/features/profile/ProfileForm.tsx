@@ -1,11 +1,11 @@
-import { useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ProfileAvatar } from './ProfileAvatar'
 import { ProfileField } from './ProfileField'
 import { CheckCircle } from 'lucide-react'
-import type { ProfileFormProps } from './types'
+import type { ProfileFormProps, ProfileFormData, ProfileFormErrors } from './types'
 
 const skillLabelMap: Record<string, string> = {
   BEGINNER: 'Beginner',
@@ -14,21 +14,64 @@ const skillLabelMap: Record<string, string> = {
 }
 
 export function ProfileForm({
-  data,
-  errors,
+  defaultValues,
   isSaving,
-  isDirty,
-  onChange,
   onSubmit,
 }: ProfileFormProps) {
-  const displayName = data.fullName || data.email.split('@')[0] || 'User'
+  const [formData, setFormData] = useState<ProfileFormData>(defaultValues)
+  const [errors, setErrors] = useState<ProfileFormErrors>({})
+  const [originalValues] = useState<ProfileFormData>(defaultValues)
+
+  const displayName = formData.fullName || formData.email.split('@')[0] || 'User'
+
+  const isDirty = useMemo(() => {
+    return (
+      formData.fullName !== originalValues.fullName ||
+      formData.phone !== originalValues.phone ||
+      formData.avatarUrl !== originalValues.avatarUrl
+    )
+  }, [formData, originalValues])
+
+  const validate = useCallback((): boolean => {
+    const next: ProfileFormErrors = {}
+
+    if (formData.fullName && formData.fullName.length < 2) {
+      next.fullName = 'Tên phải có ít nhất 2 ký tự'
+    }
+
+    if (formData.phone && formData.phone !== '') {
+      if (!/^0\d{9}$/.test(formData.phone)) {
+        next.phone = 'Số điện thoại không hợp lệ'
+      }
+    }
+
+    setErrors(next)
+    return Object.keys(next).length === 0
+  }, [formData])
+
+  const handleChange = useCallback((field: keyof ProfileFormData, value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }))
+    setErrors((prev) => {
+      if (field === 'fullName' || field === 'phone') {
+        const next = { ...prev }
+        delete next[field]
+        return next
+      }
+      return prev
+    })
+  }, [])
 
   const handleAvatarChange = useCallback(() => {
-    const url = window.prompt('Enter avatar URL:', data.avatarUrl ?? '')
+    const url = window.prompt('Enter avatar URL:', formData.avatarUrl ?? '')
     if (url !== null) {
-      onChange('avatarUrl', url)
+      handleChange('avatarUrl', url)
     }
-  }, [data.avatarUrl, onChange])
+  }, [formData.avatarUrl, handleChange])
+
+  const handleSubmit = useCallback(() => {
+    if (!validate()) return
+    onSubmit(formData)
+  }, [formData, validate, onSubmit])
 
   return (
     <div className="space-y-8">
@@ -48,7 +91,7 @@ export function ProfileForm({
 
       {/* Avatar Section */}
       <div className="flex items-center gap-6">
-        <ProfileAvatar url={data.avatarUrl} name={displayName} size="xl" />
+        <ProfileAvatar url={formData.avatarUrl} name={displayName} size="xl" />
         <div className="flex flex-col gap-1">
           <span className="text-sm font-medium text-zinc-900">
             {displayName}
@@ -75,8 +118,8 @@ export function ProfileForm({
           <ProfileField label="Họ và tên" error={errors?.fullName}>
             <Input
               type="text"
-              value={data.fullName}
-              onChange={(e) => onChange('fullName', e.target.value)}
+              value={formData.fullName}
+              onChange={(e) => handleChange('fullName', e.target.value)}
               placeholder="Nguyễn Văn A"
               className="h-10 rounded-lg border-zinc-200 bg-white font-body text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all duration-200"
             />
@@ -85,7 +128,7 @@ export function ProfileForm({
           <ProfileField label="Trình độ">
             <div className="flex items-center h-10 px-3 rounded-lg border border-zinc-200 bg-zinc-50">
               <span className="text-sm text-zinc-700 font-body">
-                {skillLabelMap[data.skillLevel] || data.skillLevel}
+                {skillLabelMap[formData.skillLevel] || formData.skillLevel}
               </span>
             </div>
           </ProfileField>
@@ -94,7 +137,7 @@ export function ProfileForm({
         <ProfileField label="Email">
           <Input
             type="email"
-            value={data.email}
+            value={formData.email}
             disabled
             className="h-10 rounded-lg border-zinc-200 bg-zinc-50 font-body text-sm text-zinc-500 cursor-not-allowed"
           />
@@ -103,8 +146,8 @@ export function ProfileForm({
         <ProfileField label="Số điện thoại" error={errors?.phone}>
           <Input
             type="tel"
-            value={data.phone}
-            onChange={(e) => onChange('phone', e.target.value)}
+            value={formData.phone}
+            onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="0912345678"
             className="h-10 rounded-lg border-zinc-200 bg-white font-body text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all duration-200"
           />
@@ -118,7 +161,7 @@ export function ProfileForm({
         <Button
           type="button"
           disabled={!isDirty || isSaving}
-          onClick={onSubmit}
+          onClick={handleSubmit}
           className="h-10 px-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}

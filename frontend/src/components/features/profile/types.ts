@@ -14,10 +14,7 @@ export interface ProfileFormErrors {
 }
 
 export interface ProfileFormProps {
-  data: ProfileFormData
-  errors?: ProfileFormErrors
+  defaultValues: ProfileFormData
   isSaving?: boolean
-  isDirty?: boolean
-  onChange: (field: keyof ProfileFormData, value: string) => void
-  onSubmit: () => void
+  onSubmit: (data: ProfileFormData) => void
 }

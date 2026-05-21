@@ -1,11 +1,11 @@
 import { createFileRoute } from '@tanstack/react-router'
-import { useState, useEffect, useCallback, useMemo } from 'react'
+import { useEffect, useMemo, useCallback } from 'react'
 import { useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/context/AuthContext'
 import { useUserProfile } from '@/hooks/queries/useUserProfile'
 import { useUpdateProfileMutation } from '@/hooks/mutations/useUpdateProfileMutation'
 import { ProfileForm, AccountLayout } from '@/components/features/profile'
-import type { ProfileFormData, ProfileFormErrors } from '@/components/features/profile'
+import type { ProfileFormData } from '@/components/features/profile'
 
 export const Route = createFileRoute('/profile')({
   component: ProfileContainer,
@@ -28,69 +28,15 @@ function ProfileContainer() {
 
   const loading = authLoading || profileLoading
 
-  const [formData, setFormData] = useState<ProfileFormData>({
-    fullName: '',
-    email: '',
-    phone: '',
-    skillLevel: 'BEGINNER',
-    avatarUrl: null,
-  })
+  const defaultValues = useMemo<ProfileFormData>(() => ({
+    fullName: profile?.full_name ?? '',
+    email: user?.email ?? '',
+    phone: profile?.phone ?? '',
+    skillLevel: profile?.skill_level ?? 'BEGINNER',
+    avatarUrl: profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null,
+  }), [profile, user])
 
-  const [errors, setErrors] = useState<ProfileFormErrors>({})
-
-  useEffect(() => {
-    if (profile && user) {
-      setFormData({
-        fullName: profile.full_name ?? '',
-        email: user.email ?? '',
-        phone: profile.phone ?? '',
-        skillLevel: profile.skill_level ?? 'BEGINNER',
-        avatarUrl: profile.avatar_url ?? user.user_metadata?.avatar_url ?? null,
-      })
-    }
-  }, [profile, user])
-
-  const isDirty = useMemo(() => {
-    if (!profile || !user) return false
-    return (
-      formData.fullName !== (profile.full_name ?? '') ||
-      formData.phone !== (profile.phone ?? '') ||
-      formData.avatarUrl !== (profile.avatar_url ?? user.user_metadata?.avatar_url ?? null)
-    )
-  }, [formData, profile, user])
-
-  const validate = useCallback((): boolean => {
-    const nextErrors: ProfileFormErrors = {}
-
-    if (formData.fullName && formData.fullName.length < 2) {
-      nextErrors.fullName = 'Tên phải có ít nhất 2 ký tự'
-    }
-
-    if (formData.phone && formData.phone !== '') {
-      if (!/^0\d{9}$/.test(formData.phone)) {
-        nextErrors.phone = 'Số điện thoại không hợp lệ'
-      }
-    }
-
-    setErrors(nextErrors)
-    return Object.keys(nextErrors).length === 0
-  }, [formData])
-
-  const handleChange = useCallback((field: keyof ProfileFormData, value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
-    setErrors((prev) => {
-      if (field === 'fullName' || field === 'phone') {
-        const next = { ...prev }
-        delete next[field]
-        return next
-      }
-      return prev
-    })
-  }, [])
-
-  const handleSubmit = useCallback(async () => {
-    if (!validate()) return
-
+  const handleSave = useCallback((formData: ProfileFormData) => {
     const payload: { fullName?: string; phone?: string; avatarUrl?: string } = {}
     if (formData.fullName !== (profile?.full_name ?? '')) {
       payload.fullName = formData.fullName
@@ -98,15 +44,13 @@ function ProfileContainer() {
     if (formData.phone !== (profile?.phone ?? '')) {
       payload.phone = formData.phone
     }
-    const originalAvatarUrl = profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null
-    if (formData.avatarUrl !== originalAvatarUrl) {
+    const originalAvatar = profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null
+    if (formData.avatarUrl !== originalAvatar) {
       payload.avatarUrl = formData.avatarUrl ?? ''
     }
-
     if (Object.keys(payload).length === 0) return
-
     updateMutation.mutate(payload)
-  }, [formData, profile, user?.user_metadata?.avatar_url, validate, updateMutation])
+  }, [profile, user, updateMutation])
 
   if (loading) {
     return (
@@ -123,12 +67,10 @@ function ProfileContainer() {
   return (
     <AccountLayout>
       <ProfileForm
-        data={formData}
-        errors={errors}
+        key={user.id}
+        defaultValues={defaultValues}
         isSaving={updateMutation.isPending}
-        isDirty={isDirty}
-        onChange={handleChange}
-        onSubmit={handleSubmit}
+        onSubmit={handleSave}
       />
     </AccountLayout>
   )
