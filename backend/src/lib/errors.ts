@@ -6,6 +6,11 @@ export class AppError extends Error {
     super(message)
   }
 }
+export class ZodParseError extends AppError {
+  constructor(message = 'Bad Inputs') {
+    super(message, 400)
+  }
+}
 
 export class BadRequestError extends AppError {
   constructor(message = 'Bad Request') {
