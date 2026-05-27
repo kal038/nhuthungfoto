@@ -3,7 +3,7 @@ import type { Env } from '@/types/env'
 import type { AuthVars } from '@/middleware/auth'
 import { createServiceClient } from '@/lib/supabase'
 import { updateProfileSchema } from '@/schema/profile'
-import { AppError, BadRequestError } from '@/lib/errors'
+import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 
 interface Payload {
   full_name?: string
@@ -27,7 +27,7 @@ profileRouter.patch('/', async (c) => {
   // unmarshall body safely
   const result = updateProfileSchema.safeParse(body)
   if (!result.success) {
-    return c.json({ error: result.error.issues }, 400)
+    throw new ZodParseError()
   }
 
   const { fullName, phone, avatarUrl } = result.data

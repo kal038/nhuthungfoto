@@ -3,7 +3,7 @@ import type { Env } from '@/types/env'
 import type { AuthVars } from '@/middleware/auth'
 import { presignRequestSchema, type PresignedUrlResult } from '@/schema/upload'
 import { generatePresignedUploadUrl } from '@/services/r2'
-import { AppError, BadRequestError } from '@/lib/errors'
+import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 
 const uploadsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
@@ -14,7 +14,7 @@ uploadsRouter.post('/', async (c) => {
 
   const result = presignRequestSchema.safeParse(body)
   if (!result.success) {
-    return c.json({ error: result.error.issues }, 400)
+    throw new ZodParseError()
   }
   const { fileName, contentType, fileSizeBytes } = result.data
 

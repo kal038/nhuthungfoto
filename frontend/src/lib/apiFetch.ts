@@ -28,7 +28,8 @@ export async function apiFetch<T>(
   const response = await fetch(uri, options)
 
   if (!response.ok) {
-    throw new Error(`HTTP Error! Status: ${response.status}`)
+    const body = await response.json()
+    throw new Error(body.error || `HTTP Error! Status: ${response.status}`)
   }
   if (response.status == 204) {
     return {} as T
