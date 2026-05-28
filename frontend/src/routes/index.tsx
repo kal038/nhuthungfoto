@@ -14,7 +14,7 @@ function LandingPage() {
   // so hero → carousel morph snaps cleanly between zones
   useEffect(() => {
     const html = document.documentElement
-    html.style.scrollSnapType = 'y mandatory'
+    html.style.scrollSnapType = 'y proximity'
     return () => {
       html.style.scrollSnapType = ''
     }
