@@ -46,6 +46,10 @@ export async function uploadPhoto(file: File): Promise<UploadPhotoResult> {
 
 /**
  * TanStack Query mutation for uploading single photo.
+ * isIdle or status === 'idle' - The mutation is currently idle or in a fresh/reset state
+isPending or status === 'pending' - The mutation is currently running
+isError or status === 'error' - The mutation encountered an error
+isSuccess or status === 'success' - The mutation was successful and mutation data is available
  */
 export function useUploadPhotoMutation() {
   return useMutation({

@@ -1,10 +1,11 @@
-import { useState, useCallback, useMemo } from 'react'
+import { useState, useCallback, useMemo, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
 import { ProfileAvatar } from './ProfileAvatar'
 import { ProfileField } from './ProfileField'
 import { CheckCircle } from 'lucide-react'
+import { toast } from 'sonner'
 import type { ProfileFormProps, ProfileFormData, ProfileFormErrors } from './types'
 
 const skillLabelMap: Record<string, string> = {
@@ -16,11 +17,25 @@ const skillLabelMap: Record<string, string> = {
 export function ProfileForm({
   defaultValues,
   isSaving,
+  saveError,
+  isSaveSuccess,
   onSubmit,
 }: ProfileFormProps) {
   const [formData, setFormData] = useState<ProfileFormData>(defaultValues)
   const [errors, setErrors] = useState<ProfileFormErrors>({})
   const [originalValues] = useState<ProfileFormData>(defaultValues)
+
+  useEffect(() => {
+    if (saveError) {
+      toast.error(saveError.message || 'Lưu hồ sơ thất bại')
+    }
+  }, [saveError])
+
+  useEffect(() => {
+    if (isSaveSuccess) {
+      toast.success('Hồ sơ đã được cập nhật')
+    }
+  }, [isSaveSuccess])
 
   const displayName = formData.fullName || formData.email.split('@')[0] || 'User'
 

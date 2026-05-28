@@ -70,6 +70,8 @@ function ProfileContainer() {
         key={user.id}
         defaultValues={defaultValues}
         isSaving={updateMutation.isPending}
+        saveError={updateMutation.error}
+        isSaveSuccess={updateMutation.isSuccess}
         onSubmit={handleSave}
       />
     </AccountLayout>
