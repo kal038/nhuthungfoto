@@ -93,11 +93,20 @@ export function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48" sideOffset={8}>
-                <DropdownMenuItem className="text-sm cursor-pointer" onClick={() => navigate({ to: '/profile' })}>
+                <DropdownMenuItem
+                  className="text-sm cursor-pointer"
+                  onClick={() => navigate({ to: '/profile' })}
+                >
                   Hồ sơ
                 </DropdownMenuItem>
                 <DropdownMenuItem className="text-sm cursor-pointer">
                   Khóa học của tôi
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-sm cursor-pointer"
+                  onClick={() => navigate({ to: '/profile' })}
+                >
+                  Kho Ảnh
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

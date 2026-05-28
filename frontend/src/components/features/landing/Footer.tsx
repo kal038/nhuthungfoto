@@ -8,7 +8,7 @@ const SOCIAL_LINKS = [
 
 export function Footer() {
   return (
-    <footer id="contact" className="relative bg-gallery-dark snap-start">
+    <footer id="contact" className="relative bg-gallery-dark">
       {/* Gradient bridge from content above */}
       <div className="absolute -top-24 left-0 right-0 h-24 bg-gradient-to-b from-transparent to-gallery-dark pointer-events-none" />
 
