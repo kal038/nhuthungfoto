@@ -109,7 +109,6 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Lỗi không xác định'
         setUploadStates((prev) => ({ ...prev, [id]: { status: 'error', errorMessage: message } }))
-        console.log(message)
         results.push({ id, objectKey: '', status: 'error' })
       }
     }

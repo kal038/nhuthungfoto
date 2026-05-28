@@ -16,5 +16,7 @@ export interface ProfileFormErrors {
 export interface ProfileFormProps {
   defaultValues: ProfileFormData
   isSaving?: boolean
+  saveError?: Error | null
+  isSaveSuccess?: boolean
   onSubmit: (data: ProfileFormData) => void
 }
