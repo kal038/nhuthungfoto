@@ -37,6 +37,7 @@ coverage/
 # PRD (excluded per original .gitignore)
 *prd*.md
 game-plan.md    
+
 # Misc
 *.tsbuildinfo
 
