@@ -61,5 +61,5 @@ check-type:
     cd backend && npx tsc --noEmit
     cd frontend && npx tsc -b
 
-browser: 
+browse: 
     open -n -a "Google Chrome" --args --new-window "https://github.com" "https://news.ycombinator.com" "http://localhost:5173/"  "https://supabase.com/dashboard/project/jlrmdjczvbnoutcoqhnc/database/schemas" "https://tanstack.com/query/v5/docs/framework/react/guides/mutations"
