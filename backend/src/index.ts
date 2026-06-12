@@ -4,7 +4,7 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
 import { healthRouter } from './routes/health'
-import { uploadsRouter } from './routes/uploads'
+import { submissionsRouter } from './routes/submissions'
 import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
@@ -50,7 +50,7 @@ app.route('/portfolio', portfolioRouter)
 // Routes Protected
 // ---------------------
 app.use('/v1/*', authMiddleware)
-app.route('/v1/presign', uploadsRouter)
+app.route('/v1/presign', submissionsRouter)
 app.route('/v1/profile', profileRouter)
 
 export default app
