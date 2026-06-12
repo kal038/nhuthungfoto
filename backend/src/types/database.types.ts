@@ -226,8 +226,8 @@ export type Database = {
           created_at: string | null
           id: string
           module_id: string | null
-          original_photo_url: string | null
-          processed_photo_url: string | null
+          original_photo_key: string
+          processed_photo_key: string | null
           review_type: Database["public"]["Enums"]["review_type"] | null
           status: Database["public"]["Enums"]["submission_status"] | null
           user_id: string
@@ -236,8 +236,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           module_id?: string | null
-          original_photo_url?: string | null
-          processed_photo_url?: string | null
+          original_photo_key: string
+          processed_photo_key?: string | null
           review_type?: Database["public"]["Enums"]["review_type"] | null
           status?: Database["public"]["Enums"]["submission_status"] | null
           user_id: string
@@ -246,8 +246,8 @@ export type Database = {
           created_at?: string | null
           id?: string
           module_id?: string | null
-          original_photo_url?: string | null
-          processed_photo_url?: string | null
+          original_photo_key?: string
+          processed_photo_key?: string | null
           review_type?: Database["public"]["Enums"]["review_type"] | null
           status?: Database["public"]["Enums"]["submission_status"] | null
           user_id?: string

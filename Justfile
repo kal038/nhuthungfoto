@@ -51,6 +51,9 @@ format:
     cd backend && npm run format
     cd frontend && npm run format
 
+test:
+   cd backend && npm run test
+
 # Clean up build artifacts and dependencies
 
 clean:
@@ -63,3 +66,7 @@ check-type:
 
 browse: 
     open -n -a "Google Chrome" --args --new-window "https://github.com" "https://news.ycombinator.com" "http://localhost:5173/"  "https://supabase.com/dashboard/project/jlrmdjczvbnoutcoqhnc/database/schemas" "https://tanstack.com/query/v5/docs/framework/react/guides/mutations"
+
+db-migrate:
+  cd backend && npm run db:push
+  cd backend && npm run db:types
