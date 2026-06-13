@@ -29,7 +29,7 @@ export async function uploadPhoto(file: File): Promise<UploadPhotoResult> {
     fileSizeBytes: file.size,
   }
 
-  const presign = await apiFetch<PresignURLResult>('/presign', body, 'POST')
+  const presign = await apiFetch<PresignURLResult>('/submission', body, 'POST')
 
   const res = await fetch(presign.uploadUrl, {
     method: 'PUT',

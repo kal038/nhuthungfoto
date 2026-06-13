@@ -29,13 +29,14 @@ submissionsRouter.post('/', async (c) => {
     .insert({
       id: submissionId,
       user_id: userId,
-      original_photo_url: objectKey,
+      original_photo_key: objectKey,
     })
     .select()
     .single()
 
   if (error) {
-    throw new AppError('Failed to create db record', 500)
+    console.error('Supabase insert error:', error)
+    throw new AppError(`Failed to create db record: ${error.message}`, 500)
   }
 
   const presignedUrlResult: PresignedUrlResult = await generatePresignedUploadUrl(
@@ -49,7 +50,7 @@ submissionsRouter.post('/', async (c) => {
   })
 
   return c.json(
-    { ...presignedUrlResult, submissionId: data.id, objectKey: data.original_photo_url },
+    { ...presignedUrlResult, submissionId: data.id, objectKey: data.original_photo_key },
     200,
   )
 })
