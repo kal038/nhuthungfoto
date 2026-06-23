@@ -15,7 +15,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.105.1",
     "aws4fetch": "^1.0.20",
-    "hono": "^4.12.23",
+    "hono": "^4.12.27",
     "hono-rate-limiter": "^0.5.3",
     "zod": "^3.24.4"
   },
@@ -30,6 +30,6 @@
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.57.0",
     "vitest": "^4.1.1",
-    "wrangler": "^4.95.0"
+    "wrangler": "^4.103.0"
   }
 }
