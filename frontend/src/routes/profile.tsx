@@ -19,7 +19,7 @@ function ProfileContainer() {
     if (!authLoading && !user) {
       navigate({ to: '/login' })
     }
-  }, [authLoading, user, navigate])
+  }, [authLoading, user])
 
   const userId = user?.id ?? ''
 
@@ -28,29 +28,35 @@ function ProfileContainer() {
 
   const loading = authLoading || profileLoading
 
-  const defaultValues = useMemo<ProfileFormData>(() => ({
-    fullName: profile?.full_name ?? '',
-    email: user?.email ?? '',
-    phone: profile?.phone ?? '',
-    skillLevel: profile?.skill_level ?? 'BEGINNER',
-    avatarUrl: profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null,
-  }), [profile, user])
+  const defaultValues = useMemo<ProfileFormData>(
+    () => ({
+      fullName: profile?.full_name ?? '',
+      email: user?.email ?? '',
+      phone: profile?.phone ?? '',
+      skillLevel: profile?.skill_level ?? 'BEGINNER',
+      avatarUrl: profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null,
+    }),
+    [profile, user],
+  )
 
-  const handleSave = useCallback((formData: ProfileFormData) => {
-    const payload: { fullName?: string; phone?: string; avatarUrl?: string } = {}
-    if (formData.fullName !== (profile?.full_name ?? '')) {
-      payload.fullName = formData.fullName
-    }
-    if (formData.phone !== (profile?.phone ?? '')) {
-      payload.phone = formData.phone
-    }
-    const originalAvatar = profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null
-    if (formData.avatarUrl !== originalAvatar) {
-      payload.avatarUrl = formData.avatarUrl ?? ''
-    }
-    if (Object.keys(payload).length === 0) return
-    updateMutation.mutate(payload)
-  }, [profile, user, updateMutation])
+  const handleSave = useCallback(
+    (formData: ProfileFormData) => {
+      const payload: { fullName?: string; phone?: string; avatarUrl?: string } = {}
+      if (formData.fullName !== (profile?.full_name ?? '')) {
+        payload.fullName = formData.fullName
+      }
+      if (formData.phone !== (profile?.phone ?? '')) {
+        payload.phone = formData.phone
+      }
+      const originalAvatar = profile?.avatar_url ?? user?.user_metadata?.avatar_url ?? null
+      if (formData.avatarUrl !== originalAvatar) {
+        payload.avatarUrl = formData.avatarUrl ?? ''
+      }
+      if (Object.keys(payload).length === 0) return
+      updateMutation.mutate(payload)
+    },
+    [profile, user, updateMutation],
+  )
 
   if (loading) {
     return (
