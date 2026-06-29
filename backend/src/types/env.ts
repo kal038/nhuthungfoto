@@ -19,6 +19,12 @@ export interface Env {
   R2_PORTFOLIO_PUBLIC_NAME: string
 
   // ---------------------
+  // R2 Public URLs (for serving assets)
+  // ---------------------
+  R2_UPLOADS_RAW_PUBLIC_URL: string
+  R2_PORTFOLIO_PUBLIC_URL: string
+
+  // ---------------------
   // Rate Limiting (Cloudflare binding)
   // ---------------------
   RATE_LIMITER: RateLimit

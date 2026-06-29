@@ -2,7 +2,7 @@ import { Hono } from 'hono'
 import type { Env } from '@/types/env'
 import type { AuthVars } from '@/middleware/auth'
 import { presignRequestSchema, type PresignedUrlResult } from '@/schema/upload'
-import { generatePresignedUploadUrl } from '@/services/r2'
+import { generatePresignedUploadUrl, getPublicUrl } from '@/services/r2'
 import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 import { createServiceClient } from '@/lib/supabase'
 
@@ -53,6 +53,38 @@ submissionsRouter.post('/', async (c) => {
     { ...presignedUrlResult, submissionId: data.id, objectKey: data.original_photo_key },
     200,
   )
+})
+
+submissionsRouter.get('/me', async (c) => {
+  const userId = c.get('user').id
+  const supabase = createServiceClient(c.env)
+
+  const { data, error } = await supabase
+    .from('submissions')
+    .select('*')
+    .eq('user_id', userId)
+    .order('created_at', { ascending: false })
+
+  if (error) {
+    console.error('Failed to fetch submissions:', error)
+    throw new AppError('Failed to fetch submissions', 500)
+  }
+
+  const submissions = (data || []).map((row) => ({
+    id: row.id,
+    moduleId: row.module_id,
+    status: row.status,
+    reviewType: row.review_type,
+    createdAt: row.created_at,
+    originalPhotoUrl: row.original_photo_key
+      ? getPublicUrl(c.env.R2_UPLOADS_RAW_PUBLIC_URL, row.original_photo_key)
+      : null,
+    processedPhotoUrl: row.processed_photo_key
+      ? getPublicUrl(c.env.R2_PORTFOLIO_PUBLIC_URL, row.processed_photo_key)
+      : null,
+  }))
+
+  return c.json({ submissions }, 200)
 })
 
 export { submissionsRouter }
