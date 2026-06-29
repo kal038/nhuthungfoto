@@ -28,8 +28,18 @@ export async function apiFetch<T>(
   const response = await fetch(uri, options)
 
   if (!response.ok) {
-    const body = await response.json()
-    throw new Error(body.error || `HTTP Error! Status: ${response.status}`)
+    let message: string
+    const contentType = response.headers.get('content-type') || ''
+    try {
+      const body = contentType.includes('application/json')
+        ? await response.json()
+        : await response.text()
+      message =
+        body?.error || body?.message || (typeof body === 'string' ? body : null) || `HTTP Error! Status: ${response.status}`
+    } catch {
+      message = `HTTP Error! Status: ${response.status}`
+    }
+    throw new Error(message)
   }
   if (response.status == 204) {
     return {} as T
