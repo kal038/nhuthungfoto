@@ -16,7 +16,7 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
   const sidebarLinks = [
     { label: 'Hồ sơ', href: '/profile' },
     ...(profile?.username
-      ? [{ label: 'Ảnh của tôi', href: `/${profile.username}` }]
+      ? [{ label: 'Ảnh của tôi', href: `/gallery/${profile.username}` }]
       : []),
   ]
 

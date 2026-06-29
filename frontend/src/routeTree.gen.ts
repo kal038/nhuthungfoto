@@ -15,6 +15,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as GalleryUsernameRouteImport } from './routes/gallery/$username'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -46,6 +47,11 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const GalleryUsernameRoute = GalleryUsernameRouteImport.update({
+  id: '/gallery/$username',
+  path: '/gallery/$username',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -54,6 +60,7 @@ export interface FileRoutesByFullPath {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
+  '/gallery/$username': typeof GalleryUsernameRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -62,6 +69,7 @@ export interface FileRoutesByTo {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
+  '/gallery/$username': typeof GalleryUsernameRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -71,12 +79,27 @@ export interface FileRoutesById {
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
+  '/gallery/$username': typeof GalleryUsernameRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/$username' | '/login' | '/profile' | '/signup' | '/upload'
+  fullPaths:
+    | '/'
+    | '/$username'
+    | '/login'
+    | '/profile'
+    | '/signup'
+    | '/upload'
+    | '/gallery/$username'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/$username' | '/login' | '/profile' | '/signup' | '/upload'
+  to:
+    | '/'
+    | '/$username'
+    | '/login'
+    | '/profile'
+    | '/signup'
+    | '/upload'
+    | '/gallery/$username'
   id:
     | '__root__'
     | '/'
@@ -85,6 +108,7 @@ export interface FileRouteTypes {
     | '/profile'
     | '/signup'
     | '/upload'
+    | '/gallery/$username'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -94,6 +118,7 @@ export interface RootRouteChildren {
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   UploadRoute: typeof UploadRoute
+  GalleryUsernameRoute: typeof GalleryUsernameRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -140,6 +165,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/gallery/$username': {
+      id: '/gallery/$username'
+      path: '/gallery/$username'
+      fullPath: '/gallery/$username'
+      preLoaderRoute: typeof GalleryUsernameRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -150,6 +182,7 @@ const rootRouteChildren: RootRouteChildren = {
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   UploadRoute: UploadRoute,
+  GalleryUsernameRoute: GalleryUsernameRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

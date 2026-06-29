@@ -1,4 +1,5 @@
 import { supabase } from './supabase'
+import { ApiError } from './errors'
 
 const API_VERSION = import.meta.env.VITE_API_VER || 'v1'
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
@@ -39,7 +40,7 @@ export async function apiFetch<T>(
     } catch {
       message = `HTTP Error! Status: ${response.status}`
     }
-    throw new Error(message)
+    throw new ApiError(response.status, message)
   }
   if (response.status == 204) {
     return {} as T

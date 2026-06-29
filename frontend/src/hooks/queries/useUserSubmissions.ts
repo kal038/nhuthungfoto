@@ -12,7 +12,11 @@ export interface UserSubmission {
 }
 
 export async function getUserSubmissions(username: string): Promise<UserSubmission[]> {
-  const res = await apiFetch<{ submissions: UserSubmission[] }>(`/submissions/user/${username}`, undefined, 'GET')
+  const res = await apiFetch<{ submissions: UserSubmission[] }>(
+    `/submissions/user/${username}`,
+    undefined,
+    'GET',
+  )
   return res.submissions
 }
 
