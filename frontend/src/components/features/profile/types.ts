@@ -1,7 +1,7 @@
 export type SkillLevel = 'BEGINNER' | 'INTERMEDIATE' | 'ADVANCED'
 
 export interface ProfileFormData {
-  fullName: string
+  username: string
   email: string
   phone: string
   skillLevel: SkillLevel
@@ -9,7 +9,6 @@ export interface ProfileFormData {
 }
 
 export interface ProfileFormErrors {
-  fullName?: string
   phone?: string
 }
 

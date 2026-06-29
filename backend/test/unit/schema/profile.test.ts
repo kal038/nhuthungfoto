@@ -2,27 +2,9 @@ import { describe, it, expect } from 'vitest'
 import { updateProfileSchema } from '@/schema/profile'
 
 describe('updateProfileSchema', () => {
-  describe('fullName', () => {
-    it('should accept valid fullName with 2 characters', () => {
-      const result = updateProfileSchema.safeParse({ fullName: 'An' })
-      expect(result.success).toBe(true)
-    })
-
-    it('should accept valid fullName with 100 characters', () => {
-      const result = updateProfileSchema.safeParse({ fullName: 'A'.repeat(100) })
-      expect(result.success).toBe(true)
-    })
-
-    it('should reject fullName with less than 2 characters', () => {
-      const result = updateProfileSchema.safeParse({ fullName: 'A' })
-      expect(result.success).toBe(false)
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain('at least 2')
-      }
-    })
-
-    it('should reject fullName with more than 100 characters', () => {
-      const result = updateProfileSchema.safeParse({ fullName: 'A'.repeat(101) })
+  describe('username', () => {
+    it('should reject username field (read-only)', () => {
+      const result = updateProfileSchema.safeParse({ username: 'newuser' })
       expect(result.success).toBe(false)
     })
   })
@@ -82,10 +64,7 @@ describe('updateProfileSchema', () => {
       expect(result.success).toBe(true)
     })
 
-    it('should accept only fullName', () => {
-      const result = updateProfileSchema.safeParse({ fullName: 'John Doe' })
-      expect(result.success).toBe(true)
-    })
+
 
     it('should accept only phone', () => {
       const result = updateProfileSchema.safeParse({ phone: '0912345678' })
@@ -99,22 +78,18 @@ describe('updateProfileSchema', () => {
 
     it('should accept all fields together', () => {
       const result = updateProfileSchema.safeParse({
-        fullName: 'John Doe',
         phone: '0912345678',
         avatarUrl: 'https://example.com/a.jpg',
       })
       expect(result.success).toBe(true)
     })
 
-    it('should strip unknown fields', () => {
+    it('should reject unknown fields', () => {
       const result = updateProfileSchema.safeParse({
-        fullName: 'John',
+        phone: '0912345678',
         unknownField: 'value',
       })
-      expect(result.success).toBe(true)
-      if (result.success) {
-        expect(result.data).not.toHaveProperty('unknownField')
-      }
+      expect(result.success).toBe(false)
     })
   })
 })

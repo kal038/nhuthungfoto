@@ -6,7 +6,6 @@ import { updateProfileSchema } from '@/schema/profile'
 import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 
 interface Payload {
-  full_name?: string
   phone?: string | null
   avatar_url?: string | null
   updated_at: string
@@ -30,15 +29,11 @@ profileRouter.patch('/', async (c) => {
     throw new ZodParseError()
   }
 
-  const { fullName, phone, avatarUrl } = result.data
+  const { phone, avatarUrl } = result.data
   const spb = createServiceClient(c.env)
 
   const payload: Payload = {
     updated_at: new Date().toISOString(),
-  }
-
-  if (fullName !== undefined) {
-    payload.full_name = fullName
   }
 
   if (phone !== undefined) {
@@ -59,6 +54,24 @@ profileRouter.patch('/', async (c) => {
   if (error) {
     console.error('Error updating profile:', error)
     throw new AppError('Failed to update profile', 502)
+  }
+
+  return c.json(data, 200)
+})
+
+// GET /v1/profile/:username — get public profile by username
+profileRouter.get('/:username', async (c) => {
+  const username = c.req.param('username')
+  const spb = createServiceClient(c.env)
+
+  const { data, error } = await spb
+    .from('profiles')
+    .select('id, username, avatar_url, skill_level')
+    .eq('username', username.toLowerCase())
+    .single()
+
+  if (error || !data) {
+    throw new AppError('User not found', 404)
   }
 
   return c.json(data, 200)

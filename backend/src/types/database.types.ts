@@ -141,39 +141,39 @@ export type Database = {
           credits_balance: number | null
           email: string | null
           email_verified: boolean | null
-          full_name: string | null
           id: string
           locale: string | null
           phone: string | null
           phone_verified: boolean | null
           skill_level: Database["public"]["Enums"]["skill_level"] | null
           updated_at: string | null
+          username: string
         }
         Insert: {
           avatar_url?: string | null
           credits_balance?: number | null
           email?: string | null
           email_verified?: boolean | null
-          full_name?: string | null
           id: string
           locale?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           skill_level?: Database["public"]["Enums"]["skill_level"] | null
           updated_at?: string | null
+          username: string
         }
         Update: {
           avatar_url?: string | null
           credits_balance?: number | null
           email?: string | null
           email_verified?: boolean | null
-          full_name?: string | null
           id?: string
           locale?: string | null
           phone?: string | null
           phone_verified?: boolean | null
           skill_level?: Database["public"]["Enums"]["skill_level"] | null
           updated_at?: string | null
+          username?: string
         }
         Relationships: []
       }

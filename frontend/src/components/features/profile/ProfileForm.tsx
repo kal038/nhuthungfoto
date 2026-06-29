@@ -37,11 +37,10 @@ export function ProfileForm({
     }
   }, [isSaveSuccess])
 
-  const displayName = formData.fullName || formData.email.split('@')[0] || 'User'
+  const displayName = formData.username || formData.email.split('@')[0] || 'User'
 
   const isDirty = useMemo(() => {
     return (
-      formData.fullName !== originalValues.fullName ||
       formData.phone !== originalValues.phone ||
       formData.avatarUrl !== originalValues.avatarUrl
     )
@@ -49,10 +48,6 @@ export function ProfileForm({
 
   const validate = useCallback((): boolean => {
     const next: ProfileFormErrors = {}
-
-    if (formData.fullName && formData.fullName.length < 2) {
-      next.fullName = 'Tên phải có ít nhất 2 ký tự'
-    }
 
     if (formData.phone && formData.phone !== '') {
       if (!/^0\d{9}$/.test(formData.phone)) {
@@ -67,7 +62,7 @@ export function ProfileForm({
   const handleChange = useCallback((field: keyof ProfileFormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
     setErrors((prev) => {
-      if (field === 'fullName' || field === 'phone') {
+      if (field === 'phone') {
         const next = { ...prev }
         delete next[field]
         return next
@@ -130,14 +125,14 @@ export function ProfileForm({
         </h2>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <ProfileField label="Họ và tên" error={errors?.fullName}>
+          <ProfileField label="Tên người dùng">
             <Input
               type="text"
-              value={formData.fullName}
-              onChange={(e) => handleChange('fullName', e.target.value)}
-              placeholder="Nguyễn Văn A"
-              className="h-10 rounded-lg border-zinc-200 bg-white font-body text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all duration-200"
+              value={formData.username}
+              disabled
+              className="h-10 rounded-lg border-zinc-200 bg-zinc-50 font-body text-sm text-zinc-500 cursor-not-allowed transition-all duration-200"
             />
+            <p className="text-xs text-zinc-400 mt-1">Tên người dùng không thể thay đổi</p>
           </ProfileField>
 
           <ProfileField label="Trình độ">

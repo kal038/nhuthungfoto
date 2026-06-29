@@ -30,7 +30,7 @@ function ProfileContainer() {
 
   const defaultValues = useMemo<ProfileFormData>(
     () => ({
-      fullName: profile?.full_name ?? '',
+      username: profile?.username ?? '',
       email: user?.email ?? '',
       phone: profile?.phone ?? '',
       skillLevel: profile?.skill_level ?? 'BEGINNER',
@@ -41,10 +41,7 @@ function ProfileContainer() {
 
   const handleSave = useCallback(
     (formData: ProfileFormData) => {
-      const payload: { fullName?: string; phone?: string; avatarUrl?: string } = {}
-      if (formData.fullName !== (profile?.full_name ?? '')) {
-        payload.fullName = formData.fullName
-      }
+      const payload: { phone?: string; avatarUrl?: string } = {}
       if (formData.phone !== (profile?.phone ?? '')) {
         payload.phone = formData.phone
       }

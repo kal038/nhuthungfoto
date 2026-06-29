@@ -84,7 +84,7 @@ export function Navbar() {
                   <Avatar className="h-8 w-8">
                     <AvatarImage src={user.user_metadata?.avatar_url} alt={user.email} />
                     <AvatarFallback className="bg-cta text-white text-sm font-medium">
-                      {user.user_metadata?.full_name?.[0]?.toUpperCase() ||
+                      {user.user_metadata?.username?.[0]?.toUpperCase() ||
                         user.user_metadata?.name?.[0]?.toUpperCase() ||
                         user.email?.[0].toUpperCase() ||
                         'U'}
@@ -104,7 +104,13 @@ export function Navbar() {
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="text-sm cursor-pointer"
-                  onClick={() => navigate({ to: '/profile' })}
+                  onClick={() =>
+                    navigate({
+                      to: user?.user_metadata?.username
+                        ? `/${user.user_metadata.username}`
+                        : '/profile',
+                    })
+                  }
                 >
                   Kho Ảnh
                 </DropdownMenuItem>
@@ -180,6 +186,14 @@ export function Navbar() {
                       className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2"
                     >
                       Hồ sơ
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a
+                      href={user?.user_metadata?.username ? `/${user.user_metadata.username}` : '/profile'}
+                      className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2"
+                    >
+                      Kho Ảnh
                     </a>
                   </SheetClose>
                   <SheetClose asChild>
