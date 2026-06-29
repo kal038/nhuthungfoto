@@ -10,6 +10,7 @@ describe('Portfolio Route', () => {
 
   const mockEnv: Env = {
     FRONTEND_URL: 'http://localhost:5173',
+    R2_PORTFOLIO_PUBLIC_URL: 'https://pub-yyy.r2.dev',
   } as Env
 
   const createMockR2Object = (key: string, uploaded: Date) => ({
@@ -80,6 +81,7 @@ describe('Portfolio Route', () => {
       const data = await response.json()
       expect(data.photos).toHaveLength(2)
       expect(data.photos[0]).toHaveProperty('key', 'prefix/photo1.jpg')
+      expect(data.photos[0]).toHaveProperty('url', 'https://pub-yyy.r2.dev/prefix/photo1.jpg')
       expect(data.photos[0]).toHaveProperty('uploaded', '2024-01-01T00:00:00.000Z')
     })
 

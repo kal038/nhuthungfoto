@@ -44,4 +44,8 @@ async function generatePresignedUploadUrl(
   }
 }
 
+export function getPublicUrl(baseUrl: string, objectKey: string): string {
+  return `${baseUrl}/${objectKey}`
+}
+
 export { generatePresignedUploadUrl }

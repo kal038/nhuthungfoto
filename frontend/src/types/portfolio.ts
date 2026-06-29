@@ -5,5 +5,5 @@ export interface PortfolioPhoto {
 }
 
 export interface PortfolioListResponse {
-  photos: Array<{ key: string; uploaded: string }>
+  photos: PortfolioPhoto[]
 }

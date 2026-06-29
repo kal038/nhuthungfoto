@@ -14,6 +14,8 @@
     "FRONTEND_URL": "https://nhuthungfoto.com",
     "R2_UPLOADS_RAW_NAME": "uploads-raw",
     "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public",
+    "R2_UPLOADS_RAW_PUBLIC_URL": "https://pub-xxx.r2.dev",
+    "R2_PORTFOLIO_PUBLIC_URL": "https://pub-yyy.r2.dev"
   },
 
   // R2 Buckets
@@ -39,7 +41,9 @@
       "vars": {
         "FRONTEND_URL": "http://localhost:5173",
         "R2_UPLOADS_RAW_NAME": "uploads-raw-dev",
-        "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public-dev"
+        "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public-dev",
+        "R2_UPLOADS_RAW_PUBLIC_URL": "https://pub-c1de5a388d664824bf9d7790f9a1135a.r2.dev",
+        "R2_PORTFOLIO_PUBLIC_URL": "https://pub-7763fcd576434383b3d30df99cd57030.r2.dev"
       },
       "r2_buckets": [
         { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev", "remote" : true},

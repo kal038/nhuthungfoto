@@ -2,6 +2,7 @@ import { Hono } from 'hono'
 import type { Env } from '@/types/env'
 import type { PortfolioPhotoResult } from '@/schema/portfolio'
 import { AppError } from '@/lib/errors'
+import { getPublicUrl } from '@/services/r2'
 
 const portfolioRouter = new Hono<{ Bindings: Env }>()
 
@@ -45,6 +46,7 @@ portfolioRouter.get('/', async (c) => {
 
   const photos = r2Result.objects.map((obj) => ({
     key: obj.key,
+    url: getPublicUrl(c.env.R2_PORTFOLIO_PUBLIC_URL, obj.key),
     uploaded: obj.uploaded.toISOString(),
   }))
 

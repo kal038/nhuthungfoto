@@ -50,7 +50,7 @@ app.route('/portfolio', portfolioRouter)
 // Routes Protected
 // ---------------------
 app.use('/v1/*', authMiddleware)
-app.route('/v1/submission', submissionsRouter)
+app.route('/v1/submissions', submissionsRouter)
 app.route('/v1/profile', profileRouter)
 
 export default app
