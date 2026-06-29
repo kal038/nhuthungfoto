@@ -107,7 +107,7 @@ export function Navbar() {
                   onClick={() =>
                     navigate({
                       to: user?.user_metadata?.username
-                        ? `/${user.user_metadata.username}`
+                        ? `/gallery/${user.user_metadata.username}`
                         : '/profile',
                     })
                   }
@@ -190,7 +190,7 @@ export function Navbar() {
                   </SheetClose>
                   <SheetClose asChild>
                     <a
-                      href={user?.user_metadata?.username ? `/${user.user_metadata.username}` : '/profile'}
+                      href={user?.user_metadata?.username ? `/gallery/${user.user_metadata.username}` : '/profile'}
                       className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2"
                     >
                       Kho Ảnh

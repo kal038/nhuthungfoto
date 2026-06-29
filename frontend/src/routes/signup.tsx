@@ -90,8 +90,8 @@ function SignUpContainer() {
       return
     }
 
-    // Navigate to user's portfolio on success
-    navigate({ to: `/${username.toLowerCase()}` })
+    // Navigate to user's gallery on success
+    navigate({ to: `/gallery/${username.toLowerCase()}` })
   }
 
   const handleNavigateToLogin = () => {
