@@ -3,7 +3,6 @@ import { apiFetch } from '@/lib/apiFetch'
 import type { UserProfile } from '@/hooks/queries/useUserProfile'
 
 interface UpdateProfileBody {
-  fullName?: string
   phone?: string
   avatarUrl?: string
 }

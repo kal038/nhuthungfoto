@@ -1,9 +1,7 @@
 import { cn } from '@/lib/utils'
-import { Link } from '@tanstack/react-router'
-
-const sidebarLinks = [
-  { label: 'Hồ sơ', href: '/profile', active: true },
-]
+import { Link, useRouterState } from '@tanstack/react-router'
+import { useAuth } from '@/context/AuthContext'
+import { useUserProfile } from '@/hooks/queries/useUserProfile'
 
 interface AccountLayoutProps {
   children: React.ReactNode
@@ -11,6 +9,19 @@ interface AccountLayoutProps {
 }
 
 export function AccountLayout({ children, className }: AccountLayoutProps) {
+  const { user } = useAuth()
+  const { data: profile } = useUserProfile(user?.id ?? '')
+  const { location } = useRouterState()
+
+  const sidebarLinks = [
+    { label: 'Hồ sơ', href: '/profile' },
+    ...(profile?.username
+      ? [{ label: 'Ảnh của tôi', href: `/${profile.username}` }]
+      : []),
+  ]
+
+  const currentPath = location.pathname
+
   return (
     <div className="min-h-screen bg-white">
       <header className="border-b border-zinc-100">
@@ -41,20 +52,23 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
               Cài đặt tài khoản
             </h2>
             <nav className="flex flex-row gap-4 md:flex-col md:gap-1">
-              {sidebarLinks.map((link) => (
-                <a
-                  key={link.href}
-                  href={link.active ? undefined : link.href}
-                  className={cn(
-                    'text-sm transition-colors duration-150',
-                    link.active
-                      ? 'font-medium text-zinc-900'
-                      : 'text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500'
-                  )}
-                >
-                  {link.label}
-                </a>
-              ))}
+              {sidebarLinks.map((link) => {
+                const isActive = currentPath === link.href
+                return (
+                  <a
+                    key={link.href}
+                    href={isActive ? undefined : link.href}
+                    className={cn(
+                      'text-sm transition-colors duration-150',
+                      isActive
+                        ? 'font-medium text-zinc-900'
+                        : 'text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500'
+                    )}
+                  >
+                    {link.label}
+                  </a>
+                )
+              })}
             </nav>
           </aside>
           <main className={cn('min-w-0 flex-1', className)}>

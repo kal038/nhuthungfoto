@@ -6,13 +6,14 @@ import { FormInput } from './FormInput'
 import { PasswordStrengthBar } from './PasswordStrengthBar'
 
 export interface SignUpFormProps {
-  fullName: string
+  username: string
   email: string
   password: string
   confirmPassword: string
   error: string | null
+  usernameError: string | null
   isLoading: boolean
-  onFullNameChange: (value: string) => void
+  onUsernameChange: (value: string) => void
   onEmailChange: (value: string) => void
   onPasswordChange: (value: string) => void
   onConfirmPasswordChange: (value: string) => void
@@ -21,13 +22,14 @@ export interface SignUpFormProps {
 }
 
 export function SignUpForm({
-  fullName,
+  username,
   email,
   password,
   confirmPassword,
   error,
+  usernameError,
   isLoading,
-  onFullNameChange,
+  onUsernameChange,
   onEmailChange,
   onPasswordChange,
   onConfirmPasswordChange,
@@ -48,13 +50,14 @@ export function SignUpForm({
       {/* Form */}
       <form onSubmit={handleSubmit} className="space-y-5" noValidate>
         <FormInput
-          id="signup-fullname"
-          label="Họ và tên"
+          id="signup-username"
+          label="Tên người dùng"
           type="text"
-          value={fullName}
-          placeholder="Nguyễn Văn A"
+          value={username}
+          placeholder="nhuthung_photo"
           autoFocus
-          onChange={onFullNameChange}
+          error={usernameError ?? undefined}
+          onChange={onUsernameChange}
         />
 
         <FormInput

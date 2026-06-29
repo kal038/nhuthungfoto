@@ -10,6 +10,7 @@ import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
 import { portfolioRouter } from './routes/portfolio'
 import { profileRouter } from './routes/profile'
+import { authRouter } from './routes/auth'
 import { AppError } from './lib/errors'
 
 const app = new Hono<{ Bindings: Env }>()
@@ -45,6 +46,7 @@ app.onError((err, c) => {
 // ---------------------
 app.route('/health', healthRouter)
 app.route('/portfolio', portfolioRouter)
+app.route('/v1/auth', authRouter)
 
 // ---------------------
 // Routes Protected

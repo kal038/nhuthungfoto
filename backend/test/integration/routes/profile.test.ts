@@ -9,6 +9,8 @@ const mockUpdate = vi.fn()
 const mockEq = vi.fn()
 const mockSelect = vi.fn()
 const mockSingle = vi.fn()
+const mockGetEq = vi.fn()
+const mockGetSingle = vi.fn()
 
 // Mock @supabase/supabase-js
 vi.mock('@supabase/supabase-js', () => ({
@@ -20,6 +22,28 @@ vi.mock('@supabase/supabase-js', () => ({
             single: mockSingle,
           }),
         }),
+      }),
+      select: mockSelect.mockImplementation((columns: string) => {
+        if (columns === 'id, username, avatar_url, skill_level') {
+          return {
+            eq: mockGetEq.mockReturnValue({
+              single: mockGetSingle,
+            }),
+          }
+        }
+        if (columns === undefined || columns === '*') {
+          // Inside update chain: .update().eq().select().single()
+          return {
+            single: mockSingle,
+          }
+        }
+        return {
+          eq: mockEq.mockReturnValue({
+            select: mockSelect.mockReturnValue({
+              single: mockSingle,
+            }),
+          }),
+        }
       }),
     }),
   })),
@@ -52,6 +76,8 @@ describe('Profile Route', () => {
       return c.json({ error: 'Internal Server Error' }, 500)
     })
     vi.clearAllMocks()
+    mockSingle.mockReset()
+    mockGetSingle.mockReset()
   })
 
   function patchProfile(body: unknown, headers?: Record<string, string>) {
@@ -63,25 +89,6 @@ describe('Profile Route', () => {
   }
 
   describe('PATCH /v1/profile', () => {
-    it('should update profile with valid fullName', async () => {
-      const mockData = { id: 'user-123', full_name: 'John Doe' }
-      mockSingle.mockResolvedValueOnce({ data: mockData, error: null })
-
-      const response = await patchProfile({ fullName: 'John Doe' })
-
-      expect(response.status).toBe(200)
-      const data = await response.json()
-      expect(data).toEqual(mockData)
-
-      // Verify update payload
-      expect(mockUpdate).toHaveBeenCalledWith(
-        expect.objectContaining({
-          full_name: 'John Doe',
-          updated_at: expect.any(String),
-        }),
-      )
-    })
-
     it('should update profile with valid phone', async () => {
       const mockData = { id: 'user-123', phone: '0912345678' }
       mockSingle.mockResolvedValueOnce({ data: mockData, error: null })
@@ -115,14 +122,12 @@ describe('Profile Route', () => {
     it('should update all fields at once', async () => {
       const mockData = {
         id: 'user-123',
-        full_name: 'John Doe',
         phone: '0912345678',
         avatar_url: 'https://example.com/a.jpg',
       }
       mockSingle.mockResolvedValueOnce({ data: mockData, error: null })
 
       const response = await patchProfile({
-        fullName: 'John Doe',
         phone: '0912345678',
         avatarUrl: 'https://example.com/a.jpg',
       })
@@ -130,7 +135,6 @@ describe('Profile Route', () => {
       expect(response.status).toBe(200)
       expect(mockUpdate).toHaveBeenCalledWith(
         expect.objectContaining({
-          full_name: 'John Doe',
           phone: '0912345678',
           avatar_url: 'https://example.com/a.jpg',
           updated_at: expect.any(String),
@@ -141,12 +145,11 @@ describe('Profile Route', () => {
     it('should only include provided fields in update payload', async () => {
       mockSingle.mockResolvedValueOnce({ data: { id: 'user-123' }, error: null })
 
-      await patchProfile({ fullName: 'John Doe' })
+      await patchProfile({ phone: '0912345678' })
 
       const updatePayload = mockUpdate.mock.calls[0][0]
-      expect(updatePayload).toHaveProperty('full_name')
+      expect(updatePayload).toHaveProperty('phone')
       expect(updatePayload).toHaveProperty('updated_at')
-      expect(updatePayload).not.toHaveProperty('phone')
       expect(updatePayload).not.toHaveProperty('avatar_url')
     })
 
@@ -175,8 +178,11 @@ describe('Profile Route', () => {
       )
     })
 
-    it('should return 400 for invalid fullName (too short)', async () => {
-      const response = await patchProfile({ fullName: 'A' })
+    it('should reject username field in update payload', async () => {
+      mockSingle.mockResolvedValueOnce({ data: { id: 'user-123' }, error: null })
+
+      const response = await patchProfile({ username: 'newname' })
+
       expect(response.status).toBe(400)
       const data = await response.json()
       expect(data).toHaveProperty('error')
@@ -202,7 +208,7 @@ describe('Profile Route', () => {
         error: { message: 'Database error' },
       })
 
-      const response = await patchProfile({ fullName: 'John Doe' })
+      const response = await patchProfile({ phone: '0912345678' })
 
       expect(response.status).toBe(502)
       const data = await response.json()
@@ -224,9 +230,38 @@ describe('Profile Route', () => {
     it('should use the user id from context for the eq clause', async () => {
       mockSingle.mockResolvedValueOnce({ data: { id: 'user-123' }, error: null })
 
-      await patchProfile({ fullName: 'John Doe' })
+      await patchProfile({ phone: '0912345678' })
 
       expect(mockEq).toHaveBeenCalledWith('id', 'user-123')
+    })
+  })
+
+  describe('GET /v1/profile/:username', () => {
+    it('should return public profile by username', async () => {
+      const mockData = {
+        id: 'user-123',
+        username: 'nhuthung',
+        avatar_url: 'https://example.com/a.jpg',
+        skill_level: 'BEGINNER',
+      }
+      mockGetSingle.mockResolvedValueOnce({ data: mockData, error: null })
+
+      const response = await app.request('/v1/profile/nhuthung')
+
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data).toEqual(mockData)
+      expect(mockGetEq).toHaveBeenCalledWith('username', 'nhuthung')
+    })
+
+    it('should return 404 when user not found', async () => {
+      mockGetSingle.mockResolvedValueOnce({ data: null, error: { message: 'Not found' } })
+
+      const response = await app.request('/v1/profile/nonexistent')
+
+      expect(response.status).toBe(404)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'User not found')
     })
   })
 })

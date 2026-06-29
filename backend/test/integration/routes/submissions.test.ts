@@ -14,6 +14,8 @@ const mockSingle = vi.fn()
 const mockListSelect = vi.fn()
 const mockEq = vi.fn()
 const mockOrder = vi.fn()
+const mockProfileEq = vi.fn()
+const mockProfileSingle = vi.fn()
 
 // Mock crypto.randomUUID for deterministic tests
 vi.stubGlobal('crypto', {
@@ -30,17 +32,28 @@ vi.mock('aws4fetch', () => ({
 // Mock @supabase/supabase-js
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn().mockImplementation(() => ({
-    from: mockFrom.mockReturnValue({
-      insert: mockInsert.mockReturnValue({
-        select: mockInsertSelect.mockReturnValue({
-          single: mockSingle,
+    from: mockFrom.mockImplementation((table: string) => {
+      if (table === 'profiles') {
+        return {
+          select: vi.fn().mockReturnValue({
+            eq: mockProfileEq.mockReturnValue({
+              single: mockProfileSingle,
+            }),
+          }),
+        }
+      }
+      return {
+        insert: mockInsert.mockReturnValue({
+          select: mockInsertSelect.mockReturnValue({
+            single: mockSingle,
+          }),
         }),
-      }),
-      select: mockListSelect.mockReturnValue({
-        eq: mockEq.mockReturnValue({
-          order: mockOrder,
+        select: mockListSelect.mockReturnValue({
+          eq: mockEq.mockReturnValue({
+            order: mockOrder,
+          }),
         }),
-      }),
+      }
     }),
   })),
 }))
@@ -369,6 +382,74 @@ describe('Submissions Route', () => {
       mockOrder.mockResolvedValueOnce({ data: null, error: { message: 'Database error' } })
 
       const response = await app.request('/v1/submissions/me', {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+
+      expect(response.status).toBe(500)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'Failed to fetch submissions')
+    })
+  })
+
+  describe('GET /v1/submissions/user/:username', () => {
+    it('should return submissions for a given username', async () => {
+      mockProfileSingle.mockResolvedValueOnce({
+        data: { id: 'user-456' },
+        error: null,
+      })
+      mockOrder.mockResolvedValueOnce({
+        data: [
+          {
+            id: 'sub-789',
+            user_id: 'user-456',
+            module_id: null,
+            original_photo_key: 'user-456/sub-789/photo.jpg',
+            processed_photo_key: 'user-456/sub-789/photo.webp',
+            status: 'UPLOADED',
+            review_type: 'AI',
+            created_at: '2024-01-01T00:00:00.000Z',
+          },
+        ],
+        error: null,
+      })
+
+      const response = await app.request('/v1/submissions/user/nhuthung', {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data.submissions).toHaveLength(1)
+      expect(data.submissions[0]).toHaveProperty('id', 'sub-789')
+      expect(mockProfileEq).toHaveBeenCalledWith('username', 'nhuthung')
+    })
+
+    it('should return 404 when username not found', async () => {
+      mockProfileSingle.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Not found' },
+      })
+
+      const response = await app.request('/v1/submissions/user/nonexistent', {
+        headers: { Authorization: 'Bearer test-token' },
+      })
+
+      expect(response.status).toBe(404)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'User not found')
+    })
+
+    it('should return 500 when submissions query fails', async () => {
+      mockProfileSingle.mockResolvedValueOnce({
+        data: { id: 'user-456' },
+        error: null,
+      })
+      mockOrder.mockResolvedValueOnce({
+        data: null,
+        error: { message: 'Database error' },
+      })
+
+      const response = await app.request('/v1/submissions/user/nhuthung', {
         headers: { Authorization: 'Bearer test-token' },
       })
 

@@ -12,7 +12,7 @@ type AuthContextShape = {
   user: User | null
   loading: boolean
   signIn: (email: string, password: string) => Promise<{ error: Error | null }>
-  signUp: (email: string, password: string, fullName: string) => Promise<{ error: Error | null }>
+  signUp: (email: string, password: string, username: string) => Promise<{ error: Error | null }>
   signOut: () => Promise<{ error: Error | null }>
 }
 
@@ -35,12 +35,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signUp = async (
     email: string,
     password: string,
-    fullName: string,
+    username: string,
   ): Promise<{ error: Error | null }> => {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { full_name: fullName } },
+      options: { data: { username } },
     })
     if (error) return { error }
     setSession(data.session)
