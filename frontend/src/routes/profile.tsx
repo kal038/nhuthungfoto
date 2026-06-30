@@ -70,7 +70,7 @@ function ProfileContainer() {
   return (
     <AccountLayout>
       <ProfileForm
-        key={user.id}
+        key={`${user.id}-${profile?.updated_at}`}
         defaultValues={defaultValues}
         isSaving={updateMutation.isPending}
         saveError={updateMutation.error}
