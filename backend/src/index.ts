@@ -4,6 +4,7 @@ import { cors } from 'hono/cors'
 import { logger } from 'hono/logger'
 import { secureHeaders } from 'hono/secure-headers'
 import { healthRouter } from './routes/health'
+import { modulesRouter } from './routes/modules'
 import { submissionsRouter } from './routes/submissions'
 import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
@@ -54,5 +55,6 @@ app.route('/v1/profile', profileRouter)
 // ---------------------
 app.use('/v1/*', authMiddleware)
 app.route('/v1/submissions', submissionsRouter)
+app.route('/v1/modules', modulesRouter)
 
 export default app
