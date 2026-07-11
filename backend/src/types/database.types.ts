@@ -51,42 +51,51 @@ export type Database = {
       }
       modules: {
         Row: {
+          assignment_prompt: string | null
           content_markdown: string | null
-          content_url: string | null
+          cover_photo_key: string | null
           created_at: string | null
           description: string | null
-          id: string
+          estimated_minutes: number | null
+          example_photo_keys: Json | null
+          id: number
           is_free: boolean | null
+          is_published: boolean | null
           level: Database["public"]["Enums"]["skill_level"] | null
-          sequence_order: number | null
           slug: string
           title: string
           track: Database["public"]["Enums"]["specialty_track"] | null
           updated_at: string | null
         }
         Insert: {
+          assignment_prompt?: string | null
           content_markdown?: string | null
-          content_url?: string | null
+          cover_photo_key?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string
+          estimated_minutes?: number | null
+          example_photo_keys?: Json | null
+          id?: number
           is_free?: boolean | null
+          is_published?: boolean | null
           level?: Database["public"]["Enums"]["skill_level"] | null
-          sequence_order?: number | null
           slug: string
           title: string
           track?: Database["public"]["Enums"]["specialty_track"] | null
           updated_at?: string | null
         }
         Update: {
+          assignment_prompt?: string | null
           content_markdown?: string | null
-          content_url?: string | null
+          cover_photo_key?: string | null
           created_at?: string | null
           description?: string | null
-          id?: string
+          estimated_minutes?: number | null
+          example_photo_keys?: Json | null
+          id?: number
           is_free?: boolean | null
+          is_published?: boolean | null
           level?: Database["public"]["Enums"]["skill_level"] | null
-          sequence_order?: number | null
           slug?: string
           title?: string
           track?: Database["public"]["Enums"]["specialty_track"] | null
@@ -225,7 +234,7 @@ export type Database = {
         Row: {
           created_at: string | null
           id: string
-          module_id: string | null
+          module_id: number | null
           original_photo_key: string
           processed_photo_key: string | null
           review_type: Database["public"]["Enums"]["review_type"] | null
@@ -235,7 +244,7 @@ export type Database = {
         Insert: {
           created_at?: string | null
           id?: string
-          module_id?: string | null
+          module_id?: number | null
           original_photo_key: string
           processed_photo_key?: string | null
           review_type?: Database["public"]["Enums"]["review_type"] | null
@@ -245,7 +254,7 @@ export type Database = {
         Update: {
           created_at?: string | null
           id?: string
-          module_id?: string | null
+          module_id?: number | null
           original_photo_key?: string
           processed_photo_key?: string | null
           review_type?: Database["public"]["Enums"]["review_type"] | null
