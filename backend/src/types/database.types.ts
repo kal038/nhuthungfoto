@@ -148,6 +148,7 @@ export type Database = {
         Row: {
           avatar_url: string | null
           credits_balance: number | null
+          current_module: number
           email: string | null
           email_verified: boolean | null
           id: string
@@ -161,6 +162,7 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           credits_balance?: number | null
+          current_module?: number
           email?: string | null
           email_verified?: boolean | null
           id: string
@@ -174,6 +176,7 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           credits_balance?: number | null
+          current_module?: number
           email?: string | null
           email_verified?: boolean | null
           id?: string
