@@ -1,8 +1,7 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/context/AuthContext'
-import { useUserProfileByUsername } from '@/hooks/queries/useUserProfileByUsername'
-import { useUserSubmissions } from '@/hooks/queries/useUserSubmissions'
+import { useGallery } from '@/hooks/queries/useGallery'
 import { ApiError } from '@/lib/errors'
 import { AccountLayout } from './AccountLayout'
 import { ProfileAvatar } from './ProfileAvatar'
@@ -21,23 +20,24 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
     }
   }, [authLoading, user, navigate])
 
-  const {
-    data: ownerProfile,
-    isLoading: profileLoading,
-    error: profileError,
-  } = useUserProfileByUsername(username)
-  const { data: submissions, isLoading: submissionsLoading } = useUserSubmissions(username)
+  const { data, isLoading, error } = useGallery(username)
+  const ownerProfile = data?.profile
+  const submissions = data?.submissions
 
   const isNotFound =
-    !profileLoading &&
-    (!ownerProfile || (profileError instanceof ApiError && profileError.status === 404))
+    !isLoading &&
+    (!ownerProfile || (error instanceof ApiError && error.status === 404))
 
   const isOwnProfile = user?.id === ownerProfile?.id
 
   if (authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-zinc-400 text-sm">Đang tải...</p>
+        <div className="flex gap-1">
+          <span className="loading-dot" />
+          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
+          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
+        </div>
       </div>
     )
   }
@@ -65,7 +65,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
 
   return (
     <AccountLayout>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 fade-in">
         {/* Header */}
         <div className="flex items-center gap-4">
           <ProfileAvatar
@@ -97,16 +97,23 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
         )}
 
         {/* Grid */}
-        {submissionsLoading || profileLoading ? (
-          <p className="text-zinc-400">Đang tải ảnh...</p>
+        {isLoading ? (
+          <div className="flex justify-center py-12">
+            <div className="flex gap-1">
+              <span className="loading-dot" />
+              <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
+              <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
+            </div>
+          </div>
         ) : !submissions?.length ? (
           <p className="text-zinc-500">Chưa có ảnh nào.</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
-            {submissions.map((sub) => (
+            {submissions.map((sub, i) => (
               <div
                 key={sub.id}
-                className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100"
+                className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100 fade-in"
+                style={{ animationDelay: `${i * 60}ms` }}
               >
                 <img
                   src={sub.processedPhotoUrl ?? sub.originalPhotoUrl ?? undefined}

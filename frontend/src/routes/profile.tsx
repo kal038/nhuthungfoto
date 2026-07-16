@@ -58,7 +58,11 @@ function ProfileContainer() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-white">
-        <p className="text-zinc-400 text-sm">Đang tải...</p>
+        <div className="flex gap-1">
+          <span className="loading-dot" />
+          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
+          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
+        </div>
       </div>
     )
   }
@@ -69,14 +73,16 @@ function ProfileContainer() {
 
   return (
     <AccountLayout>
-      <ProfileForm
-        key={`${user.id}-${profile?.updated_at}`}
-        defaultValues={defaultValues}
-        isSaving={updateMutation.isPending}
-        saveError={updateMutation.error}
-        isSaveSuccess={updateMutation.isSuccess}
-        onSubmit={handleSave}
-      />
+      <div className="fade-in">
+        <ProfileForm
+          key={`${user.id}-${profile?.updated_at}`}
+          defaultValues={defaultValues}
+          isSaving={updateMutation.isPending}
+          saveError={updateMutation.error}
+          isSaveSuccess={updateMutation.isSuccess}
+          onSubmit={handleSave}
+        />
+      </div>
     </AccountLayout>
   )
 }

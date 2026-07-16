@@ -4,4 +4,4 @@
  * Define the exact JSON shapes expected from the backend API here,
  * then import them into hooks and components as needed.
  */
-export {}
+export type { GalleryProfile, GallerySubmission, GalleryData } from './gallery'

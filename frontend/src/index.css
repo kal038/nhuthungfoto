@@ -91,10 +91,36 @@ h6 {
   }
 
   /* Loading spinners are functional, not decorative — keep them animated */
-  .upload-spinner {
+  .upload-spinner,
+  .loading-dot,
+  .fade-in {
     animation-duration: 0.75s !important;
     animation-iteration-count: infinite !important;
   }
+}
+
+/* Three-dot loading indicator */
+.loading-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--color-zinc-400, #a1a1aa);
+  animation: dot-bounce 0.6s infinite alternate;
+}
+
+@keyframes dot-bounce {
+  0% { opacity: 0.3; transform: translateY(0); }
+  100% { opacity: 1; transform: translateY(-6px); }
+}
+
+/* Fade-in-up transition for content appearing after load */
+.fade-in {
+  animation: fade-in-up 0.4s ease-out both;
+}
+
+@keyframes fade-in-up {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
 }
 
 /* =========================================
