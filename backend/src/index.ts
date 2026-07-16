@@ -10,6 +10,7 @@ import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
 import { portfolioRouter } from './routes/portfolio'
+import { galleryRouter } from './routes/gallery'
 import { profileRouter } from './routes/profile'
 import { authRouter } from './routes/auth'
 import { AppError } from './lib/errors'
@@ -56,5 +57,6 @@ app.route('/v1/profile', profileRouter)
 app.use('/v1/*', authMiddleware)
 app.route('/v1/submissions', submissionsRouter)
 app.route('/v1/modules', modulesRouter)
+app.route('/v1/gallery', galleryRouter)
 
 export default app
