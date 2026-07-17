@@ -4,6 +4,9 @@ import { useAuth } from '@/context/AuthContext'
 import { useEffect } from 'react'
 
 export const Route = createFileRoute('/upload')({
+  validateSearch: (search) => ({
+    moduleId: typeof search.moduleId === 'string' ? search.moduleId : undefined,
+  }),
   component: UploadPage,
 })
 
