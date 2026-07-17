@@ -12,9 +12,12 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as UploadRouteImport } from './routes/upload'
 import { Route as SignupRouteImport } from './routes/signup'
 import { Route as ProfileRouteImport } from './routes/profile'
+import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ModulesIndexRouteImport } from './routes/modules/index'
+import { Route as ModulesSlugRouteImport } from './routes/modules/$slug'
 import { Route as GalleryUsernameRouteImport } from './routes/gallery/$username'
 
 const UploadRoute = UploadRouteImport.update({
@@ -32,6 +35,11 @@ const ProfileRoute = ProfileRouteImport.update({
   path: '/profile',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModulesRoute = ModulesRouteImport.update({
+  id: '/modules',
+  path: '/modules',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
@@ -47,6 +55,16 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ModulesIndexRoute = ModulesIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => ModulesRoute,
+} as any)
+const ModulesSlugRoute = ModulesSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => ModulesRoute,
+} as any)
 const GalleryUsernameRoute = GalleryUsernameRouteImport.update({
   id: '/gallery/$username',
   path: '/gallery/$username',
@@ -57,10 +75,13 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/login': typeof LoginRoute
+  '/modules': typeof ModulesRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/gallery/$username': typeof GalleryUsernameRoute
+  '/modules/$slug': typeof ModulesSlugRoute
+  '/modules/': typeof ModulesIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -70,16 +91,21 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/gallery/$username': typeof GalleryUsernameRoute
+  '/modules/$slug': typeof ModulesSlugRoute
+  '/modules': typeof ModulesIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
   '/login': typeof LoginRoute
+  '/modules': typeof ModulesRouteWithChildren
   '/profile': typeof ProfileRoute
   '/signup': typeof SignupRoute
   '/upload': typeof UploadRoute
   '/gallery/$username': typeof GalleryUsernameRoute
+  '/modules/$slug': typeof ModulesSlugRoute
+  '/modules/': typeof ModulesIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -87,10 +113,13 @@ export interface FileRouteTypes {
     | '/'
     | '/$username'
     | '/login'
+    | '/modules'
     | '/profile'
     | '/signup'
     | '/upload'
     | '/gallery/$username'
+    | '/modules/$slug'
+    | '/modules/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -100,21 +129,27 @@ export interface FileRouteTypes {
     | '/signup'
     | '/upload'
     | '/gallery/$username'
+    | '/modules/$slug'
+    | '/modules'
   id:
     | '__root__'
     | '/'
     | '/$username'
     | '/login'
+    | '/modules'
     | '/profile'
     | '/signup'
     | '/upload'
     | '/gallery/$username'
+    | '/modules/$slug'
+    | '/modules/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   UsernameRoute: typeof UsernameRoute
   LoginRoute: typeof LoginRoute
+  ModulesRoute: typeof ModulesRouteWithChildren
   ProfileRoute: typeof ProfileRoute
   SignupRoute: typeof SignupRoute
   UploadRoute: typeof UploadRoute
@@ -144,6 +179,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ProfileRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modules': {
+      id: '/modules'
+      path: '/modules'
+      fullPath: '/modules'
+      preLoaderRoute: typeof ModulesRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
@@ -165,6 +207,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/modules/': {
+      id: '/modules/'
+      path: '/'
+      fullPath: '/modules/'
+      preLoaderRoute: typeof ModulesIndexRouteImport
+      parentRoute: typeof ModulesRoute
+    }
+    '/modules/$slug': {
+      id: '/modules/$slug'
+      path: '/$slug'
+      fullPath: '/modules/$slug'
+      preLoaderRoute: typeof ModulesSlugRouteImport
+      parentRoute: typeof ModulesRoute
+    }
     '/gallery/$username': {
       id: '/gallery/$username'
       path: '/gallery/$username'
@@ -175,10 +231,24 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface ModulesRouteChildren {
+  ModulesSlugRoute: typeof ModulesSlugRoute
+  ModulesIndexRoute: typeof ModulesIndexRoute
+}
+
+const ModulesRouteChildren: ModulesRouteChildren = {
+  ModulesSlugRoute: ModulesSlugRoute,
+  ModulesIndexRoute: ModulesIndexRoute,
+}
+
+const ModulesRouteWithChildren =
+  ModulesRoute._addFileChildren(ModulesRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   UsernameRoute: UsernameRoute,
   LoginRoute: LoginRoute,
+  ModulesRoute: ModulesRouteWithChildren,
   ProfileRoute: ProfileRoute,
   SignupRoute: SignupRoute,
   UploadRoute: UploadRoute,

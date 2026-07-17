@@ -13,7 +13,7 @@ import { useNavigate } from '@tanstack/react-router'
 
 const LEFT_LINKS = [
   { label: 'Tác phẩm', href: '#carousel' },
-  { label: 'Khóa học', href: '/courses' },
+  { label: 'Khóa học', href: '/modules' },
   { label: 'Đặt lịch', href: '/booking' },
 ]
 
