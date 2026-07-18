@@ -2,6 +2,7 @@ import { usePhotoUploadQueue } from '@/hooks/usePhotoUploadQueue'
 import { PhotoUploadPanel } from '@/components/features/upload'
 
 interface PhotoUploadContainerProps {
+  moduleId?: number
   maxFiles?: number
   maxFileSizeMB?: number
   onUploadComplete?: (results: { id: string; objectKey: string; status: 'success' | 'error' }[]) => void
@@ -14,15 +15,17 @@ interface PhotoUploadContainerProps {
  * Usage:
  * ```tsx
  * <PhotoUploadContainer />
- * <PhotoUploadContainer onUploadComplete={handleUpload} />
+ * <PhotoUploadContainer moduleId={2} onUploadComplete={handleUpload} />
  * ```
  */
 export function PhotoUploadContainer({
+  moduleId,
   maxFiles = 10,
   maxFileSizeMB = 20,
   onUploadComplete,
 }: PhotoUploadContainerProps) {
   const upload = usePhotoUploadQueue({
+    moduleId,
     maxFiles,
     maxFileSizeMB,
     onUploadComplete,
