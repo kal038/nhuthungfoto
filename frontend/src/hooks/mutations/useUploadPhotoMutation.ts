@@ -5,12 +5,18 @@ interface PresignRequest {
   fileName: string
   contentType: string
   fileSizeBytes: number
+  moduleId?: number
 }
 
 interface PresignURLResult {
   uploadUrl: string
   objectKey: string
   expiresIn: number
+}
+
+export interface UploadPhotoInput {
+  file: File
+  moduleId?: number
 }
 
 export interface UploadPhotoResult {
@@ -22,11 +28,12 @@ export interface UploadPhotoResult {
  * 1. Fetch presigned URL from backend.
  * 2. PUT file directly to storage via fetch.
  */
-export async function uploadPhoto(file: File): Promise<UploadPhotoResult> {
+export async function uploadPhoto({ file, moduleId }: UploadPhotoInput): Promise<UploadPhotoResult> {
   const body: PresignRequest = {
     fileName: file.name,
     contentType: file.type,
     fileSizeBytes: file.size,
+    ...(moduleId != null && { moduleId }),
   }
 
   const presign = await apiFetch<PresignURLResult>('/submissions', body, 'POST')

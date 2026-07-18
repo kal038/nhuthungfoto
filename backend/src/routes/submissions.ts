@@ -17,19 +17,27 @@ submissionsRouter.post('/', async (c) => {
   if (!result.success) {
     throw new ZodParseError()
   }
-  const { fileName, contentType, fileSizeBytes } = result.data
+  const { fileName, contentType, fileSizeBytes, moduleId } = result.data
   const userId = c.get('user').id //grab userId from context of request
   const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '')
   const submissionId = crypto.randomUUID()
   const objectKey = `${userId}/${submissionId}/${safeFileName}`
 
   const supabase = createServiceClient(c.env)
+
+  // Validate module exists before inserting
+  if (moduleId) {
+    const { data: mod } = await supabase.from('modules').select('id').eq('id', moduleId).single()
+    if (!mod) throw new BadRequestError('Module not found')
+  }
+
   const { data, error } = await supabase
     .from('submissions')
     .insert({
       id: submissionId,
       user_id: userId,
       original_photo_key: objectKey,
+      module_id: moduleId ?? null,
     })
     .select()
     .single()

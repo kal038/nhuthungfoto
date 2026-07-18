@@ -1,6 +1,4 @@
-import { Link } from '@tanstack/react-router'
 import { useSubmissions } from '@/hooks/queries/useSubmissions'
-import { Button } from '@/components/ui/button'
 
 interface ModuleSubmissionsProps {
   moduleId: number
@@ -15,16 +13,9 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
 
   return (
     <section className="space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <h2 className="font-heading text-lg font-semibold text-zinc-900">
-          Bài nộp của bạn
-        </h2>
-        <Button asChild variant="default" size="sm">
-          <Link to="/upload" search={{ moduleId: String(moduleId) }}>
-            Nộp bài mới
-          </Link>
-        </Button>
-      </div>
+      <h2 className="font-heading text-lg font-semibold text-zinc-900">
+        Bài nộp của bạn
+      </h2>
 
       {isLoading ? (
         <div className="flex gap-1 py-6">

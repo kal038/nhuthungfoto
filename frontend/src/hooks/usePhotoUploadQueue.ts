@@ -4,6 +4,7 @@ import { ACCEPTED_IMAGE_TYPES, DEFAULT_MAX_FILE_SIZE_MB, DEFAULT_MAX_FILES } fro
 import { useUploadPhotoMutation } from '@/hooks/mutations/useUploadPhotoMutation'
 
 interface UsePhotoUploadOptions {
+  moduleId?: number
   maxFiles?: number
   maxFileSizeMB?: number
   onUploadComplete?: (
@@ -17,6 +18,7 @@ interface UsePhotoUploadOptions {
  */
 export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
   const {
+    moduleId,
     maxFiles = DEFAULT_MAX_FILES,
     maxFileSizeMB = DEFAULT_MAX_FILE_SIZE_MB,
     onUploadComplete,
@@ -103,7 +105,7 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
       setUploadStates((prev) => ({ ...prev, [id]: { status: 'uploading' } }))
 
       try {
-        const result = await uploadPhoto.mutateAsync(file)
+        const result = await uploadPhoto.mutateAsync({ file, moduleId })
         setUploadStates((prev) => ({ ...prev, [id]: { status: 'success' } }))
         results.push({ id, objectKey: result.objectKey, status: 'success' })
       } catch (err) {
@@ -115,7 +117,7 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
 
     setIsUploading(false)
     onUploadComplete?.(results)
-  }, [files, uploadStates, uploadPhoto, onUploadComplete])
+  }, [files, uploadStates, uploadPhoto, onUploadComplete, moduleId])
 
   // ─── Drag-and-drop handlers ──────────────────────────────
 

@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react'
-import { Link, useNavigate } from '@tanstack/react-router'
+import { Link } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { ArrowUp, ArrowLeft } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
 import type { ModuleDetail } from '@/types/modules'
 import { ModuleMarkdown } from './ModuleMarkdown'
 import { ModuleSubmissions } from './ModuleSubmissions'
+import { PhotoUploadContainer } from '@/components/features/upload/PhotoUploadContainer'
 
 const levelLabelMap: Record<string, string> = {
   BEGINNER: 'Cơ bản',
@@ -25,7 +26,7 @@ interface ModuleDetailProps {
 }
 
 export function ModuleDetail({ module }: ModuleDetailProps) {
-  const navigate = useNavigate()
+  const queryClient = useQueryClient()
   const [showTop, setShowTop] = useState(false)
 
   useEffect(() => {
@@ -34,8 +35,8 @@ export function ModuleDetail({ module }: ModuleDetailProps) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const handleUpload = () => {
-    navigate({ to: '/upload', search: { moduleId: String(module.id) } })
+  const handleUploadComplete = () => {
+    queryClient.invalidateQueries({ queryKey: ['submissions'] })
   }
 
   return (
@@ -125,9 +126,16 @@ export function ModuleDetail({ module }: ModuleDetailProps) {
             <p className="mt-2 whitespace-pre-line text-sm text-zinc-700">
               {module.assignmentPrompt}
             </p>
-            <Button onClick={handleUpload} className="mt-4" size="lg">
-              Nộp bài
-            </Button>
+          </section>
+        )}
+
+        {/* Inline uploader — shown when module has an assignment */}
+        {module.assignmentPrompt && (
+          <section className="mt-8">
+            <PhotoUploadContainer
+              moduleId={module.id}
+              onUploadComplete={handleUploadComplete}
+            />
           </section>
         )}
 

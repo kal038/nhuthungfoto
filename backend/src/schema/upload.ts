@@ -13,6 +13,7 @@ export const presignRequestSchema = z.object({
   fileName: z.string().min(1, 'file name must not be empty'),
   contentType: z.enum(ALLOWED_MIME_TYPES),
   fileSizeBytes: z.number().int().min(1).max(MAX_FILE_SIZE_BYTES),
+  moduleId: z.number().int().positive().optional(),
 })
 
 export type PresignRequest = z.infer<typeof presignRequestSchema>
