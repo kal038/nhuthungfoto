@@ -99,49 +99,49 @@ submissionsRouter.get('/me', async (c) => {
 
 // GET /v1/submissions/user/:username
 // Any authenticated user can view another user's submissions
-submissionsRouter.get('/user/:username', async (c) => {
-  const username = c.req.param('username')
-  const supabase = createServiceClient(c.env)
+// submissionsRouter.get('/user/:username', async (c) => {
+//   const username = c.req.param('username')
+//   const supabase = createServiceClient(c.env)
 
-  // Find user by username
-  const { data: profile, error: profileError } = await supabase
-    .from('profiles')
-    .select('id')
-    .eq('username', username.toLowerCase())
-    .single()
+//   // Find user by username
+//   const { data: profile, error: profileError } = await supabase
+//     .from('profiles')
+//     .select('id')
+//     .eq('username', username.toLowerCase())
+//     .single()
 
-  if (profileError || !profile) {
-    throw new AppError('User not found', 404)
-  }
+//   if (profileError || !profile) {
+//     throw new AppError('User not found', 404)
+//   }
 
-  // Fetch their submissions
-  const { data, error } = await supabase
-    .from('submissions')
-    .select('*')
-    .eq('user_id', profile.id)
-    .order('created_at', { ascending: false })
+//   // Fetch their submissions
+//   const { data, error } = await supabase
+//     .from('submissions')
+//     .select('*')
+//     .eq('user_id', profile.id)
+//     .order('created_at', { ascending: false })
 
-  if (error) {
-    console.error('Failed to fetch submissions:', error)
-    throw new AppError('Failed to fetch submissions', 500)
-  }
+//   if (error) {
+//     console.error('Failed to fetch submissions:', error)
+//     throw new AppError('Failed to fetch submissions', 500)
+//   }
 
-  const submissions = (data || []).map((row) => ({
-    id: row.id,
-    moduleId: row.module_id,
-    status: row.status,
-    reviewType: row.review_type,
-    createdAt: row.created_at,
-    originalPhotoUrl: row.original_photo_key
-      ? getPublicUrl(c.env.R2_UPLOADS_RAW_PUBLIC_URL, row.original_photo_key)
-      : null,
-    processedPhotoUrl: row.processed_photo_key
-      ? getPublicUrl(c.env.R2_PORTFOLIO_PUBLIC_URL, row.processed_photo_key)
-      : null,
-  }))
+//   const submissions = (data || []).map((row) => ({
+//     id: row.id,
+//     moduleId: row.module_id,
+//     status: row.status,
+//     reviewType: row.review_type,
+//     createdAt: row.created_at,
+//     originalPhotoUrl: row.original_photo_key
+//       ? getPublicUrl(c.env.R2_UPLOADS_RAW_PUBLIC_URL, row.original_photo_key)
+//       : null,
+//     processedPhotoUrl: row.processed_photo_key
+//       ? getPublicUrl(c.env.R2_PORTFOLIO_PUBLIC_URL, row.processed_photo_key)
+//       : null,
+//   }))
 
-  return c.json({ submissions }, 200)
-})
+//   return c.json({ submissions }, 200)
+// })
 
 // POST /v1/submissions/:id/grade — spend credits and start grading
 submissionsRouter.post('/:id/grade', async (c) => {
@@ -177,10 +177,7 @@ submissionsRouter.post('/:id/grade', async (c) => {
   }
 
   if (submission.status !== 'UPLOADED') {
-    throw new AppError(
-      `Submission cannot be graded in status: ${submission.status}`,
-      409,
-    )
+    throw new AppError(`Submission cannot be graded in status: ${submission.status}`, 409)
   }
 
   // Determine credit cost
@@ -195,7 +192,7 @@ submissionsRouter.post('/:id/grade', async (c) => {
       submission_id: submissionId,
       review_type: reviewType,
     },
-    `grade_${submissionId}`
+    `grade_${submissionId}`,
   )
 
   // Update submission status and review type
