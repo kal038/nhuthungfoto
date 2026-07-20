@@ -9,7 +9,6 @@ export const creditHistoryQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 })
 
-/** Credit cost per review type */
 export const CREDIT_COST = {
   AI: 1,
   HUNG: 3,
