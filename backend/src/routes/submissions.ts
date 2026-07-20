@@ -2,7 +2,9 @@ import { Hono } from 'hono'
 import type { Env } from '@/types/env'
 import type { AuthVars } from '@/middleware/auth'
 import { presignRequestSchema, type PresignedUrlResult } from '@/schema/upload'
+import { gradeSubmissionSchema, CREDIT_COST } from '@/schema/credit'
 import { generatePresignedUploadUrl, getPublicUrl } from '@/services/r2'
+import { spendCredits } from '@/services/credit'
 import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 import { createServiceClient } from '@/lib/supabase'
 
@@ -139,6 +141,93 @@ submissionsRouter.get('/user/:username', async (c) => {
   }))
 
   return c.json({ submissions }, 200)
+})
+
+// POST /v1/submissions/:id/grade — spend credits and start grading
+submissionsRouter.post('/:id/grade', async (c) => {
+  const submissionId = c.req.param('id')
+  const userId = c.get('user').id
+  const supabase = createServiceClient(c.env)
+
+  // Validate request body
+  const body = await c.req.json().catch(() => {
+    throw new BadRequestError('Request body must be valid JSON')
+  })
+
+  const result = gradeSubmissionSchema.safeParse(body)
+  if (!result.success) {
+    throw new ZodParseError()
+  }
+
+  const { reviewType } = result.data
+
+  // Fetch submission and verify ownership + status
+  const { data: submission, error: fetchError } = await supabase
+    .from('submissions')
+    .select('id, user_id, status, review_type')
+    .eq('id', submissionId)
+    .single()
+
+  if (fetchError || !submission) {
+    throw new AppError('Submission not found', 404)
+  }
+
+  if (submission.user_id !== userId) {
+    throw new AppError('Submission not found', 404) // Don't leak existence
+  }
+
+  if (submission.status !== 'UPLOADED') {
+    throw new AppError(
+      `Submission cannot be graded in status: ${submission.status}`,
+      409,
+    )
+  }
+
+  // Determine credit cost
+  const cost = CREDIT_COST[reviewType]
+
+  // Atomically deduct credits (throws 402 on insufficient balance)
+  const newBalance = await spendCredits(
+    supabase,
+    userId,
+    cost,
+    {
+      submission_id: submissionId,
+      review_type: reviewType,
+    },
+    `grade_${submissionId}`
+  )
+
+  // Update submission status and review type
+  const { error: updateError } = await supabase
+    .from('submissions')
+    .update({
+      status: 'GRADING',
+      review_type: reviewType,
+    })
+    .eq('id', submissionId)
+
+  if (updateError) {
+    // Credits already deducted — log for manual reconciliation
+    console.error('CRITICAL: Credits deducted but submission update failed:', {
+      submissionId,
+      userId,
+      cost,
+      error: updateError,
+    })
+    throw new AppError('Failed to update submission status', 500)
+  }
+
+  return c.json(
+    {
+      submissionId,
+      status: 'GRADING',
+      reviewType,
+      creditsSpent: cost,
+      newBalance,
+    },
+    200,
+  )
 })
 
 export { submissionsRouter }
