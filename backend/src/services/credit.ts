@@ -90,8 +90,8 @@ export async function spendCredits(
       throw new AppError('Insufficient credits', 402)
     }
 
-    // Postgres unique constraint violation (idempotency key collision)
-    if (error.code === '23505' || error.message?.includes('duplicate key value')) {
+    // idempotency key collision postgresql error code  (https://www.postgresql.org/docs/current/errcodes-appendix.html)
+    if (error.code === '23505') {
       throw new AppError('Request already processed', 409)
     }
 
