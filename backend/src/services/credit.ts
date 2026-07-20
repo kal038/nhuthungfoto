@@ -79,7 +79,7 @@ export async function spendCredits(
     p_amount: amount,
     p_type: 'SPEND',
     p_metadata: metadata ?? null,
-    p_idempotency_key: idempotencyKey ?? null,
+    p_idempotency_key: idempotencyKey ?? undefined,
   })
 
   if (error) {
@@ -120,7 +120,7 @@ export async function addCredits(
     p_amount: amount,
     p_type: type,
     p_metadata: metadata ?? null,
-    p_idempotency_key: idempotencyKey ?? null,
+    p_idempotency_key: idempotencyKey ?? undefined,
   })
 
   if (error) {
