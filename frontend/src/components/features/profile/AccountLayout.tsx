@@ -1,6 +1,5 @@
 import { cn } from '@/lib/utils'
 import { Link, useRouterState } from '@tanstack/react-router'
-import { useAuth } from '@/context/AuthContext'
 import { useUserProfile } from '@/hooks/queries/useUserProfile'
 
 interface AccountLayoutProps {
@@ -9,15 +8,12 @@ interface AccountLayoutProps {
 }
 
 export function AccountLayout({ children, className }: AccountLayoutProps) {
-  const { user } = useAuth()
-  const { data: profile } = useUserProfile(user?.id ?? '')
+  const { data: profile } = useUserProfile()
   const { location } = useRouterState()
 
   const sidebarLinks = [
     { label: 'Hồ sơ', href: '/profile' },
-    ...(profile?.username
-      ? [{ label: 'Ảnh của tôi', href: `/gallery/${profile.username}` }]
-      : []),
+    ...(profile?.username ? [{ label: 'Ảnh của tôi', href: `/gallery/${profile.username}` }] : []),
   ]
 
   const currentPath = location.pathname
@@ -62,7 +58,7 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
                       'text-sm transition-colors duration-150',
                       isActive
                         ? 'font-medium text-zinc-900'
-                        : 'text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500'
+                        : 'text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500',
                     )}
                   >
                     {link.label}
@@ -71,9 +67,7 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
               })}
             </nav>
           </aside>
-          <main className={cn('min-w-0 flex-1', className)}>
-            {children}
-          </main>
+          <main className={cn('min-w-0 flex-1', className)}>{children}</main>
         </div>
       </div>
     </div>

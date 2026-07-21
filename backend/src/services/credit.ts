@@ -4,6 +4,18 @@ import { AppError } from '@/lib/errors'
 
 type TransactionType = Database['public']['Enums']['transaction_type']
 
+/**
+ * PostgreSQL SQLSTATE codes raised by the credit RPCs / unique constraint.
+ * https://www.postgresql.org/docs/current/errcodes-appendix.html
+ */
+const PG_ERRCODE = {
+  UNIQUE_VIOLATION: '23505', // idempotency key collision on credit_history
+  CHECK_VIOLATION: '23514', // raised by spend_credits when balance < amount
+  INVALID_PARAMETER_VALUE: '22023', // non-positive amount
+  INSUFFICIENT_PRIVILEGE: '42501', // caller not allowed to act on this user
+  NO_DATA_FOUND: 'P0002', // user not found
+} as const
+
 export interface CreditHistoryEntry {
   id: string
   amount: number
@@ -44,7 +56,7 @@ export async function getHistory(
 ): Promise<{ entries: CreditHistoryEntry[]; total: number }> {
   const { data, error, count } = await supabase
     .from('credit_history')
-    .select('*', { count: 'exact' })
+    .select('id, amount, type, metadata, created_at', { count: 'exact' })
     .eq('user_id', userId)
     .order('created_at', { ascending: false })
     .range(offset, offset + limit - 1)
@@ -85,17 +97,18 @@ export async function spendCredits(
   if (error) {
     console.error('spend_credits RPC error:', error)
 
-    // PostgreSQL raises exception 'Insufficient credits' when balance < amount
-    if (error.message?.includes('Insufficient credits')) {
-      throw new AppError('Insufficient credits', 402)
+    switch (error.code) {
+      case PG_ERRCODE.CHECK_VIOLATION:
+        throw new AppError('Insufficient credits', 402)
+      case PG_ERRCODE.UNIQUE_VIOLATION:
+        throw new AppError('Request already processed', 409)
+      case PG_ERRCODE.INSUFFICIENT_PRIVILEGE:
+        throw new AppError('Unauthorized', 403)
+      case PG_ERRCODE.INVALID_PARAMETER_VALUE:
+        throw new AppError('Amount must be positive', 400)
+      default:
+        throw new AppError('Failed to spend credits', 500)
     }
-
-    // idempotency key collision postgresql error code  (https://www.postgresql.org/docs/current/errcodes-appendix.html)
-    if (error.code === '23505') {
-      throw new AppError('Request already processed', 409)
-    }
-
-    throw new AppError('Failed to spend credits', 500)
   }
 
   return data as number
@@ -125,7 +138,19 @@ export async function addCredits(
 
   if (error) {
     console.error('add_credits RPC error:', error)
-    throw new AppError('Failed to add credits', 500)
+
+    switch (error.code) {
+      case PG_ERRCODE.INSUFFICIENT_PRIVILEGE:
+        throw new AppError('Unauthorized', 403)
+      case PG_ERRCODE.INVALID_PARAMETER_VALUE:
+        throw new AppError('Amount must be positive', 400)
+      case PG_ERRCODE.NO_DATA_FOUND:
+        throw new AppError('User not found', 404)
+      case PG_ERRCODE.UNIQUE_VIOLATION:
+        throw new AppError('Request already processed', 409)
+      default:
+        throw new AppError('Failed to add credits', 500)
+    }
   }
 
   return data as number

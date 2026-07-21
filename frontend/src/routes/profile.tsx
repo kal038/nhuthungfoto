@@ -21,9 +21,7 @@ function ProfileContainer() {
     }
   }, [authLoading, user])
 
-  const userId = user?.id ?? ''
-
-  const { data: profile, isLoading: profileLoading } = useUserProfile(userId)
+  const { data: profile, isLoading: profileLoading } = useUserProfile()
   const updateMutation = useUpdateProfileMutation()
 
   const loading = authLoading || profileLoading
