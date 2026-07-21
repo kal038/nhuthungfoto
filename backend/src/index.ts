@@ -50,12 +50,12 @@ app.onError((err, c) => {
 app.route('/health', healthRouter)
 app.route('/portfolio', portfolioRouter)
 app.route('/v1/auth', authRouter)
-app.route('/v1/profile', profileRouter)
 
 // ---------------------
 // Routes Protected
 // ---------------------
 app.use('/v1/*', authMiddleware)
+app.route('/v1/profile', profileRouter)
 app.route('/v1/submissions', submissionsRouter)
 app.route('/v1/modules', modulesRouter)
 app.route('/v1/gallery', galleryRouter)
