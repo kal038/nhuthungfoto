@@ -1,4 +1,4 @@
-import { Menu, X } from 'lucide-react'
+import { Menu, X, Coins } from 'lucide-react'
 import { Sheet, SheetContent, SheetTrigger, SheetClose, SheetTitle } from '@/components/ui/sheet'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import {
@@ -10,6 +10,8 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from '@tanstack/react-router'
+import { CreditBalanceBadge } from '@/components/features/credits/CreditBalanceBadge'
+import { useCreditBalance } from '@/hooks/queries/useCredits'
 
 const LEFT_LINKS = [
   { label: 'Tác phẩm', href: '#carousel' },
@@ -25,6 +27,7 @@ const RIGHT_LINKS = [
 export function Navbar() {
   const { user, signOut } = useAuth()
   const navigate = useNavigate()
+  const { data: balance } = useCreditBalance()
 
   const handleSignOut = async () => {
     await signOut()
@@ -78,7 +81,9 @@ export function Navbar() {
 
           {/* Auth item — 3rd right slot */}
           {user ? (
-            <DropdownMenu>
+            <>
+              <CreditBalanceBadge className="bg-white/10 text-white hover:bg-white/20" />
+              <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="rounded-full transition-opacity duration-300 hover:!opacity-100 group-hover:opacity-30 cursor-pointer outline-none">
                   <Avatar className="h-8 w-8">
@@ -93,6 +98,15 @@ export function Navbar() {
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-48" sideOffset={8}>
+                <DropdownMenuItem
+                  className="text-sm cursor-pointer"
+                  onClick={() => navigate({ to: '/credits' })}
+                >
+                  <Coins className="h-4 w-4 text-zinc-500" />
+                  Credit
+                  <span className="ml-auto tabular-nums font-medium">{balance ?? 0}</span>
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
                 <DropdownMenuItem
                   className="text-sm cursor-pointer"
                   onClick={() => navigate({ to: '/profile' })}
@@ -122,7 +136,8 @@ export function Navbar() {
                   Đăng xuất
                 </DropdownMenuItem>
               </DropdownMenuContent>
-            </DropdownMenu>
+              </DropdownMenu>
+            </>
           ) : (
             <a
               href="/login"
@@ -180,6 +195,16 @@ export function Navbar() {
               <hr className="border-white/10 my-2" />
               {user ? (
                 <>
+                  <SheetClose asChild>
+                    <a
+                      href="/credits"
+                      className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2 inline-flex items-center gap-2"
+                    >
+                      <Coins className="h-4 w-4" />
+                      Credit
+                      <span className="tabular-nums">{balance ?? 0}</span>
+                    </a>
+                  </SheetClose>
                   <SheetClose asChild>
                     <a
                       href="/profile"

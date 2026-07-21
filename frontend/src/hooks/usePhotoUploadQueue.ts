@@ -3,13 +3,19 @@ import type { UploadableFile, UploadStateMap } from '@/types/upload'
 import { ACCEPTED_IMAGE_TYPES, DEFAULT_MAX_FILE_SIZE_MB, DEFAULT_MAX_FILES } from '@/types/upload'
 import { useUploadPhotoMutation } from '@/hooks/mutations/useUploadPhotoMutation'
 
+export interface UploadQueueResult {
+  id: string
+  submissionId?: string
+  objectKey: string
+  preview?: string
+  status: 'success' | 'error'
+}
+
 interface UsePhotoUploadOptions {
   moduleId?: number
   maxFiles?: number
   maxFileSizeMB?: number
-  onUploadComplete?: (
-    results: { id: string; objectKey: string; status: 'success' | 'error' }[],
-  ) => void
+  onUploadComplete?: (results: UploadQueueResult[]) => void
 }
 
 /**
@@ -99,15 +105,21 @@ export function usePhotoUploadQueue(options: UsePhotoUploadOptions = {}) {
 
     setIsUploading(true)
 
-    const results: { id: string; objectKey: string; status: 'success' | 'error' }[] = []
+    const results: UploadQueueResult[] = []
 
-    for (const { id, file } of toUpload) {
+    for (const { id, file, preview } of toUpload) {
       setUploadStates((prev) => ({ ...prev, [id]: { status: 'uploading' } }))
 
       try {
         const result = await uploadPhoto.mutateAsync({ file, moduleId })
         setUploadStates((prev) => ({ ...prev, [id]: { status: 'success' } }))
-        results.push({ id, objectKey: result.objectKey, status: 'success' })
+        results.push({
+          id,
+          submissionId: result.submissionId,
+          objectKey: result.objectKey,
+          preview,
+          status: 'success',
+        })
       } catch (err) {
         const message = err instanceof Error ? err.message : 'Lỗi không xác định'
         setUploadStates((prev) => ({ ...prev, [id]: { status: 'error', errorMessage: message } }))
