@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useAuthQuery } from '@/hooks/useAuthQuery'
 import { apiFetch } from '@/lib/apiFetch'
 
 export interface CreditBalance {
@@ -30,7 +30,7 @@ async function fetchBalance(): Promise<number> {
 }
 
 export function useCreditBalance() {
-  return useQuery<number>({
+  return useAuthQuery<number>({
     queryKey: ['credits', 'balance'],
     queryFn: fetchBalance,
     staleTime: 30 * 1000, // 30s — balance can change frequently
@@ -53,7 +53,7 @@ async function fetchCreditHistory(
 }
 
 export function useCreditHistory(limit: number = 20, offset: number = 0) {
-  return useQuery<CreditHistoryResponse>({
+  return useAuthQuery<CreditHistoryResponse>({
     queryKey: ['credits', 'history', { limit, offset }],
     queryFn: () => fetchCreditHistory(limit, offset),
     staleTime: 60 * 1000, // 1 min

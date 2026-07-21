@@ -16,8 +16,7 @@ const profileRouter = new Hono<{
   Variables: { user: AuthVars }
 }>()
 
-// GET /v1/profile — current user's own profile (determined from auth token)
-// Explicit column list prevents future sensitive columns from leaking automatically.
+// GET /v1/profile — current user's own profile
 profileRouter.get('/', async (c) => {
   const userId = c.get('user').id
   const spb = createServiceClient(c.env)
