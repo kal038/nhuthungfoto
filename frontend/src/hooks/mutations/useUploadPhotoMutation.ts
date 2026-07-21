@@ -10,6 +10,7 @@ interface PresignRequest {
 
 interface PresignURLResult {
   uploadUrl: string
+  submissionId: string
   objectKey: string
   expiresIn: number
 }
@@ -20,6 +21,7 @@ export interface UploadPhotoInput {
 }
 
 export interface UploadPhotoResult {
+  submissionId: string
   objectKey: string
 }
 
@@ -48,7 +50,7 @@ export async function uploadPhoto({ file, moduleId }: UploadPhotoInput): Promise
     throw new Error(`Upload thất bại: HTTP ${res.status}`)
   }
 
-  return { objectKey: presign.objectKey }
+  return { submissionId: presign.submissionId, objectKey: presign.objectKey }
 }
 
 /**

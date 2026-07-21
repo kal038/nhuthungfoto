@@ -1,6 +1,8 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/context/AuthContext'
+import { useUserProfile } from '@/hooks/queries/useUserProfile'
+import { useCreditBalance } from '@/hooks/queries/useCredits'
 import { useGallery } from '@/hooks/queries/useGallery'
 import { ApiError } from '@/lib/errors'
 import { AccountLayout } from './AccountLayout'
@@ -20,6 +22,8 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
     }
   }, [authLoading, user, navigate])
 
+  const { data: currentProfile } = useUserProfile()
+  const { data: balance } = useCreditBalance()
   const { data, isLoading, error } = useGallery(username)
   const ownerProfile = data?.profile
   const submissions = data?.submissions
@@ -48,7 +52,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
 
   if (isNotFound) {
     return (
-      <AccountLayout>
+      <AccountLayout username={currentProfile?.username} creditBalance={balance}>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <h1 className="text-4xl font-bold text-zinc-900">404</h1>
           <p className="mt-2 text-zinc-500">Người dùng @{username} không tồn tại.</p>
@@ -64,7 +68,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
   }
 
   return (
-    <AccountLayout>
+    <AccountLayout username={currentProfile?.username} creditBalance={balance}>
       <div className="flex flex-col gap-8 fade-in">
         {/* Header */}
         <div className="flex items-center gap-4">

@@ -2,11 +2,14 @@ import { useState, useEffect } from 'react'
 import { Link } from '@tanstack/react-router'
 import { useQueryClient } from '@tanstack/react-query'
 import { ArrowUp, ArrowLeft } from 'lucide-react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import type { ModuleDetail } from '@/types/modules'
+import type { UploadQueueResult } from '@/hooks/usePhotoUploadQueue'
 import { ModuleMarkdown } from './ModuleMarkdown'
 import { ModuleSubmissions } from './ModuleSubmissions'
 import { PhotoUploadContainer } from '@/components/features/upload/PhotoUploadContainer'
+import { GradeConfirmDialog } from '@/components/features/credits/GradeConfirmDialog'
 
 const levelLabelMap: Record<string, string> = {
   BEGINNER: 'Cơ bản',
@@ -28,6 +31,7 @@ interface ModuleDetailProps {
 export function ModuleDetail({ module }: ModuleDetailProps) {
   const queryClient = useQueryClient()
   const [showTop, setShowTop] = useState(false)
+  const [gradeTarget, setGradeTarget] = useState<{ submissionId: string; photoUrl?: string | null } | null>(null)
 
   useEffect(() => {
     const onScroll = () => setShowTop(window.scrollY > 600)
@@ -35,8 +39,27 @@ export function ModuleDetail({ module }: ModuleDetailProps) {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  const handleUploadComplete = () => {
+  const handleUploadComplete = (results?: UploadQueueResult[]) => {
     queryClient.invalidateQueries({ queryKey: ['submissions'] })
+    
+    // Find the first successful upload and prompt for grading
+    if (results && results.length > 0) {
+      const firstSuccess = results.find((r) => r.status === 'success' && r.submissionId)
+      if (firstSuccess) {
+        toast.success('Tải lên hoàn tất', {
+          action: {
+            label: 'Chấm ngay',
+            onClick: () => {
+              setGradeTarget({
+                submissionId: firstSuccess.submissionId!,
+                photoUrl: firstSuccess.preview,
+              })
+            },
+          },
+          duration: 5000,
+        })
+      }
+    }
   }
 
   return (
@@ -154,6 +177,18 @@ export function ModuleDetail({ module }: ModuleDetailProps) {
         >
           <ArrowUp className="h-5 w-5" />
         </button>
+      )}
+
+      {/* Grade Confirm Dialog for Post-Upload Prompt */}
+      {gradeTarget && (
+        <GradeConfirmDialog
+          submissionId={gradeTarget.submissionId}
+          photoUrl={gradeTarget.photoUrl}
+          open={!!gradeTarget}
+          onOpenChange={(open) => {
+            if (!open) setGradeTarget(null)
+          }}
+        />
       )}
     </article>
   )

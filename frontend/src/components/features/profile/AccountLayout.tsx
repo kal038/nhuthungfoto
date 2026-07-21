@@ -1,19 +1,22 @@
 import { cn } from '@/lib/utils'
 import { Link, useRouterState } from '@tanstack/react-router'
-import { useUserProfile } from '@/hooks/queries/useUserProfile'
 
 interface AccountLayoutProps {
   children: React.ReactNode
   className?: string
+  /** Username for the "Ảnh của tôi" sidebar link */
+  username?: string | null
+  /** Credit balance shown as a badge on the sidebar */
+  creditBalance?: number | null
 }
 
-export function AccountLayout({ children, className }: AccountLayoutProps) {
-  const { data: profile } = useUserProfile()
+export function AccountLayout({ children, className, username, creditBalance }: AccountLayoutProps) {
   const { location } = useRouterState()
 
   const sidebarLinks = [
     { label: 'Hồ sơ', href: '/profile' },
-    ...(profile?.username ? [{ label: 'Ảnh của tôi', href: `/gallery/${profile.username}` }] : []),
+    { label: 'Credit', href: '/credits', badge: creditBalance },
+    ...(username ? [{ label: 'Ảnh của tôi', href: `/gallery/${username}` }] : []),
   ]
 
   const currentPath = location.pathname
@@ -62,6 +65,11 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
                     )}
                   >
                     {link.label}
+                    {'badge' in link && link.badge != null && (
+                      <span className="ml-1.5 rounded-full bg-zinc-100 px-1.5 py-0.5 text-xs font-medium tabular-nums text-zinc-700">
+                        {link.badge}
+                      </span>
+                    )}
                   </a>
                 )
               })}
@@ -73,3 +81,4 @@ export function AccountLayout({ children, className }: AccountLayoutProps) {
     </div>
   )
 }
+
