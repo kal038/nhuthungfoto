@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useSubmissions, type Submission } from '@/hooks/queries/useSubmissions'
 import { Badge } from '@/components/ui/badge'
 import { GradeConfirmDialog } from '@/components/features/credits/GradeConfirmDialog'
+import { LoadingDots } from '@/components/ui/loading-dots'
 
 interface ModuleSubmissionsProps {
   moduleId: number
@@ -30,11 +31,7 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
       </h2>
 
       {isLoading ? (
-        <div className="flex gap-1 py-6">
-          <span className="loading-dot" />
-          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-        </div>
+        <LoadingDots className="py-6" />
       ) : moduleSubmissions.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
           <p className="text-sm text-muted-foreground">

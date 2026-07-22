@@ -6,6 +6,7 @@ import { useUserProfile } from '@/hooks/queries/useUserProfile'
 import { useCreditBalance } from '@/hooks/queries/useCredits'
 import { AccountLayout } from '@/components/features/profile'
 import { CreditHistoryList } from '@/components/features/credits/CreditHistoryList'
+import { LoadingScreen } from '@/components/ui/loading-dots'
 
 export const Route = createFileRoute('/credits')({
   component: CreditsContainer,
@@ -25,15 +26,7 @@ function CreditsContainer() {
   const { data: balance, isLoading: balanceLoading } = useCreditBalance()
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex gap-1">
-          <span className="loading-dot" />
-          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   if (!user) {
