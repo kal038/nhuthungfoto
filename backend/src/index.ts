@@ -6,6 +6,7 @@ import { secureHeaders } from 'hono/secure-headers'
 import { healthRouter } from './routes/health'
 import { modulesRouter } from './routes/modules'
 import { submissionsRouter } from './routes/submissions'
+import { creditsRouter } from './routes/credits'
 import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
@@ -49,14 +50,15 @@ app.onError((err, c) => {
 app.route('/health', healthRouter)
 app.route('/portfolio', portfolioRouter)
 app.route('/v1/auth', authRouter)
-app.route('/v1/profile', profileRouter)
 
 // ---------------------
 // Routes Protected
 // ---------------------
 app.use('/v1/*', authMiddleware)
+app.route('/v1/profile', profileRouter)
 app.route('/v1/submissions', submissionsRouter)
 app.route('/v1/modules', modulesRouter)
 app.route('/v1/gallery', galleryRouter)
+app.route('/v1/credits', creditsRouter)
 
 export default app

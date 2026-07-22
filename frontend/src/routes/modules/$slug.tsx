@@ -2,6 +2,7 @@ import { createFileRoute, Link } from '@tanstack/react-router'
 import { useModule } from '@/hooks/queries/useModule'
 import { ApiError } from '@/lib/errors'
 import { ModuleDetail } from '@/components/features/modules'
+import { LoadingScreen } from '@/components/ui/loading-dots'
 
 export const Route = createFileRoute('/modules/$slug')({
   component: ModuleDetailPage,
@@ -15,15 +16,7 @@ function ModuleDetailPage() {
     !isLoading && error instanceof ApiError && error.status === 404
 
   if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex gap-1">
-          <span className="loading-dot" />
-          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   if (isNotFound) {

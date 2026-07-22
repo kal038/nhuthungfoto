@@ -19,6 +19,7 @@ export type Database = {
           amount: number
           created_at: string | null
           id: string
+          idempotency_key: string | null
           metadata: Json | null
           type: Database["public"]["Enums"]["transaction_type"]
           user_id: string | null
@@ -27,6 +28,7 @@ export type Database = {
           amount: number
           created_at?: string | null
           id?: string
+          idempotency_key?: string | null
           metadata?: Json | null
           type: Database["public"]["Enums"]["transaction_type"]
           user_id?: string | null
@@ -35,6 +37,7 @@ export type Database = {
           amount?: number
           created_at?: string | null
           id?: string
+          idempotency_key?: string | null
           metadata?: Json | null
           type?: Database["public"]["Enums"]["transaction_type"]
           user_id?: string | null
@@ -286,8 +289,24 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_credits: {
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_metadata?: Json
+          p_type?: Database["public"]["Enums"]["transaction_type"]
+          p_user_id: string
+        }
+        Returns: number
+      }
       spend_credits: {
-        Args: { amount: number; user_id: string }
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_metadata?: Json
+          p_type?: Database["public"]["Enums"]["transaction_type"]
+          p_user_id: string
+        }
         Returns: number
       }
     }

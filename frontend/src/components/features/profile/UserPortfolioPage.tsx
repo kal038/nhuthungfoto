@@ -1,10 +1,13 @@
 import { useEffect } from 'react'
 import { Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/context/AuthContext'
+import { useUserProfile } from '@/hooks/queries/useUserProfile'
+import { useCreditBalance } from '@/hooks/queries/useCredits'
 import { useGallery } from '@/hooks/queries/useGallery'
 import { ApiError } from '@/lib/errors'
 import { AccountLayout } from './AccountLayout'
 import { ProfileAvatar } from './ProfileAvatar'
+import { LoadingDots, LoadingScreen } from '@/components/ui/loading-dots'
 
 interface UserPortfolioPageProps {
   username: string
@@ -20,6 +23,8 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
     }
   }, [authLoading, user, navigate])
 
+  const { data: currentProfile } = useUserProfile()
+  const { data: balance } = useCreditBalance()
   const { data, isLoading, error } = useGallery(username)
   const ownerProfile = data?.profile
   const submissions = data?.submissions
@@ -31,15 +36,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
   const isOwnProfile = user?.id === ownerProfile?.id
 
   if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex gap-1">
-          <span className="loading-dot" />
-          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   if (!user) {
@@ -48,7 +45,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
 
   if (isNotFound) {
     return (
-      <AccountLayout>
+      <AccountLayout username={currentProfile?.username} creditBalance={balance}>
         <div className="flex flex-col items-center justify-center py-20 text-center">
           <h1 className="text-4xl font-bold text-zinc-900">404</h1>
           <p className="mt-2 text-zinc-500">Người dùng @{username} không tồn tại.</p>
@@ -64,7 +61,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
   }
 
   return (
-    <AccountLayout>
+    <AccountLayout username={currentProfile?.username} creditBalance={balance}>
       <div className="flex flex-col gap-8 fade-in">
         {/* Header */}
         <div className="flex items-center gap-4">
@@ -99,13 +96,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
 
         {/* Grid */}
         {isLoading ? (
-          <div className="flex justify-center py-12">
-            <div className="flex gap-1">
-              <span className="loading-dot" />
-              <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-              <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-            </div>
-          </div>
+          <LoadingDots className="justify-center py-12" />
         ) : !submissions?.length ? (
           <p className="text-zinc-500">Chưa có ảnh nào.</p>
         ) : (

@@ -16,6 +16,26 @@ const profileRouter = new Hono<{
   Variables: { user: AuthVars }
 }>()
 
+// GET /v1/profile — current user's own profile
+profileRouter.get('/', async (c) => {
+  const userId = c.get('user').id
+  const spb = createServiceClient(c.env)
+
+  const { data, error } = await spb
+    .from('profiles')
+    .select(
+      'id, username, email, avatar_url, phone, credits_balance, skill_level, phone_verified, email_verified, locale, current_module, updated_at',
+    )
+    .eq('id', userId)
+    .single()
+
+  if (error || !data) {
+    throw new AppError('Profile not found', 404)
+  }
+
+  return c.json(data, 200)
+})
+
 // PATCH /v1/profile — update current user's profile
 profileRouter.patch('/', async (c) => {
   const userId = c.get('user').id

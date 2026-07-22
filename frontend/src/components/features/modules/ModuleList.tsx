@@ -1,18 +1,6 @@
 import { useModules } from '@/hooks/queries/useModules'
 import { ModuleCard } from './ModuleCard'
 
-function LoadingDots() {
-  return (
-    <div className="flex justify-center py-12">
-      <div className="flex gap-1">
-        <span className="loading-dot" />
-        <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-        <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-      </div>
-    </div>
-  )
-}
-
 function SkeletonGrid() {
   return (
     <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -73,5 +61,3 @@ export function ModuleList() {
     </div>
   )
 }
-
-export { LoadingDots }
