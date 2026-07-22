@@ -6,6 +6,7 @@ import { useUserProfile } from '@/hooks/queries/useUserProfile'
 import { useCreditBalance } from '@/hooks/queries/useCredits'
 import { useUpdateProfileMutation } from '@/hooks/mutations/useUpdateProfileMutation'
 import { ProfileForm, AccountLayout } from '@/components/features/profile'
+import { LoadingScreen } from '@/components/ui/loading-dots'
 import type { ProfileFormData } from '@/components/features/profile'
 
 export const Route = createFileRoute('/profile')({
@@ -61,15 +62,7 @@ function ProfileContainer() {
   )
 
   if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
-        <div className="flex gap-1">
-          <span className="loading-dot" />
-          <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-          <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-        </div>
-      </div>
-    )
+    return <LoadingScreen />
   }
 
   if (!user) {

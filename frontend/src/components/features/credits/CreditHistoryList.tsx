@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Gift, Sparkles, User, PlusCircle, Undo2, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useCreditHistory, type CreditHistoryEntry } from '@/hooks/queries/useCredits'
 import { Button } from '@/components/ui/button'
+import { LoadingDots } from '@/components/ui/loading-dots'
 import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 10
@@ -47,13 +48,7 @@ export function CreditHistoryList() {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   if (isLoading) {
-    return (
-      <div className="flex gap-1 py-6">
-        <span className="loading-dot" />
-        <span className="loading-dot" style={{ animationDelay: '0.15s' }} />
-        <span className="loading-dot" style={{ animationDelay: '0.3s' }} />
-      </div>
-    )
+    return <LoadingDots className="py-6" />
   }
 
   if (entries.length === 0) {
