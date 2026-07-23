@@ -41,8 +41,10 @@ game-plan.md
 # Misc
 *.tsbuildinfo
 
-# AI brain
+# AI
 docs/antigravity-brain
+.claude
+.mcp.json
 
 #TODO files
 *.todo
