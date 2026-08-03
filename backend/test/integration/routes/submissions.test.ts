@@ -8,6 +8,7 @@ import { AppError } from '@/lib/errors'
 
 const mockSign = vi.fn()
 const mockFrom = vi.fn()
+const mockRpc = vi.fn()
 const mockInsert = vi.fn()
 const mockInsertSelect = vi.fn()
 const mockSingle = vi.fn()
@@ -32,6 +33,7 @@ vi.mock('aws4fetch', () => ({
 // Mock @supabase/supabase-js
 vi.mock('@supabase/supabase-js', () => ({
   createClient: vi.fn().mockImplementation(() => ({
+    rpc: mockRpc,
     from: mockFrom.mockImplementation((table: string) => {
       if (table === 'profiles') {
         return {
@@ -139,11 +141,18 @@ describe('Submissions Route', () => {
     })
   }
 
+  function postGrade(submissionId: string, body: unknown, headers?: Record<string, string>) {
+    return app.request(`/v1/submissions/${submissionId}/grade`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...headers },
+      body: JSON.stringify(body),
+    })
+  }
+
   // Presign endpoint suite
   describe('POST /v1/submissions', () => {
     it('should return 200 with presigned URL result and submissionId', async () => {
-      const mockSignedUrl =
-        'https://signed.r2.cloudflarestorage.com/bucket/key?sig=abc'
+      const mockSignedUrl = 'https://signed.r2.cloudflarestorage.com/bucket/key?sig=abc'
       mockSign.mockResolvedValueOnce({ url: mockSignedUrl })
       mockSingle.mockResolvedValueOnce({
         data: { id: 'sub-123', original_photo_key: 'test-user/sub-123/photo.jpg' },
@@ -391,71 +400,111 @@ describe('Submissions Route', () => {
     })
   })
 
-  describe('GET /v1/submissions/user/:username', () => {
-    it('should return submissions for a given username', async () => {
-      mockProfileSingle.mockResolvedValueOnce({
-        data: { id: 'user-456' },
-        error: null,
-      })
-      mockOrder.mockResolvedValueOnce({
-        data: [
-          {
-            id: 'sub-789',
-            user_id: 'user-456',
-            module_id: null,
-            original_photo_key: 'user-456/sub-789/photo.jpg',
-            processed_photo_key: 'user-456/sub-789/photo.webp',
-            status: 'UPLOADED',
-            review_type: 'AI',
-            created_at: '2024-01-01T00:00:00.000Z',
-          },
-        ],
-        error: null,
-      })
+  describe('POST /v1/submissions/:id/grade', () => {
+    it('should return 200 with grading result and deduct 1 credit for AI review', async () => {
+      mockRpc.mockResolvedValueOnce({ data: 9, error: null })
 
-      const response = await app.request('/v1/submissions/user/nhuthung', {
-        headers: { Authorization: 'Bearer test-token' },
-      })
+      const response = await postGrade('sub-123', { reviewType: 'AI' })
 
       expect(response.status).toBe(200)
       const data = await response.json()
-      expect(data.submissions).toHaveLength(1)
-      expect(data.submissions[0]).toHaveProperty('id', 'sub-789')
-      expect(mockProfileEq).toHaveBeenCalledWith('username', 'nhuthung')
+      expect(data).toEqual({
+        submissionId: 'sub-123',
+        status: 'GRADING',
+        reviewType: 'AI',
+        creditsSpent: 1,
+        newBalance: 9,
+      })
+      expect(mockRpc).toHaveBeenCalledWith('spend_and_start_grading', {
+        p_user_id: 'test-user',
+        p_submission_id: 'sub-123',
+        p_amount: 1,
+        p_review_type: 'AI',
+        p_metadata: { submission_id: 'sub-123', review_type: 'AI' },
+        p_idempotency_key: 'grade_sub-123',
+      })
     })
 
-    it('should return 404 when username not found', async () => {
-      mockProfileSingle.mockResolvedValueOnce({
+    it('should deduct 3 credits for HUNG review', async () => {
+      mockRpc.mockResolvedValueOnce({ data: 6, error: null })
+
+      const response = await postGrade('sub-123', { reviewType: 'HUNG' })
+
+      expect(response.status).toBe(200)
+      const data = await response.json()
+      expect(data).toHaveProperty('creditsSpent', 3)
+      expect(data).toHaveProperty('newBalance', 6)
+      expect(mockRpc).toHaveBeenCalledWith(
+        'spend_and_start_grading',
+        expect.objectContaining({ p_amount: 3, p_review_type: 'HUNG' }),
+      )
+    })
+
+    it('should return 400 when reviewType is invalid', async () => {
+      const response = await postGrade('sub-123', { reviewType: 'INVALID' })
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data).toHaveProperty('error')
+    })
+
+    it('should return 400 when request body is not JSON', async () => {
+      const response = await app.request('/v1/submissions/sub-123/grade', {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain' },
+        body: 'not json',
+      })
+
+      expect(response.status).toBe(400)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'Request body must be valid JSON')
+    })
+
+    it('should return 402 on insufficient credits (23514)', async () => {
+      mockRpc.mockResolvedValueOnce({
         data: null,
-        error: { message: 'Not found' },
+        error: { code: '23514', message: 'Insufficient credits' },
       })
 
-      const response = await app.request('/v1/submissions/user/nonexistent', {
-        headers: { Authorization: 'Bearer test-token' },
+      const response = await postGrade('sub-123', { reviewType: 'AI' })
+      expect(response.status).toBe(402)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'Insufficient credits')
+    })
+
+    it('should return 404 when submission missing or not owned (P0002)', async () => {
+      mockRpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: 'P0002', message: 'Submission not found' },
       })
 
+      const response = await postGrade('sub-123', { reviewType: 'AI' })
       expect(response.status).toBe(404)
       const data = await response.json()
-      expect(data).toHaveProperty('error', 'User not found')
+      expect(data).toHaveProperty('error', 'Submission not found')
     })
 
-    it('should return 500 when submissions query fails', async () => {
-      mockProfileSingle.mockResolvedValueOnce({
-        data: { id: 'user-456' },
-        error: null,
-      })
-      mockOrder.mockResolvedValueOnce({
+    it('should return 409 when submission not in UPLOADED status (55000)', async () => {
+      mockRpc.mockResolvedValueOnce({
         data: null,
-        error: { message: 'Database error' },
+        error: { code: '55000', message: 'Submission not in UPLOADED status: GRADING' },
       })
 
-      const response = await app.request('/v1/submissions/user/nhuthung', {
-        headers: { Authorization: 'Bearer test-token' },
-      })
-
-      expect(response.status).toBe(500)
+      const response = await postGrade('sub-123', { reviewType: 'AI' })
+      expect(response.status).toBe(409)
       const data = await response.json()
-      expect(data).toHaveProperty('error', 'Failed to fetch submissions')
+      expect(data).toHaveProperty('error', 'Submission cannot be graded in its current status')
+    })
+
+    it('should return 409 on idempotency key replay (23505)', async () => {
+      mockRpc.mockResolvedValueOnce({
+        data: null,
+        error: { code: '23505', message: 'duplicate key value violates unique constraint' },
+      })
+
+      const response = await postGrade('sub-123', { reviewType: 'AI' })
+      expect(response.status).toBe(409)
+      const data = await response.json()
+      expect(data).toHaveProperty('error', 'Request already processed')
     })
   })
 
@@ -477,9 +526,7 @@ describe('Submissions Route', () => {
         body: JSON.stringify(validRequest),
       })
 
-      expect(response.headers.get('Access-Control-Allow-Origin')).toBe(
-        'http://localhost:5173',
-      )
+      expect(response.headers.get('Access-Control-Allow-Origin')).toBe('http://localhost:5173')
     })
   })
 })

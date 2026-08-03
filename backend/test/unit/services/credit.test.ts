@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { spendCredits, addCredits, getBalance, getHistory } from '@/services/credit'
+import { spendCredits, addCredits, getBalance, getHistory, spendAndStartGrading } from '@/services/credit'
 import { AppError } from '@/lib/errors'
 
 describe('Credit Service', () => {
@@ -172,6 +172,120 @@ describe('Credit Service', () => {
 
       const balance = await getBalance(mockSupabase as any, 'user-1')
       expect(balance).toBe(15)
+    })
+  })
+
+  describe('spendAndStartGrading', () => {
+    it('calls spend_and_start_grading RPC successfully with default metadata', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 9, error: null })
+
+      const newBalance = await spendAndStartGrading(
+        mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1',
+      )
+
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('spend_and_start_grading', {
+        p_user_id: 'user-1',
+        p_submission_id: 'sub-1',
+        p_amount: 1,
+        p_review_type: 'AI',
+        p_metadata: { submission_id: 'sub-1', review_type: 'AI' },
+        p_idempotency_key: 'grade_sub-1',
+      })
+      expect(newBalance).toBe(9)
+    })
+
+    it('passes explicit metadata through instead of default', async () => {
+      mockSupabase.rpc.mockResolvedValue({ data: 6, error: null })
+
+      await spendAndStartGrading(
+        mockSupabase as any, 'user-1', 'sub-1', 3, 'HUNG', 'grade_sub-1', { module: 'portrait' },
+      )
+
+      expect(mockSupabase.rpc).toHaveBeenCalledWith('spend_and_start_grading', {
+        p_user_id: 'user-1',
+        p_submission_id: 'sub-1',
+        p_amount: 3,
+        p_review_type: 'HUNG',
+        p_metadata: { module: 'portrait' },
+        p_idempotency_key: 'grade_sub-1',
+      })
+    })
+
+    it('throws 402 on insufficient credits (23514 check_violation)', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { code: '23514', message: 'Insufficient credits' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 10, 'AI', 'grade_sub-1'))
+        .rejects
+        .toThrowError(new AppError('Insufficient credits', 402))
+    })
+
+    it('throws 409 when submission not in UPLOADED (55000 object_not_in_prerequisite_state)', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { code: '55000', message: 'Submission not in UPLOADED status: GRADING' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
+        .rejects
+        .toThrowError(new AppError('Submission cannot be graded in its current status', 409))
+    })
+
+    it('throws 409 on idempotency key replay (23505 unique_violation)', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { code: '23505', message: 'duplicate key value violates unique constraint' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
+        .rejects
+        .toThrowError(new AppError('Request already processed', 409))
+    })
+
+    it('throws 404 on missing or foreign submission (P0002 no_data_found)', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { code: 'P0002', message: 'Submission not found' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-x', 1, 'AI', 'grade_sub-x'))
+        .rejects
+        .toThrowError(new AppError('Submission not found', 404))
+    })
+
+    it('throws 403 on unauthorized (42501 insufficient_privilege)', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { code: '42501', message: 'Unauthorized' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
+        .rejects
+        .toThrowError(new AppError('Unauthorized', 403))
+    })
+
+    it('throws 400 on non-positive amount (22023 invalid_parameter_value)', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { code: '22023', message: 'Amount must be positive' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 0, 'AI', 'grade_sub-1'))
+        .rejects
+        .toThrowError(new AppError('Amount must be positive', 400))
+    })
+
+    it('throws 500 on generic error', async () => {
+      mockSupabase.rpc.mockResolvedValue({
+        data: null,
+        error: { message: 'DB Down' }
+      })
+
+      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
+        .rejects
+        .toThrowError(new AppError('Failed to start grading', 500))
     })
   })
 })
