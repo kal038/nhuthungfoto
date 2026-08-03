@@ -3,6 +3,7 @@ import type { Database, Json } from '@/types/database.types'
 import { AppError } from '@/lib/errors'
 
 type TransactionType = Database['public']['Enums']['transaction_type']
+type ReviewType = Database['public']['Enums']['review_type']
 
 /**
  * PostgreSQL SQLSTATE codes raised by the credit RPCs / unique constraint.
@@ -14,6 +15,7 @@ const PG_ERRCODE = {
   INVALID_PARAMETER_VALUE: '22023', // non-positive amount
   INSUFFICIENT_PRIVILEGE: '42501', // caller not allowed to act on this user
   NO_DATA_FOUND: 'P0002', // user not found
+  OBJECT_NOT_IN_PREREQUISITE_STATE: '55000', // submission not in UPLOADED
 } as const
 
 export interface CreditHistoryEntry {
@@ -150,6 +152,58 @@ export async function addCredits(
         throw new AppError('Request already processed', 409)
       default:
         throw new AppError('Failed to add credits', 500)
+    }
+  }
+
+  return data as number
+}
+
+/**
+ * Atomically spend credits AND flip a submission from UPLOADED to GRADING in
+ * a single Postgres transaction. Removes the "debited but not grading" window
+ * that the compensating-refund path in POST /:id/grade used to patch over.
+ *
+ * @returns new balance after deduction
+ * @throws AppError(402) on insufficient credits
+ * @throws AppError(404) on missing submission or wrong owner
+ * @throws AppError(409) on submission not in UPLOADED, or idempotency-key replay
+ */
+export async function spendAndStartGrading(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  submissionId: string,
+  amount: number,
+  reviewType: ReviewType,
+  idempotencyKey: string,
+  metadata?: Json,
+): Promise<number> {
+  const { data, error } = await supabase.rpc('spend_and_start_grading', {
+    p_user_id: userId,
+    p_submission_id: submissionId,
+    p_amount: amount,
+    p_review_type: reviewType,
+    p_metadata: metadata ?? { submission_id: submissionId, review_type: reviewType },
+    p_idempotency_key: idempotencyKey,
+  })
+
+  if (error) {
+    console.error('spend_and_start_grading RPC error:', error)
+
+    switch (error.code) {
+      case PG_ERRCODE.CHECK_VIOLATION:
+        throw new AppError('Insufficient credits', 402)
+      case PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE:
+        throw new AppError('Submission cannot be graded in its current status', 409)
+      case PG_ERRCODE.UNIQUE_VIOLATION:
+        throw new AppError('Request already processed', 409)
+      case PG_ERRCODE.NO_DATA_FOUND:
+        throw new AppError('Submission not found', 404)
+      case PG_ERRCODE.INSUFFICIENT_PRIVILEGE:
+        throw new AppError('Unauthorized', 403)
+      case PG_ERRCODE.INVALID_PARAMETER_VALUE:
+        throw new AppError('Amount must be positive', 400)
+      default:
+        throw new AppError('Failed to start grading', 500)
     }
   }
 

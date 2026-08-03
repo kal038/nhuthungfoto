@@ -150,7 +150,7 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          credits_balance: number | null
+          credits_balance: number
           current_module: number
           email: string | null
           email_verified: boolean | null
@@ -164,7 +164,7 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
-          credits_balance?: number | null
+          credits_balance?: number
           current_module?: number
           email?: string | null
           email_verified?: boolean | null
@@ -178,7 +178,7 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
-          credits_balance?: number | null
+          credits_balance?: number
           current_module?: number
           email?: string | null
           email_verified?: boolean | null
@@ -295,6 +295,17 @@ export type Database = {
           p_idempotency_key?: string
           p_metadata?: Json
           p_type?: Database["public"]["Enums"]["transaction_type"]
+          p_user_id: string
+        }
+        Returns: number
+      }
+      spend_and_start_grading: {
+        Args: {
+          p_amount: number
+          p_idempotency_key?: string
+          p_metadata?: Json
+          p_review_type: Database["public"]["Enums"]["review_type"]
+          p_submission_id: string
           p_user_id: string
         }
         Returns: number
