@@ -8,16 +8,17 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 
 ## Tech Stack
 
-| Layer      | Technology                                 |
-| ---------- | ------------------------------------------ |
-| Frontend   | React + Vite + Tailwind CSS v4 + shadcn/ui |
-| Backend    | Hono on Cloudflare Workers                 |
-| Auth       | Supabase                                   |
-| Database   | Supabase                                   |
-| Storage    | Cloudflare R2                              |
-| Payments   | VietQR (SePay) + Momo                      |
-| AI Grading | Gemini Flash / GPT-4o-mini                 |
-| Booking    | Calendly API                               |
+| Layer         | Technology                                                                                |
+| ------------- | ----------------------------------------------------------------------------------------- |
+| Frontend      | React + Vite + Tailwind CSS v4 + shadcn/ui                                                |
+| Backend       | Hono on Cloudflare Workers                                                                |
+| Auth          | Supabase                                                                                  |
+| Database      | Supabase                                                                                  |
+| Storage       | Cloudflare R2                                                                             |
+| Payments      | VietQR (SePay) + Momo                                                                     |
+| AI Grading    | Gemini Flash / GPT-4o-mini                                                                |
+| Booking       | Calendly API                                                                              |
+| Observability | Sentry (errors) + CF Web Analytics (traffic) + Workers Analytics Engine (business events) |
 
 ## Getting Started
 
