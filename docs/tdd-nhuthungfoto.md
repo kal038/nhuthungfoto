@@ -367,3 +367,45 @@ _Note: On the frontend, all endpoints below are wrapped in custom TanStack Query
 - **Input**: User's `city` (string) + `skill_level`.
 - **Output**: JSON containing `{ "title": "Street Shadows in Saigon", "steps": ["Find a narrow alley...", "..."] }`.
 - **Engagement Loop**: Completion of a mission could grant a non-monetary "Badge" or "XP" in Phase 4.
+
+## 13. Observability & Analytics
+
+### 13.1 Tool Stack
+
+| Tool                                             | Layer    | Covers                                                     | Free-tier cap                  |
+| ------------------------------------------------ | -------- | ---------------------------------------------------------- | ------------------------------ |
+| **Cloudflare Web Analytics**                     | Frontend | Page views, referrers, countries, devices                  | Unlimited, cookieless          |
+| **Sentry React SDK** (`@sentry/react`)           | Frontend | JS errors, route transitions, React crashes                | 5K errors + 10K perf events/mo |
+| **Sentry Cloudflare SDK** (`@sentry/cloudflare`) | Backend  | Worker exceptions, unhandled rejections                    | Same bucket as frontend        |
+| **Cloudflare Workers dashboard**                 | Backend  | Request volume, 4xx/5xx, CPU, latency                      | Auto, no code                  |
+| **Workers Analytics Engine**                     | Backend  | Custom business events (submissions, logins, module views) | 10M writes/day                 |
+
+### 13.2 Rationale
+
+`wrangler tail` + browser console are sufficient for local development. The above stack exists to close **production-only gaps** that tail cannot cover:
+
+1. **Visitor errors**: React crashes / Worker exceptions from real users, while the dev is offline.
+2. **Aggregation**: 200 identical errors deduplicated into 1 issue with counts, first/last seen.
+3. **Context**: Browser, OS, URL, release SHA, breadcrumb trail of actions before error.
+4. **Sourcemaps**: Minified production stacks resolved back to original TS/TSX via `@sentry/vite-plugin`.
+5. **Retention + alerts**: 30–90 days of history + Slack/email on error spikes and release regressions.
+6. **Business metrics**: Time-series counts (e.g. submissions/day, grouped by module) — raw logs cannot answer this without writing custom code.
+
+Each tool covers one distinct job. No overlap, no redundancy.
+
+### 13.3 Explicit Non-Goals
+
+Deliberately skipped to keep scope minimal and the stack free-tier-only:
+
+- No funnel analysis, no A/B testing, no heatmaps.
+- No session replay (Sentry replays disabled — would otherwise need consent banner).
+- No persistent user identification across sessions (no cookies, no fingerprinting).
+- No consent banner (cookieless by construction: CF Web Analytics + Sentry with `sendDefaultPii: false`).
+- No log shipping to external sinks (Logpush/Datadog) — Workers dashboard is sufficient for API health.
+
+If any of the above become needed later (e.g. funnel analysis for conversion work), plug in PostHog at that point rather than retrofitting.
+
+### 13.4 References
+
+- Implementation checklist: `docs/game-plan.md` (Phase 2).
+- Env vars: `SENTRY_DSN`, `SENTRY_AUTH_TOKEN`, `VITE_SENTRY_DSN` — see `backend/.dev.vars.example`.
