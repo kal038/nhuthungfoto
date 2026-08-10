@@ -30,6 +30,11 @@ export interface Env {
   RATE_LIMITER: RateLimit
 
   // ---------------------
+  // Analytics Engine (custom business metrics)
+  // ---------------------
+  ANALYTICS?: AnalyticsEngineDataset
+
+  // ---------------------
   // R2 S3-compatible API (secrets — for pre-signed URLs)
   // ---------------------
   R2_ACCESS_KEY_ID: string
@@ -47,6 +52,7 @@ export interface Env {
   // Config vars
   // ---------------------
   FRONTEND_URL: string
+  SENTRY_DSN: string
 
   // ---------------------
   // Environment

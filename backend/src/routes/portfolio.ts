@@ -3,6 +3,7 @@ import type { Env } from '@/types/env'
 import type { PortfolioPhotoResult } from '@/schema/portfolio'
 import { AppError } from '@/lib/errors'
 import { getPublicUrl } from '@/services/r2'
+import { trackEvent } from '@/lib/metrics'
 
 const portfolioRouter = new Hono<{ Bindings: Env }>()
 
@@ -51,6 +52,7 @@ portfolioRouter.get('/', async (c) => {
   }))
 
   const response: PortfolioPhotoResult = { photos }
+  trackEvent(c, 'portfolio.view', { doubles: [photos.length] })
   return c.json(response, 200)
 })
 

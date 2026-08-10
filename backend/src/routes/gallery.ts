@@ -4,6 +4,7 @@ import type { AuthVars } from '@/middleware/auth'
 import { createServiceClient } from '@/lib/supabase'
 import { getPublicUrl } from '@/services/r2'
 import { AppError } from '@/lib/errors'
+import { trackEvent } from '@/lib/metrics'
 
 const galleryRouter = new Hono<{
   Bindings: Env
@@ -52,6 +53,10 @@ galleryRouter.get('/:username', async (c) => {
       : null,
   }))
 
+  trackEvent(c, 'gallery.view', {
+    blobs: [username.toLowerCase()],
+    doubles: [submissions.length],
+  })
   return c.json({ profile, submissions }, 200)
 })
 

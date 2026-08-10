@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@fontsource-variable/geist": "^5.2.8",
+    "@sentry/react": "^10.69.0",
     "@supabase/supabase-js": "^2.101.1",
     "@tailwindcss/postcss": "^4.2.1",
     "@tailwindcss/typography": "^0.5.20",
@@ -37,6 +38,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
+    "@sentry/vite-plugin": "^5.4.0",
     "@tanstack/router-plugin": "^1.167.12",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
