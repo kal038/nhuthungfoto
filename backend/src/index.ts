@@ -15,12 +15,14 @@ import { galleryRouter } from './routes/gallery'
 import { profileRouter } from './routes/profile'
 import { authRouter } from './routes/auth'
 import { AppError } from './lib/errors'
+import { sentry } from '@sentry/hono/cloudflare'
 
 const app = new Hono<{ Bindings: Env }>()
 
 // ---------------------
 // Middleware
 // ---------------------
+app.use(sentry(app, (env) => ({ dsn: env.SENTRY_DSN, tracesSampleRate: 0.1 })))
 app.use('*', logger())
 app.use('*', (c, next) => {
   const corsMiddleware = cors({

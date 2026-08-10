@@ -3,6 +3,7 @@ import type { Env } from '@/types/env'
 import { createServiceClient } from '@/lib/supabase'
 import { isValidUsername } from '@/lib/username'
 import { AppError, BadRequestError } from '@/lib/errors'
+import { trackEvent } from '@/lib/metrics'
 
 const authRouter = new Hono<{ Bindings: Env }>()
 
@@ -20,10 +21,8 @@ authRouter.post('/check-username', async (c) => {
   }
 
   if (!isValidUsername(username)) {
-    return c.json(
-      { available: false, reason: 'invalid' },
-      200,
-    )
+    trackEvent(c, 'auth.username-check', { blobs: ['invalid'] })
+    return c.json({ available: false, reason: 'invalid' }, 200)
   }
 
   const supabase = createServiceClient(c.env)
@@ -40,9 +39,11 @@ authRouter.post('/check-username', async (c) => {
   }
 
   if (data) {
+    trackEvent(c, 'auth.username-check', { blobs: ['taken'] })
     return c.json({ available: false, reason: 'taken' }, 200)
   }
 
+  trackEvent(c, 'auth.username-check', { blobs: ['available'] })
   return c.json({ available: true }, 200)
 })
 

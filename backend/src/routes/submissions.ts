@@ -7,6 +7,7 @@ import { generatePresignedUploadUrl, getPublicUrl } from '@/services/r2'
 import { spendAndStartGrading } from '@/services/credit'
 import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 import { createServiceClient } from '@/lib/supabase'
+import { trackEvent } from '@/lib/metrics'
 
 const submissionsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
@@ -59,6 +60,10 @@ submissionsRouter.post('/', async (c) => {
     throw new AppError('Failed to generate presigned URL', 502)
   })
 
+  trackEvent(c, 'submissions.create', {
+    blobs: [moduleId != null ? String(moduleId) : 'no-module'],
+    doubles: [fileSizeBytes],
+  })
   return c.json(
     { ...presignedUrlResult, submissionId: data.id, objectKey: data.original_photo_key },
     200,
@@ -170,6 +175,10 @@ submissionsRouter.post('/:id/grade', async (c) => {
     `grade_${submissionId}`,
   )
 
+  trackEvent(c, 'submissions.grade', {
+    blobs: [reviewType],
+    doubles: [cost, newBalance],
+  })
   return c.json(
     {
       submissionId,

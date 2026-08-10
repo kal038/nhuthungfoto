@@ -3,7 +3,7 @@
   "name": "nhuthungfoto-api",
   "main": "src/index.ts",
   "compatibility_date": "2025-04-01",
-  "compatibility_flags": ["nodejs_compat_v2"],
+  "compatibility_flags": ["nodejs_compat"],
 
   "dev": {
     "ip": "0.0.0.0", //to be changed in prod
@@ -15,7 +15,8 @@
     "R2_UPLOADS_RAW_NAME": "uploads-raw",
     "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public",
     "R2_UPLOADS_RAW_PUBLIC_URL": "https://pub-xxx.r2.dev",
-    "R2_PORTFOLIO_PUBLIC_URL": "https://pub-yyy.r2.dev"
+    "R2_PORTFOLIO_PUBLIC_URL": "https://pub-yyy.r2.dev",
+    "SENTRY_DSN": "some_DSN",
   },
 
   // R2 Buckets
@@ -24,15 +25,18 @@
     { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw" },
     { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public" },
   ],
+
+  // Analytics Engine (custom business metrics)
+  "analytics_engine_datasets": [{ "binding": "ANALYTICS", "dataset": "nhuthungfoto_metrics" }],
   "ratelimits": [
     {
       "name": "RATE_LIMITER",
       "namespace_id": "1001",
       "simple": {
         "limit": 10,
-        "period": 60
-      }
-    }
+        "period": 60,
+      },
+    },
   ],
   // Dev Environment (wrangler dev --env dev)
   "env": {
@@ -43,11 +47,12 @@
         "R2_UPLOADS_RAW_NAME": "uploads-raw-dev",
         "R2_PORTFOLIO_PUBLIC_NAME": "portfolio-public-dev",
         "R2_UPLOADS_RAW_PUBLIC_URL": "https://pub-c1de5a388d664824bf9d7790f9a1135a.r2.dev",
-        "R2_PORTFOLIO_PUBLIC_URL": "https://pub-7763fcd576434383b3d30df99cd57030.r2.dev"
+        "R2_PORTFOLIO_PUBLIC_URL": "https://pub-7763fcd576434383b3d30df99cd57030.r2.dev",
+        "SENTRY_DSN": "https://fa6209b8af345f25b17712416f9e7ea7@o4511856481468416.ingest.de.sentry.io/4511856485597264",
       },
       "r2_buckets": [
-        { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev", "remote" : true},
-        { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev" , "remote": true},
+        { "binding": "R2_UPLOADS_RAW", "bucket_name": "uploads-raw-dev", "remote": true },
+        { "binding": "R2_PORTFOLIO_PUBLIC", "bucket_name": "portfolio-public-dev", "remote": true },
       ],
       "ratelimits": [
         {
@@ -55,10 +60,10 @@
           "namespace_id": "1001",
           "simple": {
             "limit": 10,
-            "period": 60
-          }
-        }
-      ]
-    }
-  }
+            "period": 60,
+          },
+        },
+      ],
+    },
+  },
 }
