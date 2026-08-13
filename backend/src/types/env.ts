@@ -58,4 +58,10 @@ export interface Env {
   // Environment
   // ---------------------
   ENVIRONMENT?: string
+
+  // ---------------------
+  // ADMIN_EMAILS
+  // ---------------------
+
+  ADMIN_EMAILS: string
 }
