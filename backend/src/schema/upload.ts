@@ -15,5 +15,3 @@ export const presignRequestSchema = z.object({
   fileSizeBytes: z.number().int().min(1).max(MAX_FILE_SIZE_BYTES),
   moduleId: z.number().int().positive().optional(),
 })
-
-export type PresignRequest = z.infer<typeof presignRequestSchema>
