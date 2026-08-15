@@ -6,6 +6,33 @@ import { getPublicUrl } from '@/services/r2'
 import { AppError } from '@/lib/errors'
 import { trackEvent } from '@/lib/metrics'
 
+// --- Response types (mirror these on the frontend) ---
+
+/** Profile data returned by GET /v1/gallery/:username */
+export interface GalleryProfile {
+  id: string
+  username: string | null
+  avatar_url: string | null
+  skill_level: string | null
+}
+
+/** Single submission item in the gallery */
+export interface GallerySubmission {
+  id: string
+  moduleId: number | null
+  status: string
+  reviewType: string | null
+  createdAt: string
+  originalPhotoUrl: string | null
+  processedPhotoUrl: string | null
+}
+
+/** GET /v1/gallery/:username response */
+export interface GalleryResponse {
+  profile: GalleryProfile
+  submissions: GallerySubmission[]
+}
+
 const galleryRouter = new Hono<{
   Bindings: Env
   Variables: { user: AuthVars }
@@ -39,12 +66,12 @@ galleryRouter.get('/:username', async (c) => {
     throw new AppError('Failed to fetch submissions', 500)
   }
 
-  const submissions = (data || []).map((row) => ({
+  const submissions: GallerySubmission[] = (data || []).map((row) => ({
     id: row.id,
     moduleId: row.module_id,
-    status: row.status,
+    status: row.status!,
     reviewType: row.review_type,
-    createdAt: row.created_at,
+    createdAt: row.created_at!,
     originalPhotoUrl: row.original_photo_key
       ? getPublicUrl(c.env.R2_UPLOADS_RAW_PUBLIC_URL, row.original_photo_key)
       : null,
@@ -57,7 +84,7 @@ galleryRouter.get('/:username', async (c) => {
     blobs: [username.toLowerCase()],
     doubles: [submissions.length],
   })
-  return c.json({ profile, submissions }, 200)
+  return c.json<GalleryResponse>({ profile, submissions }, 200)
 })
 
 export { galleryRouter }

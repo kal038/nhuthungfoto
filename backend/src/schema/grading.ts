@@ -14,6 +14,6 @@ export const gradingRequestSchema = z
   .object({
     overallScore: scoreSchema,
     categoryScores: jsonSchema,
-    comment: z.string().min(1).trim(),
+    comment: z.string().trim().min(1),
   })
   .strict()

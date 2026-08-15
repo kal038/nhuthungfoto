@@ -5,6 +5,12 @@ import { isValidUsername } from '@/lib/username'
 import { AppError, BadRequestError } from '@/lib/errors'
 import { trackEvent } from '@/lib/metrics'
 
+/** Response for POST /v1/auth/check-username */
+export interface UsernameCheckResponse {
+  available: boolean
+  reason?: 'invalid' | 'taken'
+}
+
 const authRouter = new Hono<{ Bindings: Env }>()
 
 // POST /v1/auth/check-username
@@ -22,7 +28,7 @@ authRouter.post('/check-username', async (c) => {
 
   if (!isValidUsername(username)) {
     trackEvent(c, 'auth.username-check', { blobs: ['invalid'] })
-    return c.json({ available: false, reason: 'invalid' }, 200)
+    return c.json<UsernameCheckResponse>({ available: false, reason: 'invalid' }, 200)
   }
 
   const supabase = createServiceClient(c.env)
@@ -40,11 +46,11 @@ authRouter.post('/check-username', async (c) => {
 
   if (data) {
     trackEvent(c, 'auth.username-check', { blobs: ['taken'] })
-    return c.json({ available: false, reason: 'taken' }, 200)
+    return c.json<UsernameCheckResponse>({ available: false, reason: 'taken' }, 200)
   }
 
   trackEvent(c, 'auth.username-check', { blobs: ['available'] })
-  return c.json({ available: true }, 200)
+  return c.json<UsernameCheckResponse>({ available: true }, 200)
 })
 
 export { authRouter }

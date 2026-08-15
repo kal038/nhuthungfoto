@@ -5,6 +5,32 @@ import { createServiceClient } from '@/lib/supabase'
 import { updateProfileSchema } from '@/schema/profile'
 import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 
+// --- Response types (mirror these on the frontend) ---
+
+/** GET /v1/profile and PATCH /v1/profile response */
+export interface ProfileResponse {
+  id: string
+  username: string | null
+  email: string | null
+  avatar_url: string | null
+  phone: string | null
+  credits_balance: number
+  skill_level: string | null
+  phone_verified: boolean
+  email_verified: boolean
+  locale: string | null
+  current_module: number | null
+  updated_at: string
+}
+
+/** GET /v1/profile/:username response */
+export interface PublicProfileResponse {
+  id: string
+  username: string | null
+  avatar_url: string | null
+  skill_level: string | null
+}
+
 interface Payload {
   phone?: string | null
   avatar_url?: string | null
@@ -33,7 +59,8 @@ profileRouter.get('/', async (c) => {
     throw new AppError('Profile not found', 404)
   }
 
-  return c.json(data, 200)
+  const response = data as unknown as ProfileResponse
+  return c.json(response, 200)
 })
 
 // PATCH /v1/profile — update current user's profile
@@ -76,7 +103,8 @@ profileRouter.patch('/', async (c) => {
     throw new AppError('Failed to update profile', 502)
   }
 
-  return c.json(data, 200)
+  const response = data as unknown as ProfileResponse
+  return c.json(response, 200)
 })
 
 // GET /v1/profile/:username — get public profile by username
@@ -94,7 +122,8 @@ profileRouter.get('/:username', async (c) => {
     throw new AppError('User not found', 404)
   }
 
-  return c.json(data, 200)
+  const response = data as PublicProfileResponse
+  return c.json(response, 200)
 })
 
 export { profileRouter }
