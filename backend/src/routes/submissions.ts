@@ -9,6 +9,50 @@ import { AppError, BadRequestError, ZodParseError } from '@/lib/errors'
 import { createServiceClient } from '@/lib/supabase'
 import { trackEvent } from '@/lib/metrics'
 
+// --- Response types (mirror these on the frontend) ---
+
+/** POST /v1/submissions response */
+export interface CreateSubmissionResponse {
+  uploadUrl: string
+  objectKey: string
+  expiresIn: number
+  submissionId: string
+}
+
+/** Single item in GET /v1/submissions/me list */
+export interface SubmissionItem {
+  id: string
+  moduleId: number | null
+  status: string
+  reviewType: string | null
+  createdAt: string
+  originalPhotoUrl: string | null
+  processedPhotoUrl: string | null
+}
+
+/** GET /v1/submissions/me response */
+export interface SubmissionListResponse {
+  submissions: SubmissionItem[]
+}
+
+/** POST /v1/submissions/:id/grade response */
+export interface GradeSubmissionResponse {
+  submissionId: string
+  status: string
+  reviewType: string
+  creditsSpent: number
+  newBalance: number
+}
+
+/** GET /v1/submissions/:id/review response */
+export interface SubmissionReviewResponse {
+  submissionId: string
+  overallScore: number | null
+  categoryScores: unknown
+  comments: string | null
+  reviewedAt: string
+}
+
 const submissionsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
 submissionsRouter.post('/', async (c) => {
@@ -64,10 +108,12 @@ submissionsRouter.post('/', async (c) => {
     blobs: [moduleId != null ? String(moduleId) : 'no-module'],
     doubles: [fileSizeBytes],
   })
-  return c.json(
-    { ...presignedUrlResult, submissionId: data.id, objectKey: data.original_photo_key },
-    200,
-  )
+  const response: CreateSubmissionResponse = {
+    ...presignedUrlResult,
+    submissionId: data.id,
+    objectKey: data.original_photo_key,
+  }
+  return c.json(response, 200)
 })
 
 submissionsRouter.get('/me', async (c) => {
@@ -85,12 +131,12 @@ submissionsRouter.get('/me', async (c) => {
     throw new AppError('Failed to fetch submissions', 500)
   }
 
-  const submissions = (data || []).map((row) => ({
+  const submissions: SubmissionItem[] = (data || []).map((row) => ({
     id: row.id,
     moduleId: row.module_id,
-    status: row.status,
+    status: row.status!,
     reviewType: row.review_type,
-    createdAt: row.created_at,
+    createdAt: row.created_at!,
     originalPhotoUrl: row.original_photo_key
       ? getPublicUrl(c.env.R2_UPLOADS_RAW_PUBLIC_URL, row.original_photo_key)
       : null,
@@ -99,54 +145,9 @@ submissionsRouter.get('/me', async (c) => {
       : null,
   }))
 
-  return c.json({ submissions }, 200)
+  const response: SubmissionListResponse = { submissions }
+  return c.json(response, 200)
 })
-
-// GET /v1/submissions/user/:username
-// Any authenticated user can view another user's submissions
-// submissionsRouter.get('/user/:username', async (c) => {
-//   const username = c.req.param('username')
-//   const supabase = createServiceClient(c.env)
-
-//   // Find user by username
-//   const { data: profile, error: profileError } = await supabase
-//     .from('profiles')
-//     .select('id')
-//     .eq('username', username.toLowerCase())
-//     .single()
-
-//   if (profileError || !profile) {
-//     throw new AppError('User not found', 404)
-//   }
-
-//   // Fetch their submissions
-//   const { data, error } = await supabase
-//     .from('submissions')
-//     .select('*')
-//     .eq('user_id', profile.id)
-//     .order('created_at', { ascending: false })
-
-//   if (error) {
-//     console.error('Failed to fetch submissions:', error)
-//     throw new AppError('Failed to fetch submissions', 500)
-//   }
-
-//   const submissions = (data || []).map((row) => ({
-//     id: row.id,
-//     moduleId: row.module_id,
-//     status: row.status,
-//     reviewType: row.review_type,
-//     createdAt: row.created_at,
-//     originalPhotoUrl: row.original_photo_key
-//       ? getPublicUrl(c.env.R2_UPLOADS_RAW_PUBLIC_URL, row.original_photo_key)
-//       : null,
-//     processedPhotoUrl: row.processed_photo_key
-//       ? getPublicUrl(c.env.R2_PORTFOLIO_PUBLIC_URL, row.processed_photo_key)
-//       : null,
-//   }))
-
-//   return c.json({ submissions }, 200)
-// })
 
 // POST /v1/submissions/:id/grade — spend credits and start grading atomic
 submissionsRouter.post('/:id/grade', async (c) => {
@@ -179,16 +180,56 @@ submissionsRouter.post('/:id/grade', async (c) => {
     blobs: [reviewType],
     doubles: [cost, newBalance],
   })
-  return c.json(
-    {
-      submissionId,
-      status: 'GRADING',
-      reviewType,
-      creditsSpent: cost,
-      newBalance,
-    },
-    200,
-  )
+  const response: GradeSubmissionResponse = {
+    submissionId,
+    status: reviewType === 'HUNG' ? 'AWAITING_HUNG' : 'GRADING',
+    reviewType,
+    creditsSpent: cost,
+    newBalance,
+  }
+  return c.json(response, 200)
+})
+
+// GET /v1/submissions/:id/review — student-facing: fetch review for own completed submission
+submissionsRouter.get('/:id/review', async (c) => {
+  const submissionId = c.req.param('id')
+  const userId = c.get('user').id
+  const supabase = createServiceClient(c.env)
+
+  // Verify ownership
+  const { data: submission, error: subError } = await supabase
+    .from('submissions')
+    .select('id, status')
+    .eq('id', submissionId)
+    .eq('user_id', userId)
+    .single()
+
+  if (subError || !submission) {
+    throw new AppError('Submission not found', 404)
+  }
+
+  if (submission.status !== 'COMPLETED') {
+    throw new AppError('Review not available yet', 404)
+  }
+
+  const { data: review, error: revError } = await supabase
+    .from('reviews')
+    .select('id, overall_score, category_scores, hung_comments, created_at')
+    .eq('submission_id', submissionId)
+    .single()
+
+  if (revError || !review) {
+    throw new AppError('Review not found', 404)
+  }
+
+  const response: SubmissionReviewResponse = {
+    submissionId,
+    overallScore: review.overall_score,
+    categoryScores: review.category_scores,
+    comments: review.hung_comments,
+    reviewedAt: review.created_at!,
+  }
+  return c.json(response, 200)
 })
 
 export { submissionsRouter }

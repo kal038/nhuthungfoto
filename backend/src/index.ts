@@ -7,6 +7,7 @@ import { healthRouter } from './routes/health'
 import { modulesRouter } from './routes/modules'
 import { submissionsRouter } from './routes/submissions'
 import { creditsRouter } from './routes/credits'
+import { adminRouter } from './routes/admin'
 import { myRateLimiter } from './middleware/rateLimit'
 import { authMiddleware } from './middleware/auth'
 import type { Env } from './types/env'
@@ -62,5 +63,6 @@ app.route('/v1/submissions', submissionsRouter)
 app.route('/v1/modules', modulesRouter)
 app.route('/v1/gallery', galleryRouter)
 app.route('/v1/credits', creditsRouter)
+app.route('/v1/admin', adminRouter)
 
 export default app

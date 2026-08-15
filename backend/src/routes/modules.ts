@@ -5,6 +5,43 @@ import { AppError } from '@/lib/errors'
 import type { AuthVars } from '@/middleware/auth'
 import { getPublicUrl } from '@/services/r2'
 
+// --- Response types (mirror these on the frontend) ---
+
+/** Single module in the list returned by GET /v1/modules */
+export interface ModuleListItem {
+  id: number
+  title: string
+  slug: string
+  description: string | null
+  estimatedMinutes: number | null
+  coverPhotoUrl: string | null
+}
+
+/** GET /v1/modules response */
+export interface ModuleListResponse {
+  modules: ModuleListItem[]
+  currentModule: number
+}
+
+/** GET /v1/modules/:slug response */
+export interface ModuleDetailResponse {
+  id: number
+  title: string
+  slug: string
+  description: string | null
+  contentMarkdown: string | null
+  level: string | null
+  track: string | null
+  isFree: boolean
+  isPublished: boolean
+  coverPhotoUrl: string | null
+  examplePhotoUrls: string[]
+  assignmentPrompt: string | null
+  estimatedMinutes: number | null
+  createdAt: string
+  updatedAt: string
+}
+
 const modulesRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
 modulesRouter.get('/', async (c) => {
@@ -26,7 +63,7 @@ modulesRouter.get('/', async (c) => {
 
   const baseUrl = c.env.R2_PORTFOLIO_PUBLIC_URL
 
-  const mappedModules = (modules ?? []).map((module) => ({
+  const mappedModules: ModuleListItem[] = (modules ?? []).map((module) => ({
     id: module.id,
     title: module.title,
     slug: module.slug,
@@ -35,10 +72,11 @@ modulesRouter.get('/', async (c) => {
     coverPhotoUrl: module.cover_photo_key ? getPublicUrl(baseUrl, module.cover_photo_key) : null,
   }))
 
-  return c.json({
+  const response: ModuleListResponse = {
     modules: mappedModules,
     currentModule: profile?.current_module ?? 1,
-  })
+  }
+  return c.json(response, 200)
 })
 
 modulesRouter.get('/:slug', async (c) => {
@@ -60,7 +98,7 @@ modulesRouter.get('/:slug', async (c) => {
   const rawExampleKeys = (data.example_photo_keys ?? []) as string[]
   const examplePhotoUrls = rawExampleKeys.map((key) => getPublicUrl(baseUrl, key))
 
-  const module = {
+  const module: ModuleDetailResponse = {
     id: data.id,
     title: data.title,
     slug: data.slug,
@@ -68,17 +106,18 @@ modulesRouter.get('/:slug', async (c) => {
     contentMarkdown: data.content_markdown,
     level: data.level,
     track: data.track,
-    isFree: data.is_free,
-    isPublished: data.is_published,
+    isFree: data.is_free!,
+    isPublished: data.is_published!,
     coverPhotoUrl: data.cover_photo_key ? getPublicUrl(baseUrl, data.cover_photo_key) : null,
     examplePhotoUrls,
     assignmentPrompt: data.assignment_prompt,
     estimatedMinutes: data.estimated_minutes,
-    createdAt: data.created_at,
-    updatedAt: data.updated_at,
+    createdAt: data.created_at!,
+    updatedAt: data.updated_at!,
   }
 
-  return c.json(module)
+  const response = module
+  return c.json(response, 200)
 })
 
 export { modulesRouter }
