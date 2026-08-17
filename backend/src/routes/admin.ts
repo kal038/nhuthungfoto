@@ -22,13 +22,13 @@ export interface AdminSubmissionItem {
   waitingDays: number
 }
 
-/** GET /v1/admin/submissions response */
+/** GET /v1/admin/queue response */
 export interface AdminQueueResponse {
   submissions: AdminSubmissionItem[]
   total: number
 }
 
-/** GET /v1/admin/submissions/:id response */
+/** GET /v1/admin/queue/:id response */
 export interface AdminSubmissionDetail {
   id: string
   photoUrl: string | null
@@ -45,7 +45,7 @@ export interface AdminSubmissionDetail {
   waitingDays: number
 }
 
-/** POST /v1/admin/submissions/:id/review response */
+/** POST /v1/admin/queue/:id/review response */
 export interface AdminReviewResponse {
   submissionId: string
   status: 'COMPLETED'
@@ -61,8 +61,8 @@ adminRouter.get('/me', (c) => {
   return c.json({ isAdmin: true }, 200)
 })
 
-// GET /v1/admin/submissions — queue of AWAITING_HUNG submissions (oldest first)
-adminRouter.get('/submissions', async (c) => {
+// GET /v1/admin/queue — queue of AWAITING_HUNG submissions (oldest first)
+adminRouter.get('/queue', async (c) => {
   const supabase = createServiceClient(c.env)
 
   const { data, error, count } = await supabase
@@ -119,8 +119,8 @@ adminRouter.get('/submissions', async (c) => {
   return c.json(response, 200)
 })
 
-// GET /v1/admin/submissions/:id — single submission detail by submissionId for grading panel
-adminRouter.get('/submissions/:id', async (c) => {
+// GET /v1/admin/queue/:id — single submission detail by submissionId for grading panel
+adminRouter.get('/queue/:id', async (c) => {
   const submissionId = c.req.param('id')
   const supabase = createServiceClient(c.env)
 
@@ -178,8 +178,8 @@ adminRouter.get('/submissions/:id', async (c) => {
   return c.json(response, 200)
 })
 
-// POST /v1/admin/submissions/:id/review — submit Hùng's grade
-adminRouter.post('/submissions/:id/review', async (c) => {
+// POST /v1/admin/queue/:id/review — submit Hùng's grade
+adminRouter.post('/queue/:id/review', async (c) => {
   const submissionId = c.req.param('id')
   const supabase = createServiceClient(c.env)
 
