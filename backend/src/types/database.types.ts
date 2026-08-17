@@ -299,6 +299,15 @@ export type Database = {
         }
         Returns: number
       }
+      admin_submit_review: {
+        Args: {
+          p_category_scores: Json
+          p_hung_comments: string
+          p_overall_score: number
+          p_submission_id: string
+        }
+        Returns: undefined
+      }
       spend_and_start_grading: {
         Args: {
           p_amount: number
