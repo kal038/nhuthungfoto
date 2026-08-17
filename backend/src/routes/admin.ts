@@ -43,7 +43,6 @@ export interface AdminSubmissionDetail {
   }
   createdAt: string
   waitingDays: number
-  nextSubmissionId: string | null
 }
 
 /** POST /v1/admin/submissions/:id/review response */
@@ -91,9 +90,12 @@ adminRouter.get('/submissions', async (c) => {
   }
 
   const now = Date.now()
+  const MS_IN_A_DAY = 1000 * 60 * 60 * 24
+
   const submissions: AdminSubmissionItem[] = (data ?? []).map((row) => {
     const createdMs = new Date(row.created_at!).getTime()
-    const waitingDays = Math.floor((now - createdMs) / (1000 * 60 * 60 * 24))
+    const waitingMs = now - createdMs
+    const waitingDays = Math.floor(waitingMs / MS_IN_A_DAY)
     const profile = Array.isArray(row.profiles) ? row.profiles[0] : row.profiles
     const mod = Array.isArray(row.modules) ? row.modules[0] : row.modules
 
@@ -117,7 +119,7 @@ adminRouter.get('/submissions', async (c) => {
   return c.json(response, 200)
 })
 
-// GET /v1/admin/submissions/:id — single submission detail for grading panel
+// GET /v1/admin/submissions/:id — single submission detail by submissionId for grading panel
 adminRouter.get('/submissions/:id', async (c) => {
   const submissionId = c.req.param('id')
   const supabase = createServiceClient(c.env)
@@ -148,16 +150,6 @@ adminRouter.get('/submissions/:id', async (c) => {
     throw new AppError('Submission is not awaiting review', 409)
   }
 
-  // Find the next-oldest AWAITING_HUNG submission (for "Tiếp theo →" button)
-  const { data: nextData } = await supabase
-    .from('submissions')
-    .select('id')
-    .eq('status', 'AWAITING_HUNG')
-    .neq('id', submissionId)
-    .order('created_at', { ascending: true })
-    .limit(1)
-    .single()
-
   const now = Date.now()
   const createdMs = new Date(data.created_at!).getTime()
   const profile = Array.isArray(data.profiles) ? data.profiles[0] : data.profiles
@@ -181,7 +173,6 @@ adminRouter.get('/submissions/:id', async (c) => {
     },
     createdAt: data.created_at!,
     waitingDays: Math.floor((now - createdMs) / (1000 * 60 * 60 * 24)),
-    nextSubmissionId: nextData?.id ?? null,
   }
 
   return c.json(response, 200)
@@ -198,15 +189,15 @@ adminRouter.post('/submissions/:id/review', async (c) => {
 
   const result = gradingRequestSchema.safeParse(body)
   if (!result.success) {
-    throw new ZodParseError()
+    throw new ZodParseError('Field(s) not allowed')
   }
 
   const { overallScore, categoryScores, comment } = result.data
 
-  const { error } = await (supabase.rpc as any)('admin_submit_review', {
+  const { error } = await supabase.rpc('admin_submit_review', {
     p_submission_id: submissionId,
     p_overall_score: overallScore,
-    p_category_scores: categoryScores as unknown as Record<string, unknown>,
+    p_category_scores: categoryScores,
     p_hung_comments: comment,
   })
 
