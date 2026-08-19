@@ -1,4 +1,4 @@
-import { useQuery } from '@tanstack/react-query'
+import { useAuthQuery } from '@/hooks/useAuthQuery'
 import { apiFetch } from '@/lib/apiFetch'
 
 export interface Submission {
@@ -17,7 +17,7 @@ export async function getSubmissions(): Promise<Submission[]> {
 }
 
 export function useSubmissions() {
-  return useQuery<Submission[]>({
+  return useAuthQuery<Submission[]>({
     queryKey: ['submissions'],
     queryFn: getSubmissions,
     staleTime: 5 * 60 * 1000,
