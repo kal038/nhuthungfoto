@@ -62,8 +62,7 @@ function SignUpContainer() {
     try {
       const check = await apiFetch<{ available: boolean; reason?: string }>(
         '/auth/check-username',
-        { username: username.toLowerCase() },
-        'POST',
+        { body: { username: username.toLowerCase() }, method: 'POST' },
       )
 
       if (!check.available) {

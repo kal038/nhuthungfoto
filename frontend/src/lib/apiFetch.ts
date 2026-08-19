@@ -1,14 +1,19 @@
 import { supabase } from './supabase'
 import { ApiError } from './errors'
 
+//Could just use Axios here but it keeps getting breach so just wrap our own fetch()
+
 const API_VERSION = import.meta.env.VITE_API_VER || 'v1'
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8787'
 
 export async function apiFetch<T>(
   path: string,
-  body?: unknown,
-  method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE' = 'GET',
+  options?: {
+    body?: unknown
+    method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE'
+  },
 ): Promise<T> {
+  const { body, method = 'GET' } = options ?? {}
   const {
     data: { session },
   } = await supabase.auth.getSession()
@@ -20,13 +25,13 @@ export async function apiFetch<T>(
 
   const uri = `${API_BASE_URL}/${API_VERSION}/${path.replace(/^\/+|\/+$/g, '')}`
 
-  const options: RequestInit = { headers: newHeader, method }
+  const fetchOptions: RequestInit = { headers: newHeader, method }
   if (body !== undefined) {
     newHeader.set('Content-Type', 'application/json')
-    options.body = JSON.stringify(body)
+    fetchOptions.body = JSON.stringify(body)
   }
 
-  const response = await fetch(uri, options)
+  const response = await fetch(uri, fetchOptions)
 
   if (!response.ok) {
     let message: string
@@ -36,7 +41,10 @@ export async function apiFetch<T>(
         ? await response.json()
         : await response.text()
       message =
-        body?.error || body?.message || (typeof body === 'string' ? body : null) || `HTTP Error! Status: ${response.status}`
+        body?.error ||
+        body?.message ||
+        (typeof body === 'string' ? body : null) ||
+        `HTTP Error! Status: ${response.status}`
     } catch {
       message = `HTTP Error! Status: ${response.status}`
     }

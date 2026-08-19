@@ -38,7 +38,7 @@ export async function uploadPhoto({ file, moduleId }: UploadPhotoInput): Promise
     ...(moduleId != null && { moduleId }),
   }
 
-  const presign = await apiFetch<PresignURLResult>('/submissions', body, 'POST')
+  const presign = await apiFetch<PresignURLResult>('/submissions', { body, method: 'POST' })
 
   const res = await fetch(presign.uploadUrl, {
     method: 'PUT',

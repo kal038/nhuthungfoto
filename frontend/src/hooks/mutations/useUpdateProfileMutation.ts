@@ -8,7 +8,7 @@ interface UpdateProfileBody {
 }
 
 export async function updateProfile(body: UpdateProfileBody): Promise<UserProfile> {
-  return apiFetch('profile', body, 'PATCH')
+  return apiFetch('profile', { body, method: 'PATCH' })
 }
 
 export function useUpdateProfileMutation() {
