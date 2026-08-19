@@ -53,16 +53,19 @@ export interface AdminReviewResponse {
 
 const adminRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
 
-// All admin routes require admin email
-adminRouter.use('*', isAdminMiddleware)
-
-// GET /v1/admin/me — lightweight admin check for frontend
+// GET /v1/admin/me
+// Unprotected check : returns { isAdmin: true/false } so the frontend gets
+// an explicit answer instead of relying on a 403 side-effect.
 adminRouter.get('/me', (c) => {
-  return c.json({ isAdmin: true }, 200)
+  const adminEmails = (c.env.ADMIN_EMAILS || '').split(',').map((e) => e.trim().toLowerCase())
+  const sessionEmail = c.get('user').email?.trim().toLowerCase()
+  const isAdmin = !!sessionEmail && adminEmails.includes(sessionEmail)
+  return c.json({ isAdmin }, 200)
 })
 
+// Protected routes, throw a 403 if user accessing route doesn't have admin priv
 // GET /v1/admin/queue — queue of AWAITING_HUNG submissions (oldest first)
-adminRouter.get('/queue', async (c) => {
+adminRouter.get('/queue', isAdminMiddleware, async (c) => {
   const supabase = createServiceClient(c.env)
 
   const { data, error, count } = await supabase
@@ -120,7 +123,7 @@ adminRouter.get('/queue', async (c) => {
 })
 
 // GET /v1/admin/queue/:id — single submission detail by submissionId for grading panel
-adminRouter.get('/queue/:id', async (c) => {
+adminRouter.get('/queue/:id', isAdminMiddleware, async (c) => {
   const submissionId = c.req.param('id')
   const supabase = createServiceClient(c.env)
 
@@ -179,7 +182,7 @@ adminRouter.get('/queue/:id', async (c) => {
 })
 
 // POST /v1/admin/queue/:id/review — submit Hùng's grade
-adminRouter.post('/queue/:id/review', async (c) => {
+adminRouter.post('/queue/:id/review', isAdminMiddleware, async (c) => {
   const submissionId = c.req.param('id')
   const supabase = createServiceClient(c.env)
 
