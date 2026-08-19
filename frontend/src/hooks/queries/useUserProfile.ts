@@ -5,7 +5,7 @@ import type { Tables } from '@/types/database.types'
 export type UserProfile = Tables<'profiles'>
 
 async function fetchUserProfile(): Promise<UserProfile> {
-  return apiFetch<UserProfile>('profile', undefined, 'GET')
+  return apiFetch<UserProfile>('profile')
 }
 
 export function useUserProfile() {

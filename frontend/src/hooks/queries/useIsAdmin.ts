@@ -6,7 +6,7 @@ export interface IsAdminResponse {
 }
 
 async function fetchIsAdmin(): Promise<boolean> {
-  const res = await apiFetch<IsAdminResponse>('/admin/me', undefined, 'GET')
+  const res = await apiFetch<IsAdminResponse>('/admin/me')
   return res.isAdmin //returns True if admin, False otherwise
 }
 

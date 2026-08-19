@@ -25,7 +25,7 @@ export interface CreditHistoryResponse {
 // ---------------------
 
 async function fetchBalance(): Promise<number> {
-  const res = await apiFetch<CreditBalance>('/credits/balance', undefined, 'GET')
+  const res = await apiFetch<CreditBalance>('/credits/balance')
   return res.balance
 }
 
@@ -47,8 +47,6 @@ async function fetchCreditHistory(
 ): Promise<CreditHistoryResponse> {
   return apiFetch<CreditHistoryResponse>(
     `/credits/history?limit=${limit}&offset=${offset}`,
-    undefined,
-    'GET',
   )
 }
 

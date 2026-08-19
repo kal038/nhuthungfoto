@@ -3,7 +3,7 @@ import { apiFetch } from '@/lib/apiFetch'
 import type { ModuleListResponse } from '@/types/modules'
 
 export async function getModules(): Promise<ModuleListResponse> {
-  return apiFetch<ModuleListResponse>('/modules', undefined, 'GET')
+  return apiFetch<ModuleListResponse>('/modules')
 }
 
 export function useModules() {

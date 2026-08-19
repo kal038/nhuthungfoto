@@ -4,7 +4,7 @@ import { ApiError } from '@/lib/errors'
 import type { ModuleDetail } from '@/types/modules'
 
 export async function getModule(slug: string): Promise<ModuleDetail> {
-  return apiFetch<ModuleDetail>(`/modules/${slug}`, undefined, 'GET')
+  return apiFetch<ModuleDetail>(`/modules/${slug}`)
 }
 
 export function useModule(slug: string) {

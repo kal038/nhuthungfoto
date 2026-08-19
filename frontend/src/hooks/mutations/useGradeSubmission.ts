@@ -20,8 +20,7 @@ async function gradeSubmission({
 }: GradeSubmissionInput): Promise<GradeSubmissionResult> {
   return apiFetch<GradeSubmissionResult>(
     `/submissions/${submissionId}/grade`,
-    { reviewType },
-    'POST',
+    { body: { reviewType }, method: 'POST' },
   )
 }
 

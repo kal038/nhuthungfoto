@@ -4,7 +4,7 @@ import { ApiError } from '@/lib/errors'
 import type { GalleryData } from '@/types/gallery'
 
 export async function getGallery(username: string): Promise<GalleryData> {
-  return apiFetch<GalleryData>(`/gallery/${username}`, undefined, 'GET')
+  return apiFetch<GalleryData>(`/gallery/${username}`)
 }
 
 export function useGallery(username: string) {

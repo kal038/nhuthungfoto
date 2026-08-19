@@ -12,7 +12,7 @@ export interface Submission {
 }
 
 export async function getSubmissions(): Promise<Submission[]> {
-  const res = await apiFetch<{ submissions: Submission[] }>('/submissions/me', undefined, 'GET')
+  const res = await apiFetch<{ submissions: Submission[] }>('/submissions/me')
   return res.submissions
 }
 
