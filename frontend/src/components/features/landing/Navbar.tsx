@@ -113,7 +113,16 @@ export function Navbar() {
                 >
                   Hồ sơ
                 </DropdownMenuItem>
-                <DropdownMenuItem className="text-sm cursor-pointer">
+                <DropdownMenuItem
+                  className="text-sm cursor-pointer"
+                  onClick={() => navigate({ to: '/submissions' })}
+                >
+                  Bài nộp của tôi
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="text-sm cursor-pointer"
+                  onClick={() => navigate({ to: '/modules' })}
+                >
                   Khóa học của tôi
                 </DropdownMenuItem>
                 <DropdownMenuItem
@@ -211,6 +220,14 @@ export function Navbar() {
                       className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2"
                     >
                       Hồ sơ
+                    </a>
+                  </SheetClose>
+                  <SheetClose asChild>
+                    <a
+                      href="/submissions"
+                      className="text-white/80 hover:text-white text-base font-medium transition-colors duration-200 cursor-pointer py-2"
+                    >
+                      Bài nộp của tôi
                     </a>
                   </SheetClose>
                   <SheetClose asChild>
