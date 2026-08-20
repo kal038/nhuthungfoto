@@ -60,7 +60,7 @@ export async function getHistory(
     .from('credit_history')
     .select('id, amount, type, metadata, created_at', { count: 'exact' })
     .eq('user_id', userId)
-    .order('created_at', { ascending: false })
+    .order('created_at', { ascending: false }) //make sure we got an index on this column
     .range(offset, offset + limit - 1)
 
   if (error) {
