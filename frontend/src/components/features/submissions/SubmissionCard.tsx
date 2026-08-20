@@ -9,7 +9,7 @@ export interface SubmissionCardProps {
   className?: string
 }
 
-const statusMeta: Record<
+export const statusMeta: Record<
   string,
   { label: string; variant: 'secondary' | 'default' | 'outline' | 'destructive' }
 > = {
@@ -19,6 +19,7 @@ const statusMeta: Record<
   COMPLETED: { label: 'Đã chấm', variant: 'outline' },
   FAILED: { label: 'Lỗi', variant: 'destructive' },
 }
+
 
 export function SubmissionCard({
   submission,

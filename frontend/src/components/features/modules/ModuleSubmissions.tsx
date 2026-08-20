@@ -2,23 +2,18 @@ import { useState } from 'react'
 import { useSubmissions, type Submission } from '@/hooks/queries/useSubmissions'
 import { Badge } from '@/components/ui/badge'
 import { GradeConfirmDialog } from '@/components/features/credits/GradeConfirmDialog'
+import { ReviewDetailDialog } from '@/components/features/reviews'
+import { statusMeta } from '@/components/features/submissions/SubmissionCard'
 import { LoadingDots } from '@/components/ui/loading-dots'
 
 interface ModuleSubmissionsProps {
   moduleId: number
 }
 
-const statusMeta: Record<string, { label: string; variant: 'secondary' | 'default' | 'outline' | 'destructive' }> = {
-  UPLOADED: { label: 'Chưa chấm', variant: 'secondary' },
-  GRADING: { label: 'Đang chấm', variant: 'default' },
-  AWAITING_HUNG: { label: 'Chờ Hùng chấm', variant: 'default' },
-  COMPLETED: { label: 'Đã chấm', variant: 'outline' },
-  FAILED: { label: 'Lỗi', variant: 'destructive' },
-}
-
 export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
   const { data: submissions, isLoading } = useSubmissions()
   const [gradeTarget, setGradeTarget] = useState<Submission | null>(null)
+  const [reviewTarget, setReviewTarget] = useState<Submission | null>(null)
 
   const moduleSubmissions = (submissions ?? []).filter(
     (s) => s.moduleId != null && String(s.moduleId) === String(moduleId),
@@ -69,6 +64,15 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
                     Chấm điểm
                   </button>
                 )}
+                {sub.status === 'COMPLETED' && (
+                  <button
+                    type="button"
+                    onClick={() => setReviewTarget(sub)}
+                    className="absolute inset-x-2 bottom-2 cursor-pointer rounded-md bg-white/90 px-2 py-1.5 text-xs font-semibold text-zinc-900 shadow-sm backdrop-blur transition-colors hover:bg-white"
+                  >
+                    Xem kết quả
+                  </button>
+                )}
               </div>
             )
           })}
@@ -85,6 +89,14 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
           }}
         />
       )}
+
+      <ReviewDetailDialog
+        submission={reviewTarget}
+        open={!!reviewTarget}
+        onOpenChange={(open) => {
+          if (!open) setReviewTarget(null)
+        }}
+      />
     </section>
   )
 }
