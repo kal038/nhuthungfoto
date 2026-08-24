@@ -26,6 +26,7 @@ export function useReview(submissionId: string, enabled: boolean) {
     queryKey: ['submissions', 'review', submissionId],
     queryFn: () => fetchReview(submissionId),
     enabled: enabled && !!submissionId,
+    staleTime: 5 * 60 * 1000,
     retry: (count, error) => {
       // 404 means "no review yet" — never transient
       if (error instanceof ApiError && error.status < 500) return false

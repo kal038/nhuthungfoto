@@ -21,5 +21,8 @@ export function useSubmissions() {
     queryKey: ['submissions'],
     queryFn: getSubmissions,
     staleTime: 5 * 60 * 1000,
+    // Refresh when the user returns to the tab — grading takes hours, not
+    // minutes, so we avoid background polling and fetch on focus instead.
+    refetchOnWindowFocus: true,
   })
 }

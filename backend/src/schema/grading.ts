@@ -1,6 +1,6 @@
 import { z } from 'zod/v4'
 
-const scoreSchema = z.number().int().min(1).max(100).default(50)
+const scoreSchema = z.number().int().min(1).max(10).default(5)
 
 const jsonSchema = z.object({
   composition: scoreSchema,
