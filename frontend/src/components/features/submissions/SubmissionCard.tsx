@@ -11,6 +11,24 @@ export interface SubmissionCardProps {
   className?: string
 }
 
+// Countdown: Hùng reviews within 24h, so show remaining hours (decreases as
+// the student waits). Once past the SLA, fall back to a neutral label.
+const LIMIT_HOURS = 24
+
+function WaitingBadge({ createdAt }: { createdAt: string }) {
+  const now = useNow()
+  const elapsedMs = now - new Date(createdAt).getTime()
+  const remainingHours = Math.max(
+    0,
+    Math.ceil((LIMIT_HOURS * 60 * 60 * 1000 - elapsedMs) / (60 * 60 * 1000)),
+  )
+  return (
+    <span className="rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-amber-300 backdrop-blur-md">
+      {remainingHours > 0 ? `Chờ ${remainingHours} giờ` : 'Đang chờ Hùng chấm'}
+    </span>
+  )
+}
+
 export function SubmissionCard({
   submission,
   onSelectReview,
@@ -24,18 +42,6 @@ export function SubmissionCard({
   const isPending = submission.status === 'GRADING' || submission.status === 'AWAITING_HUNG'
   const isCompleted = submission.status === 'COMPLETED'
   const isUploaded = submission.status === 'UPLOADED'
-
-  const now = useNow()
-
-  // Countdown: Hùng reviews within 24h, so show remaining hours (decreases as
-  // the student waits). Once past the SLA, fall back to a neutral label.
-  const LIMIT_HOURS = 24
-  const elapsedMs = now - new Date(submission.createdAt).getTime()
-  const remainingHours = Math.max(
-    0,
-    Math.ceil((LIMIT_HOURS * 60 * 60 * 1000 - elapsedMs) / (60 * 60 * 1000)),
-  )
-  const waitingLabel = remainingHours > 0 ? `Chờ ${remainingHours} giờ` : 'Đang chờ Hùng chấm'
 
   const handleClick = () => {
     if (isCompleted && onSelectReview) {
@@ -79,11 +85,7 @@ export function SubmissionCard({
         <Badge variant={meta.variant} className="shadow-sm backdrop-blur-md">
           {meta.label}
         </Badge>
-        {isPending && (
-          <span className="rounded-full bg-black/60 px-2 py-0.5 text-[11px] font-medium text-amber-300 backdrop-blur-md">
-            {waitingLabel}
-          </span>
-        )}
+        {isPending && <WaitingBadge createdAt={submission.createdAt} />}
       </div>
 
       {/* Action overlay / hint text at bottom */}
