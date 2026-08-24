@@ -3,7 +3,7 @@ import { useSubmissions, type Submission } from '@/hooks/queries/useSubmissions'
 import { Badge } from '@/components/ui/badge'
 import { GradeConfirmDialog } from '@/components/features/credits/GradeConfirmDialog'
 import { ReviewDetailDialog } from '@/components/features/reviews'
-import { statusMeta } from '@/components/features/submissions/SubmissionCard'
+import { statusMeta } from '@/components/features/submissions/statusMeta'
 import { LoadingDots } from '@/components/ui/loading-dots'
 
 interface ModuleSubmissionsProps {
@@ -21,17 +21,13 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="font-heading text-lg font-semibold text-zinc-900">
-        Bài nộp của bạn
-      </h2>
+      <h2 className="font-heading text-lg font-semibold text-zinc-900">Bài nộp của bạn</h2>
 
       {isLoading ? (
         <LoadingDots className="py-6" />
       ) : moduleSubmissions.length === 0 ? (
         <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
-          <p className="text-sm text-muted-foreground">
-            Bạn chưa nộp bài cho khóa học này.
-          </p>
+          <p className="text-sm text-muted-foreground">Bạn chưa nộp bài cho khóa học này.</p>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">

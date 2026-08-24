@@ -1,6 +1,8 @@
 import { Badge } from '@/components/ui/badge'
+import { useNow } from '@/hooks/useNow'
 import type { Submission } from '@/hooks/queries/useSubmissions'
 import { cn } from '@/lib/utils'
+import { statusMeta } from './statusMeta'
 
 export interface SubmissionCardProps {
   submission: Submission
@@ -8,18 +10,6 @@ export interface SubmissionCardProps {
   onSelectGrade?: (submission: Submission) => void
   className?: string
 }
-
-export const statusMeta: Record<
-  string,
-  { label: string; variant: 'secondary' | 'default' | 'outline' | 'destructive' }
-> = {
-  UPLOADED: { label: 'Chưa gửi chấm', variant: 'secondary' },
-  GRADING: { label: 'Đang chấm', variant: 'default' },
-  AWAITING_HUNG: { label: 'Chờ Hùng chấm', variant: 'default' },
-  COMPLETED: { label: 'Đã chấm', variant: 'outline' },
-  FAILED: { label: 'Lỗi', variant: 'destructive' },
-}
-
 
 export function SubmissionCard({
   submission,
@@ -31,20 +21,21 @@ export function SubmissionCard({
     label: submission.status,
     variant: 'secondary',
   }
-  const isPending =
-    submission.status === 'GRADING' || submission.status === 'AWAITING_HUNG'
+  const isPending = submission.status === 'GRADING' || submission.status === 'AWAITING_HUNG'
   const isCompleted = submission.status === 'COMPLETED'
   const isUploaded = submission.status === 'UPLOADED'
 
-  const daysWaiting = Math.max(
+  const now = useNow()
+
+  // Countdown: Hùng reviews within 24h, so show remaining hours (decreases as
+  // the student waits). Once past the SLA, fall back to a neutral label.
+  const LIMIT_HOURS = 24
+  const elapsedMs = now - new Date(submission.createdAt).getTime()
+  const remainingHours = Math.max(
     0,
-    Math.floor(
-      (Date.now() - new Date(submission.createdAt).getTime()) /
-        (1000 * 60 * 60 * 24),
-    ),
+    Math.ceil((LIMIT_HOURS * 60 * 60 * 1000 - elapsedMs) / (60 * 60 * 1000)),
   )
-  const waitingLabel =
-    daysWaiting === 0 ? 'Chờ hôm nay' : `Chờ ${daysWaiting} ngày`
+  const waitingLabel = remainingHours > 0 ? `Chờ ${remainingHours} giờ` : 'Đang chờ Hùng chấm'
 
   const handleClick = () => {
     if (isCompleted && onSelectReview) {

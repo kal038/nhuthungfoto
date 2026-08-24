@@ -1,10 +1,5 @@
 import { ImageOff, Star, Calendar } from 'lucide-react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Progress } from '@/components/ui/progress'
 import { LoadingDots } from '@/components/ui/loading-dots'
 import { useReview } from '@/hooks/queries/useReview'
@@ -17,18 +12,10 @@ export interface ReviewDetailDialogProps {
   onOpenChange: (open: boolean) => void
 }
 
-export function ReviewDetailDialog({
-  submission,
-  open,
-  onOpenChange,
-}: ReviewDetailDialogProps) {
-  const { data: review, isLoading, error } = useReview(
-    submission?.id ?? '',
-    open && !!submission,
-  )
+export function ReviewDetailDialog({ submission, open, onOpenChange }: ReviewDetailDialogProps) {
+  const { data: review, isLoading, error } = useReview(submission?.id ?? '', open && !!submission)
 
-  const photoUrl =
-    submission?.processedPhotoUrl ?? submission?.originalPhotoUrl ?? null
+  const photoUrl = submission?.processedPhotoUrl ?? submission?.originalPhotoUrl ?? null
 
   const formattedDate = review?.reviewedAt
     ? new Date(review.reviewedAt).toLocaleDateString('vi-VN', {
@@ -51,11 +38,7 @@ export function ReviewDetailDialog({
           {/* Photo */}
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-zinc-100 shadow-inner">
             {photoUrl ? (
-              <img
-                src={photoUrl}
-                alt="Ảnh đã nộp"
-                className="h-full w-full object-cover"
-              />
+              <img src={photoUrl} alt="Ảnh đã nộp" className="h-full w-full object-cover" />
             ) : (
               <div className="flex h-full items-center justify-center text-zinc-300">
                 <ImageOff className="h-10 w-10" />
@@ -86,7 +69,7 @@ export function ReviewDetailDialog({
                 </div>
                 <div className="flex items-center gap-1.5 rounded-lg bg-amber-500/10 px-3 py-1.5 font-heading text-2xl font-bold text-amber-600">
                   <Star className="h-6 w-6 fill-amber-500 text-amber-500" />
-                  <span>{review.overallScore != null ? review.overallScore.toFixed(1) : '—'}</span>
+                  <span>{review.overallScore != null ? review.overallScore : '—'}</span>
                   <span className="text-xs font-normal text-amber-600/70">/10</span>
                 </div>
               </div>
