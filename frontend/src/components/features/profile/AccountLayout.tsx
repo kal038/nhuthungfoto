@@ -1,5 +1,6 @@
 import { cn } from '@/lib/utils'
 import { Link, useRouterState } from '@tanstack/react-router'
+import { useIsAdmin } from '@/hooks/queries/useIsAdmin'
 
 interface AccountLayoutProps {
   children: React.ReactNode
@@ -12,11 +13,13 @@ interface AccountLayoutProps {
 
 export function AccountLayout({ children, className, username, creditBalance }: AccountLayoutProps) {
   const { location } = useRouterState()
+  const { data: isAdmin } = useIsAdmin()
 
   const sidebarLinks = [
     { label: 'Hồ sơ', href: '/profile' },
     { label: 'Credit', href: '/credits', badge: creditBalance },
     ...(username ? [{ label: 'Ảnh của tôi', href: `/gallery/${username}` }] : []),
+    ...(isAdmin ? [{ label: 'Chấm bài', href: '/admin/queue' }] : []),
   ]
 
   const currentPath = location.pathname

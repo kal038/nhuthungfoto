@@ -37,7 +37,7 @@ coverage/
 
 # PRD (excluded per original .gitignore)
 *prd*.md
-game-plan.md    
+game-plan.md
 
 # Misc
 *.tsbuildinfo
@@ -56,3 +56,7 @@ Makefile
 
 #Skills lock
 skills-lock.json
+
+#Tanstack tmp
+.tanstack
+frontend/.tanstack/tmp/
