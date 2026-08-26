@@ -21,6 +21,8 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as ModulesIndexRouteImport } from './routes/modules/index'
 import { Route as ModulesSlugRouteImport } from './routes/modules/$slug'
 import { Route as GalleryUsernameRouteImport } from './routes/gallery/$username'
+import { Route as AdminQueueRouteImport } from './routes/admin/queue'
+import { Route as AdminGradeIdRouteImport } from './routes/admin/grade.$id'
 
 const UploadRoute = UploadRouteImport.update({
   id: '/upload',
@@ -82,6 +84,16 @@ const GalleryUsernameRoute = GalleryUsernameRouteImport.update({
   path: '/gallery/$username',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminQueueRoute = AdminQueueRouteImport.update({
+  id: '/admin/queue',
+  path: '/admin/queue',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AdminGradeIdRoute = AdminGradeIdRouteImport.update({
+  id: '/admin/grade/$id',
+  path: '/admin/grade/$id',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -93,9 +105,11 @@ export interface FileRoutesByFullPath {
   '/signup': typeof SignupRoute
   '/submissions': typeof SubmissionsRoute
   '/upload': typeof UploadRoute
+  '/admin/queue': typeof AdminQueueRoute
   '/gallery/$username': typeof GalleryUsernameRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/modules/': typeof ModulesIndexRoute
+  '/admin/grade/$id': typeof AdminGradeIdRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -106,9 +120,11 @@ export interface FileRoutesByTo {
   '/signup': typeof SignupRoute
   '/submissions': typeof SubmissionsRoute
   '/upload': typeof UploadRoute
+  '/admin/queue': typeof AdminQueueRoute
   '/gallery/$username': typeof GalleryUsernameRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/modules': typeof ModulesIndexRoute
+  '/admin/grade/$id': typeof AdminGradeIdRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -121,9 +137,11 @@ export interface FileRoutesById {
   '/signup': typeof SignupRoute
   '/submissions': typeof SubmissionsRoute
   '/upload': typeof UploadRoute
+  '/admin/queue': typeof AdminQueueRoute
   '/gallery/$username': typeof GalleryUsernameRoute
   '/modules/$slug': typeof ModulesSlugRoute
   '/modules/': typeof ModulesIndexRoute
+  '/admin/grade/$id': typeof AdminGradeIdRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -137,9 +155,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/submissions'
     | '/upload'
+    | '/admin/queue'
     | '/gallery/$username'
     | '/modules/$slug'
     | '/modules/'
+    | '/admin/grade/$id'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -150,9 +170,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/submissions'
     | '/upload'
+    | '/admin/queue'
     | '/gallery/$username'
     | '/modules/$slug'
     | '/modules'
+    | '/admin/grade/$id'
   id:
     | '__root__'
     | '/'
@@ -164,9 +186,11 @@ export interface FileRouteTypes {
     | '/signup'
     | '/submissions'
     | '/upload'
+    | '/admin/queue'
     | '/gallery/$username'
     | '/modules/$slug'
     | '/modules/'
+    | '/admin/grade/$id'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -179,7 +203,9 @@ export interface RootRouteChildren {
   SignupRoute: typeof SignupRoute
   SubmissionsRoute: typeof SubmissionsRoute
   UploadRoute: typeof UploadRoute
+  AdminQueueRoute: typeof AdminQueueRoute
   GalleryUsernameRoute: typeof GalleryUsernameRoute
+  AdminGradeIdRoute: typeof AdminGradeIdRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -268,6 +294,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof GalleryUsernameRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin/queue': {
+      id: '/admin/queue'
+      path: '/admin/queue'
+      fullPath: '/admin/queue'
+      preLoaderRoute: typeof AdminQueueRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/admin/grade/$id': {
+      id: '/admin/grade/$id'
+      path: '/admin/grade/$id'
+      fullPath: '/admin/grade/$id'
+      preLoaderRoute: typeof AdminGradeIdRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -294,7 +334,9 @@ const rootRouteChildren: RootRouteChildren = {
   SignupRoute: SignupRoute,
   SubmissionsRoute: SubmissionsRoute,
   UploadRoute: UploadRoute,
+  AdminQueueRoute: AdminQueueRoute,
   GalleryUsernameRoute: GalleryUsernameRoute,
+  AdminGradeIdRoute: AdminGradeIdRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
