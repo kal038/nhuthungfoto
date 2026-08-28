@@ -39,9 +39,10 @@ function AdminGradeRouteContainer() {
   } = useAdminSubmission(id)
   const submitReview = useSubmitReviewMutation()
 
-  // Neighbor ids are computed ONCE per id at render time from the cached queue.
-  // The mutation invalidates the queue cache on success — re-reading it after
-  // submit would race the refetch and break navigation, so we never do.
+  // Neighbor ids are computed once per id from the cached queue. On a
+  // successful submit the mutation prunes the graded id from this cache
+  // (optimistically, before the invalidation refetch lands), so neighbors
+  // on the destination page are derived from the updated set.
   const neighbors = useMemo(() => {
     const cached = queryClient.getQueryData<AdminQueueResponse>(['admin', 'queue'])
     const ids = (cached?.submissions ?? []).map((s) => s.id)
@@ -171,8 +172,9 @@ function AdminGradeRouteContainer() {
                     { submissionId: id, ...values },
                     {
                       onSuccess: () => {
-                        // Precomputed at render time — never re-read the queue
-                        // cache after submit (it is being refetched).
+                        // The mutation has already removed the graded id from
+                        // the cached queue, so the destination page's neighbors
+                        // are computed from the updated (pre-refetch) set.
                         if (neighbors.nextId) {
                           navigateToId(neighbors.nextId)
                         } else {
