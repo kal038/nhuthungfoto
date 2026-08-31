@@ -15,6 +15,7 @@ import { portfolioRouter } from './routes/portfolio'
 import { galleryRouter } from './routes/gallery'
 import { profileRouter } from './routes/profile'
 import { authRouter } from './routes/auth'
+import { paymentsRouter } from './routes/payments'
 import { AppError } from './lib/errors'
 import { sentry } from '@sentry/hono/cloudflare'
 
@@ -63,6 +64,7 @@ app.route('/v1/submissions', submissionsRouter)
 app.route('/v1/modules', modulesRouter)
 app.route('/v1/gallery', galleryRouter)
 app.route('/v1/credits', creditsRouter)
+app.route('/v1/payments', paymentsRouter)
 app.route('/v1/admin', adminRouter)
 
 export default app
