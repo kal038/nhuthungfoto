@@ -1,18 +1,16 @@
 export interface PaymentPackage {
-  id: string
-  label: string
-  credits: number
-  amountVnd: number
-  isPopular: boolean
-  enabled: boolean
+  readonly id: string
+  readonly label: string
+  readonly credits: number
+  readonly amountVnd: number
+  readonly isPopular: boolean
+  readonly enabled: boolean
 }
 
 /**
  * Authoritative payment package catalog.
- *
- * Order creation must snapshot credits and amountVnd from this catalog rather
- * than accepting either value from clients.
  */
+
 export const PAYMENT_PACKAGES = [
   {
     id: 'trial',
@@ -40,7 +38,7 @@ export const PAYMENT_PACKAGES = [
   },
 ] as const satisfies readonly PaymentPackage[]
 
-export type PaymentPackageId = (typeof PAYMENT_PACKAGES)[number]['id']
+export type PaymentPackageId = (typeof PAYMENT_PACKAGES)[number]['id'] // union of all current 'id's ('trial'|'practice'|'progress') thanks to "as const"
 
 export function getEnabledPaymentPackages(): readonly PaymentPackage[] {
   return PAYMENT_PACKAGES.filter((paymentPackage) => paymentPackage.enabled)
