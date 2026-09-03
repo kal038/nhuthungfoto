@@ -76,3 +76,6 @@ db-local-start:
 
 db-local-stop:
   cd backend && supabase stop
+
+check-migration:
+  cd backend && postgres-language-server check --changed --since=main supabase/migrations
