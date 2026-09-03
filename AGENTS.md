@@ -2,6 +2,13 @@
 
 For UI work, read `.agent/design-system/nhuthungfoto/MASTER.md`.
 
+# Payments model
+
+Two distinct tables — do not conflate them:
+
+- `payment_orders` = the **workflow** for the manual (bank-transfer / VietQR) flow. One row per purchase intent; tracks the order lifecycle (status, expiry, confirmation, Telegram, approval, resolution).
+- `payments` = the **unified money ledger** across all providers (manual today, Stripe later). One row per confirmed money-in; `provider` identifies the method, `external_ref` is the unique provider reference. Linked to a manual order via the nullable `payments.payment_orders_id` FK (null for non-manual providers).
+
 # Payments state machine
 
 ```mermaid
