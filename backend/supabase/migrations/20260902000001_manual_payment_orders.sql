@@ -71,7 +71,16 @@ CREATE TABLE public.payment_orders (
     UNIQUE (user_id, client_request_id),
   CONSTRAINT payment_orders_order_code_unique
     UNIQUE (order_code)
-)
+);
+
+-- ============================================
+-- 2b. PAYMENTS LEDGER LINK
+-- ============================================
+-- payment_orders = manual-flow WORKFLOW; payments = unified money ledger
+-- (manual today, Stripe later). Nullable FK links a payment row to its manual
+-- order; non-manual providers (future Stripe) leave it NULL.
+ALTER TABLE public.payments
+  ADD COLUMN payment_orders_id uuid REFERENCES public.payment_orders(id) ON DELETE SET NULL;
 
 -- ============================================
 -- 3. INDEXES
@@ -109,4 +118,3 @@ ALTER TABLE public.payment_orders ENABLE ROW LEVEL SECURITY;
 -- defensive and documents intent.
 REVOKE ALL ON TABLE public.payment_orders FROM PUBLIC, anon, authenticated;
 GRANT ALL ON TABLE public.payment_orders TO service_role;
-SELECT * FROM profilesz;
