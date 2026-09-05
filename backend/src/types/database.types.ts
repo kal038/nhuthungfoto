@@ -10,7 +10,7 @@ export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: "14.4"
+    PostgrestVersion: "14.5"
   }
   public: {
     Tables: {
@@ -106,12 +106,84 @@ export type Database = {
         }
         Relationships: []
       }
+      payment_orders: {
+        Row: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          user_id: string
+        }
+        Insert: {
+          amount_vnd: number
+          approval_metadata?: Json | null
+          client_request_id: string
+          confirmed_at?: string | null
+          created_at?: string
+          credit_amount: number
+          expires_at: string
+          id?: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status?:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at?: string | null
+          user_id: string
+        }
+        Update: {
+          amount_vnd?: number
+          approval_metadata?: Json | null
+          client_request_id?: string
+          confirmed_at?: string | null
+          created_at?: string
+          credit_amount?: number
+          expires_at?: string
+          id?: string
+          order_code?: string
+          package_id?: string
+          package_label?: string
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status?:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       payments: {
         Row: {
           amount: number
           created_at: string | null
           external_ref: string
           id: string
+          payment_orders_id: string | null
           provider: string
           raw_payload: Json | null
           status: Database["public"]["Enums"]["payment_status"] | null
@@ -122,6 +194,7 @@ export type Database = {
           created_at?: string | null
           external_ref: string
           id?: string
+          payment_orders_id?: string | null
           provider: string
           raw_payload?: Json | null
           status?: Database["public"]["Enums"]["payment_status"] | null
@@ -132,12 +205,27 @@ export type Database = {
           created_at?: string | null
           external_ref?: string
           id?: string
+          payment_orders_id?: string | null
           provider?: string
           raw_payload?: Json | null
           status?: Database["public"]["Enums"]["payment_status"] | null
           user_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "payments_payment_orders_id_fkey"
+            columns: ["payment_orders_id"]
+            isOneToOne: false
+            referencedRelation: "payment_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "payments_payment_orders_id_fkey"
+            columns: ["payment_orders_id"]
+            isOneToOne: false
+            referencedRelation: "payment_orders_effective"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "payments_user_id_fkey"
             columns: ["user_id"]
@@ -286,7 +374,80 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      payment_orders_effective: {
+        Row: {
+          amount_vnd: number | null
+          approval_metadata: Json | null
+          client_request_id: string | null
+          confirmed_at: string | null
+          created_at: string | null
+          credit_amount: number | null
+          effective_status: Database["public"]["Enums"]["order_status"] | null
+          expires_at: string | null
+          id: string | null
+          order_code: string | null
+          package_id: string | null
+          package_label: string | null
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"] | null
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          amount_vnd?: number | null
+          approval_metadata?: Json | null
+          client_request_id?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          credit_amount?: number | null
+          effective_status?: never
+          expires_at?: string | null
+          id?: string | null
+          order_code?: string | null
+          package_id?: string | null
+          package_label?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          telegram_notification_status?:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          amount_vnd?: number | null
+          approval_metadata?: Json | null
+          client_request_id?: string | null
+          confirmed_at?: string | null
+          created_at?: string | null
+          credit_amount?: number | null
+          effective_status?: never
+          expires_at?: string | null
+          id?: string | null
+          order_code?: string | null
+          package_id?: string | null
+          package_label?: string | null
+          resolved_at?: string | null
+          status?: Database["public"]["Enums"]["order_status"] | null
+          telegram_notification_status?:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payment_orders_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       add_credits: {
@@ -307,6 +468,41 @@ export type Database = {
           p_submission_id: string
         }
         Returns: undefined
+      }
+      create_manual_payment_order: {
+        Args: {
+          p_client_request_id: string
+          p_expires_at: string
+          p_order_code: string
+          p_package_snapshot: Json
+          p_user_id: string
+        }
+        Returns: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       spend_and_start_grading: {
         Args: {
@@ -331,6 +527,12 @@ export type Database = {
       }
     }
     Enums: {
+      order_status:
+        | "PENDING_TRANSFER"
+        | "AWAITING_REVIEW"
+        | "SUCCESS"
+        | "CANCELLED"
+        | "EXPIRED"
       payment_status: "PENDING" | "SUCCESS" | "EXPIRED" | "CANCELLED"
       review_type: "AI" | "HUNG"
       skill_level: "BEGINNER" | "INTERMEDIATE" | "ADVANCED"
@@ -341,6 +543,7 @@ export type Database = {
         | "AWAITING_HUNG"
         | "COMPLETED"
         | "FAILED"
+      telegram_notification_status: "PENDING" | "SENT" | "FAILED"
       transaction_type: "PURCHASE" | "SPEND" | "REFUND" | "STARTER_BONUS"
     }
     CompositeTypes: {
@@ -357,12 +560,12 @@ export type Tables<
   DefaultSchemaTableNameOrOptions extends
     | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
         DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -386,11 +589,11 @@ export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -411,11 +614,11 @@ export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
     | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
-  TableName extends DefaultSchemaTableNameOrOptions extends {
+  TableName extends (DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -436,11 +639,11 @@ export type Enums<
   DefaultSchemaEnumNameOrOptions extends
     | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
-  EnumName extends DefaultSchemaEnumNameOrOptions extends {
+  EnumName extends (DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
-    : never = never,
+    : never) = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -453,11 +656,11 @@ export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
     | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
-  CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
+  CompositeTypeName extends (PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
     ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
-    : never = never,
+    : never) = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
@@ -469,6 +672,13 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      order_status: [
+        "PENDING_TRANSFER",
+        "AWAITING_REVIEW",
+        "SUCCESS",
+        "CANCELLED",
+        "EXPIRED",
+      ],
       payment_status: ["PENDING", "SUCCESS", "EXPIRED", "CANCELLED"],
       review_type: ["AI", "HUNG"],
       skill_level: ["BEGINNER", "INTERMEDIATE", "ADVANCED"],
@@ -480,6 +690,7 @@ export const Constants = {
         "COMPLETED",
         "FAILED",
       ],
+      telegram_notification_status: ["PENDING", "SENT", "FAILED"],
       transaction_type: ["PURCHASE", "SPEND", "REFUND", "STARTER_BONUS"],
     },
   },
