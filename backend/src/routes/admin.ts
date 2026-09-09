@@ -4,6 +4,7 @@ import type { AuthVars } from '@/middleware/auth'
 import { isAdminMiddleware } from '@/middleware/isAdmin'
 import { gradingRequestSchema } from '@/schema/grading'
 import { AppError, ZodParseError } from '@/lib/errors'
+import { PG_ERRCODE, mapPgError } from '@/lib/pg-errors'
 import { createServiceClient } from '@/lib/supabase'
 import { getPublicUrl } from '@/services/r2'
 import { trackEvent } from '@/lib/metrics'
@@ -205,16 +206,18 @@ adminRouter.post('/queue/:id/review', isAdminMiddleware, async (c) => {
   })
 
   if (error) {
-    console.error('admin_submit_review RPC error:', error)
-
-    switch (error.code) {
-      case 'P0002':
-        throw new AppError('Submission not found', 404)
-      case '55000':
-        throw new AppError('Submission is not awaiting review', 409)
-      default:
-        throw new AppError('Failed to submit review', 500)
-    }
+    throw mapPgError(
+      error,
+      {
+        [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'Submission not found' },
+        [PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE]: {
+          status: 409,
+          message: 'Submission is not awaiting review',
+        },
+      },
+      'Failed to submit review',
+      'admin_submit_review',
+    )
   }
 
   trackEvent(c, 'admin.review.submit', {
