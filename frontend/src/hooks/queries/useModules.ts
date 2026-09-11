@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
+import { queryKeys } from '@/lib/queryKeys'
 import type { ModuleListResponse } from '@/types/modules'
 
 export async function getModules(): Promise<ModuleListResponse> {
@@ -8,7 +9,7 @@ export async function getModules(): Promise<ModuleListResponse> {
 
 export function useModules() {
   return useQuery<ModuleListResponse>({
-    queryKey: ['modules'],
+    queryKey: queryKeys.modules.lists(),
     queryFn: getModules,
     staleTime: 5 * 60 * 1000,
   })

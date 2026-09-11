@@ -13,7 +13,12 @@ import { PG_ERRCODE, mapPgError, type PgErrorMapping } from '@/lib/pg-errors'
 import type { CreateOrderInput } from '@/schema/payment'
 
 type PaymentOrderRow = Database['public']['Tables']['payment_orders']['Row']
-type PaymentOrderEffectiveRow = Database['public']['Views']['payment_orders_effective']['Row']
+type OrderStatus = Database['public']['Enums']['order_status']
+
+// The generated view Row marks every column nullable (views carry no
+// constraints). The underlying table enforces NOT NULL, so the table Row is
+// the truthful nullability — combine it with the view's effective_status.
+export type EffectiveOrder = PaymentOrderRow & { effective_status: OrderStatus | null }
 
 /** Outcomes for create_manual_payment_order errors, keyed by SQLSTATE. */
 const CREATE_ORDER_ERRORS: PgErrorMapping = {
@@ -113,7 +118,7 @@ export async function getOrderByUser(
   supabase: SupabaseClient<Database>,
   userId: string,
   orderId: string,
-): Promise<PaymentOrderEffectiveRow> {
+): Promise<EffectiveOrder> {
   const { data, error } = await supabase
     .from('payment_orders_effective')
     .select('*')
@@ -133,7 +138,9 @@ export async function getOrderByUser(
   }
 
   //good data, return to user
-  return data
+  // Cast: the generated view Row over-nullifies every column; the table's
+  // NOT NULL constraints are the real guarantee.
+  return data as unknown as EffectiveOrder
 }
 
 /**

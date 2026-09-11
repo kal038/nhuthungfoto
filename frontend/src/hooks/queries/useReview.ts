@@ -1,6 +1,7 @@
 import { useAuthQuery } from '@/hooks/useAuthQuery'
 import { apiFetch } from '@/lib/apiFetch'
 import { ApiError } from '@/lib/errors'
+import { queryKeys } from '@/lib/queryKeys'
 import type { CategoryScores } from '@/lib/grading'
 
 /** GET /v1/submissions/:id/review response */
@@ -23,7 +24,7 @@ async function fetchReview(submissionId: string): Promise<SubmissionReview> {
  */
 export function useReview(submissionId: string, enabled: boolean) {
   return useAuthQuery<SubmissionReview>({
-    queryKey: ['submissions', 'review', submissionId],
+    queryKey: queryKeys.submissions.review(submissionId),
     queryFn: () => fetchReview(submissionId),
     enabled: enabled && !!submissionId,
     staleTime: 5 * 60 * 1000,

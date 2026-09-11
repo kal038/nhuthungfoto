@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
+import { queryKeys } from '@/lib/queryKeys'
 
 export interface GradeSubmissionInput {
   submissionId: string
@@ -39,11 +40,11 @@ export function useGradeSubmissionMutation() {
     mutationFn: gradeSubmission,
     onSuccess: (data) => {
       // Update balance cache immediately
-      queryClient.setQueryData(['credits', 'balance'], data.newBalance)
+      queryClient.setQueryData(queryKeys.credits.balance(), data.newBalance)
 
       // Invalidate history and submissions for refetch
-      queryClient.invalidateQueries({ queryKey: ['credits', 'history'] })
-      queryClient.invalidateQueries({ queryKey: ['submissions'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.credits.histories() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.submissions.all })
     },
   })
 }

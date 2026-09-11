@@ -84,7 +84,7 @@ directly with a `/10` label.
 ## Design notes
 
 - **Render-time navigation**: `grade.$id` computes `prevId`/`nextId` once per id
-  from the cached queue via `queryClient.getQueryData(['admin','queue'])`. After
+  from the cached queue via `queryClient.getQueryData(queryKeys.admin.queue())`. After
   submit the mutation invalidates that cache — re-reading post-submit would race
   the refetch, so navigation uses the precomputed value only.
 - **Double-submit protection**: backend RPC locks the submission row; a second
