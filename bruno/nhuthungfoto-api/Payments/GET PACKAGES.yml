@@ -1,0 +1,27 @@
+info:
+  name: GET PACKAGES
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8787/v1/payments/packages
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        const ids = data.packages.map(p => p.id).sort();
+        expect(ids).to.eql(["practice", "progress", "trial"]);
+        expect(data.packages.find(p => p.id === "practice").amountVnd).to.equal(349000);
+        expect(data.packages.find(p => p.id === "practice").credits).to.equal(12);
+        expect(data.packages.find(p => p.id === "practice").isPopular).to.equal(true);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
