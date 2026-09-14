@@ -7,22 +7,18 @@ http:
   method: POST
   url: http://localhost:8787/v1/payments
   auth: inherit
+  # Re-sends the SAME clientRequestId as POST CREATE ORDER.
+  # Same key -> same order (idempotent reuse). Run right after POST CREATE ORDER.
   body:
     type: json
     data: |-
       {
         "packageId": "practice",
-        "clientRequestId": "{{clientRequestId}}"
+        "clientRequestId": "bruno-idem-001"
       }
 
 runtime:
   scripts:
-    - type: pre-request
-      code: |-
-        // No fresh key — re-send the SAME key as POST CREATE ORDER.
-        if (!bru.getVar("clientRequestId")) {
-          bru.setVar("clientRequestId", "bruno-fallback");
-        }
     - type: after-response
       code: |-
         expect(res.getStatus()).to.equal(200);

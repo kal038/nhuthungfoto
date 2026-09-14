@@ -7,21 +7,19 @@ http:
   method: POST
   url: http://localhost:8787/v1/payments
   auth: inherit
+  # Fixed clientRequestId = the idempotency key (client owns it; same key -> same order).
+  # To test a truly fresh order after the previous one reached a terminal state
+  # (SUCCESS/CANCELLED/EXPIRED), bump to bruno-idem-002, -003, ...
   body:
     type: json
     data: |-
       {
         "packageId": "practice",
-        "clientRequestId": "{{clientRequestId}}"
+        "clientRequestId": "bruno-idem-001"
       }
 
 runtime:
   scripts:
-    - type: pre-request
-      code: |-
-        // Fresh key per run so this test always attempts a new order.
-        // If user already has an active order, backend returns that one instead (per-user cap).
-        bru.setVar("clientRequestId", "bruno-" + Date.now().toString(36));
     - type: after-response
       code: |-
         expect(res.getStatus()).to.equal(200);
