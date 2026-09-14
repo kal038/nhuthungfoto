@@ -1,0 +1,38 @@
+info:
+  name: GET SUBMISSION REVIEW
+  type: http
+  seq: 2
+
+http:
+  method: GET
+  url: http://localhost:8787/v1/submissions/{{submissionId}}/review
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: pre-request
+      code: |-
+        // Fallback: if GET MY SUBMISSIONS hasn't run, use a harmless dummy UUID.
+        if (!bru.getVar("submissionId")) {
+          bru.setVar("submissionId", "00000000-0000-0000-0000-000000000000");
+          bru.setVar("submissionStatus", "UNKNOWN");
+        }
+    - type: after-response
+      code: |-
+        const data = res.getBody();
+        if (res.getStatus() === 200) {
+          // Only reachable when the submission's status is COMPLETED
+          expect(bru.getVar("submissionStatus")).to.equal("COMPLETED");
+          expect(data.submissionId).to.equal(bru.getVar("submissionId"));
+          expect(data.reviewedAt).to.be.a("string");
+          expect(data).to.have.property("overallScore");
+        } else {
+          // Not completed yet / not found / not owned by this user -> 404
+          expect(res.getStatus()).to.equal(404);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -10,6 +10,7 @@ import { ModuleMarkdown } from './ModuleMarkdown'
 import { ModuleSubmissions } from './ModuleSubmissions'
 import { PhotoUploadContainer } from '@/components/features/upload/PhotoUploadContainer'
 import { GradeConfirmDialog } from '@/components/features/credits/GradeConfirmDialog'
+import { queryKeys } from '@/lib/queryKeys'
 
 const levelLabelMap: Record<string, string> = {
   BEGINNER: 'Cơ bản',
@@ -40,8 +41,8 @@ export function ModuleDetail({ module }: ModuleDetailProps) {
   }, [])
 
   const handleUploadComplete = (results?: UploadQueueResult[]) => {
-    queryClient.invalidateQueries({ queryKey: ['submissions'] })
-    
+    queryClient.invalidateQueries({ queryKey: queryKeys.submissions.all })
+
     // Find the first successful upload and prompt for grading
     if (results && results.length > 0) {
       const firstSuccess = results.find((r) => r.status === 'success' && r.submissionId)

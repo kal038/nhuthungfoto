@@ -1,22 +1,18 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import type { Database, Json } from '@/types/database.types'
 import { AppError } from '@/lib/errors'
+import { PG_ERRCODE, mapPgError, type PgErrorMapping } from '@/lib/pg-errors'
 
 type TransactionType = Database['public']['Enums']['transaction_type']
 type ReviewType = Database['public']['Enums']['review_type']
 
-/**
- * PostgreSQL SQLSTATE codes raised by the credit RPCs / unique constraint.
- * https://www.postgresql.org/docs/current/errcodes-appendix.html
- */
-const PG_ERRCODE = {
-  UNIQUE_VIOLATION: '23505', // idempotency key collision on credit_history
-  CHECK_VIOLATION: '23514', // raised by spend_credits when balance < amount
-  INVALID_PARAMETER_VALUE: '22023', // non-positive amount
-  INSUFFICIENT_PRIVILEGE: '42501', // caller not allowed to act on this user
-  NO_DATA_FOUND: 'P0002', // user not found
-  OBJECT_NOT_IN_PREREQUISITE_STATE: '55000', // submission not in UPLOADED
-} as const
+/** Outcomes shared by all credit RPCs. Each RPC overrides NO_DATA_FOUND as needed. */
+const CREDIT_RPC_ERRORS: PgErrorMapping = {
+  [PG_ERRCODE.CHECK_VIOLATION]: { status: 402, message: 'Insufficient credits' },
+  [PG_ERRCODE.UNIQUE_VIOLATION]: { status: 409, message: 'Request already processed' },
+  [PG_ERRCODE.INSUFFICIENT_PRIVILEGE]: { status: 403, message: 'Unauthorized' },
+  [PG_ERRCODE.INVALID_PARAMETER_VALUE]: { status: 400, message: 'Amount must be positive' },
+}
 
 export interface CreditHistoryEntry {
   id: string
@@ -97,20 +93,7 @@ export async function spendCredits(
   })
 
   if (error) {
-    console.error('spend_credits RPC error:', error)
-
-    switch (error.code) {
-      case PG_ERRCODE.CHECK_VIOLATION:
-        throw new AppError('Insufficient credits', 402)
-      case PG_ERRCODE.UNIQUE_VIOLATION:
-        throw new AppError('Request already processed', 409)
-      case PG_ERRCODE.INSUFFICIENT_PRIVILEGE:
-        throw new AppError('Unauthorized', 403)
-      case PG_ERRCODE.INVALID_PARAMETER_VALUE:
-        throw new AppError('Amount must be positive', 400)
-      default:
-        throw new AppError('Failed to spend credits', 500)
-    }
+    throw mapPgError(error, CREDIT_RPC_ERRORS, 'Failed to spend credits', 'spend_credits')
   }
 
   return data as number
@@ -139,20 +122,12 @@ export async function addCredits(
   })
 
   if (error) {
-    console.error('add_credits RPC error:', error)
-
-    switch (error.code) {
-      case PG_ERRCODE.INSUFFICIENT_PRIVILEGE:
-        throw new AppError('Unauthorized', 403)
-      case PG_ERRCODE.INVALID_PARAMETER_VALUE:
-        throw new AppError('Amount must be positive', 400)
-      case PG_ERRCODE.NO_DATA_FOUND:
-        throw new AppError('User not found', 404)
-      case PG_ERRCODE.UNIQUE_VIOLATION:
-        throw new AppError('Request already processed', 409)
-      default:
-        throw new AppError('Failed to add credits', 500)
-    }
+    throw mapPgError(
+      error,
+      { ...CREDIT_RPC_ERRORS, [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'User not found' } },
+      'Failed to add credits',
+      'add_credits',
+    )
   }
 
   return data as number
@@ -187,24 +162,19 @@ export async function spendAndStartGrading(
   })
 
   if (error) {
-    console.error('spend_and_start_grading RPC error:', error)
-
-    switch (error.code) {
-      case PG_ERRCODE.CHECK_VIOLATION:
-        throw new AppError('Insufficient credits', 402)
-      case PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE:
-        throw new AppError('Submission cannot be graded in its current status', 409)
-      case PG_ERRCODE.UNIQUE_VIOLATION:
-        throw new AppError('Request already processed', 409)
-      case PG_ERRCODE.NO_DATA_FOUND:
-        throw new AppError('Submission not found', 404)
-      case PG_ERRCODE.INSUFFICIENT_PRIVILEGE:
-        throw new AppError('Unauthorized', 403)
-      case PG_ERRCODE.INVALID_PARAMETER_VALUE:
-        throw new AppError('Amount must be positive', 400)
-      default:
-        throw new AppError('Failed to start grading', 500)
-    }
+    throw mapPgError(
+      error,
+      {
+        ...CREDIT_RPC_ERRORS,
+        [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'Submission not found' },
+        [PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE]: {
+          status: 409,
+          message: 'Submission cannot be graded in its current status',
+        },
+      },
+      'Failed to start grading',
+      'spend_and_start_grading',
+    )
   }
 
   return data as number

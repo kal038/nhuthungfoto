@@ -1,0 +1,22 @@
+info:
+  name: POST CANCEL - NOT IMPLEMENTED
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/payments/{{orderId}}/cancel
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Lifecycle RPC not shipped yet
+        expect(res.getStatus()).to.equal(501);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
+import { queryKeys } from '@/lib/queryKeys'
 import type { UserProfile } from '@/hooks/queries/useUserProfile'
 
 interface UpdateProfileBody {
@@ -18,7 +19,7 @@ export function useUpdateProfileMutation() {
     mutationFn: updateProfile,
     onSuccess: () => {
       // Invalidate the profile query so it refetches
-      queryClient.invalidateQueries({ queryKey: ['user-profile'] })
+      queryClient.invalidateQueries({ queryKey: queryKeys.profiles.current() })
     },
   })
 }

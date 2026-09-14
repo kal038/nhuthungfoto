@@ -1,0 +1,22 @@
+info:
+  name: GET ORDER STATUS - ERROR
+  type: http
+  seq: 6
+
+http:
+  method: GET
+  url: http://localhost:8787/v1/payments/not-a-uuid/status
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Invalid UUID -> ZodParseError -> 400
+        expect(res.getStatus()).to.equal(400);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

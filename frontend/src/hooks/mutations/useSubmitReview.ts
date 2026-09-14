@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
+import { queryKeys } from '@/lib/queryKeys'
 import type { CategoryScores } from '@/lib/grading'
 import type { AdminQueueResponse } from '@/hooks/queries/useAdminQueue'
 
@@ -48,7 +49,7 @@ export function useSubmitReviewMutation() {
     onSuccess: (_data, variables) => {
       // Drop the just-graded submission from the cached queue before the
       // invalidation refetch replaces it with the server view.
-      queryClient.setQueryData<AdminQueueResponse>(['admin', 'queue'], (cached) => {
+      queryClient.setQueryData<AdminQueueResponse>(queryKeys.admin.queue(), (cached) => {
         if (!cached) return cached
         return {
           ...cached,
@@ -56,8 +57,8 @@ export function useSubmitReviewMutation() {
           total: Math.max(0, cached.total - 1),
         }
       })
-      queryClient.invalidateQueries({ queryKey: ['admin', 'queue'] })
-      queryClient.invalidateQueries({ queryKey: ['submissions'] }) //to be removed in next iteration bc admin does not have submissions
+      queryClient.invalidateQueries({ queryKey: queryKeys.admin.queue() })
+      queryClient.invalidateQueries({ queryKey: queryKeys.submissions.all }) //to be removed in next iteration bc admin does not have submissions
     },
   })
 }

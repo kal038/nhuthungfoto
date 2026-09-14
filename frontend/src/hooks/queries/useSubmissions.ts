@@ -1,5 +1,6 @@
 import { useAuthQuery } from '@/hooks/useAuthQuery'
 import { apiFetch } from '@/lib/apiFetch'
+import { queryKeys } from '@/lib/queryKeys'
 
 export interface Submission {
   id: string
@@ -18,7 +19,7 @@ export async function getSubmissions(): Promise<Submission[]> {
 
 export function useSubmissions() {
   return useAuthQuery<Submission[]>({
-    queryKey: ['submissions'],
+    queryKey: queryKeys.submissions.lists(),
     queryFn: getSubmissions,
     staleTime: 5 * 60 * 1000,
     // Refresh when the user returns to the tab — grading takes hours, not

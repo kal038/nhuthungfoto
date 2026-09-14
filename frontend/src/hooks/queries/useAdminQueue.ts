@@ -1,6 +1,7 @@
 import { useAuthQuery } from '@/hooks/useAuthQuery'
 import { apiFetch } from '@/lib/apiFetch'
 import { ApiError } from '@/lib/errors'
+import { queryKeys } from '@/lib/queryKeys'
 
 /** Single item in the admin queue list — mirrors backend AdminSubmissionItem */
 export interface AdminSubmissionItem {
@@ -47,7 +48,7 @@ async function fetchAdminSubmission(id: string): Promise<AdminSubmissionDetail> 
 
 export function useAdminQueue() {
   return useAuthQuery<AdminQueueResponse>({
-    queryKey: ['admin', 'queue'],
+    queryKey: queryKeys.admin.queue(),
     queryFn: fetchAdminQueue,
     staleTime: 30 * 1000, // queue is time-sensitive
   })
@@ -55,7 +56,7 @@ export function useAdminQueue() {
 
 export function useAdminSubmission(id: string) {
   return useAuthQuery<AdminSubmissionDetail>({
-    queryKey: ['admin', 'queue', id],
+    queryKey: queryKeys.admin.submission(id),
     queryFn: () => fetchAdminSubmission(id),
     enabled: !!id,
     retry: (count, error) => {

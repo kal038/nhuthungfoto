@@ -1,0 +1,37 @@
+info:
+  name: LOG IN
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: https://jlrmdjczvbnoutcoqhnc.supabase.co/auth/v1/token?grant_type=password
+  headers:
+    - name: apikey
+      value: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Impscm1kamN6dmJub3V0Y29xaG5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzMzOTU4OTksImV4cCI6MjA4ODk3MTg5OX0.xbT09wcO34oD4MqL-rZ6NG0NLGNSVVQT8-ZF9MQ0LOQ
+  params:
+    - name: grant_type
+      value: password
+      type: query
+  body:
+    type: json
+    data: |-
+      {
+        "email": "testname@test.com",
+        "password": "12345678"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        let data = res.getBody();
+        if (data.access_token) {
+          bru.setVar("jwt", data.access_token);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

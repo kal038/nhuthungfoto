@@ -1,0 +1,42 @@
+info:
+  name: POST CREATE ORDER
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/payments
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "packageId": "practice",
+        "clientRequestId": "{{clientRequestId}}"
+      }
+
+runtime:
+  scripts:
+    - type: pre-request
+      code: |-
+        // Fresh key per run so this test always attempts a new order.
+        // If user already has an active order, backend returns that one instead (per-user cap).
+        bru.setVar("clientRequestId", "bruno-" + Date.now().toString(36));
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.status).to.equal("PENDING_TRANSFER");
+        expect(data.packageId).to.equal("practice");
+        expect(data.amountVnd).to.equal(349000);
+        expect(data.creditAmount).to.equal(12);
+        expect(data.qrUrl).to.include("https");
+        expect(data.transferMessage).to.equal(data.orderCode);
+        // Save for reuse + status + confirm/cancel tests
+        bru.setVar("orderId", data.id);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
