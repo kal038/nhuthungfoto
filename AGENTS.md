@@ -1,6 +1,7 @@
 # Agent guidance
 
-For UI work, read `.agent/design-system/nhuthungfoto/MASTER.md`.
+For UI work, read `docs/design`.
+For the payments system, read `docs/payments/` (state machine, RPC reference, security posture); design rationale lives in `docs/adr/`.
 
 # Payments model
 
