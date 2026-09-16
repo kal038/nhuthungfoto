@@ -469,6 +469,64 @@ export type Database = {
         }
         Returns: undefined
       }
+      cancel_manual_payment_order: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      confirm_manual_payment_order: {
+        Args: { p_order_id: string; p_user_id: string }
+        Returns: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       create_manual_payment_order: {
         Args: {
           p_client_request_id: string
