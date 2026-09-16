@@ -88,6 +88,7 @@ paymentsRouter.post('/', async (c) => {
 
   const { order, transferMessage, qrUrl } = await createOrder(supabase, userId, parsed.data)
 
+  //read own write just now
   const response: CreateOrderResponse = {
     id: order.id,
     orderCode: order.order_code,
@@ -153,4 +154,3 @@ paymentsRouter.post('/:orderId/cancel', (c) => {
 })
 
 export { paymentsRouter }
-

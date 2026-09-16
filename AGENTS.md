@@ -16,6 +16,13 @@ Two distinct tables — do not conflate them:
 - User/UI/admin/status reads → `SELECT ... FROM payment_orders_effective` — never raw `payment_orders.status`.
 - `effective_status` = `status`, except `PENDING_TRANSFER` past `expires_at` = `EXPIRED`.
 - Writes keep going through the RPCs (`create_manual_payment_order`, lifecycle, grant) — they apply the deadline guard internally. Do not add new direct writes to `payment_orders`.
+- **Enforced in code** (`backend/eslint.config.js`): raw `payment_orders` reads are banned (`no-restricted-syntax`), and `payment_orders_effective` reads must chain `.eq('user_id', …)` (`local/scope-order-read-by-user`) — `service_role` bypasses RLS, so the DB does not enforce ownership.
+
+## SQL security posture — functions DEFINER, view INVOKER, only service_role gets to call
+
+- **All RPCs = `SECURITY DEFINER`** (run as owner): the caller-independent **write gate**. The escalation is paid for with pinned `SET search_path = public, pg_temp`, `REVOKE EXECUTE FROM PUBLIC` (grant `service_role` only), and ownership/state guards inside the body.
+- **`payment_orders_effective` = `security_invoker = true`** (runs as caller): it is a **read surface**, not a gate — no params, no guards. Owner rights would bypass RLS and leak every user's rows, so never remove `security_invoker`.
+- Only `service_role` may call the RPCs or read the view; table DML is revoked from `anon`/`authenticated` and RLS is enabled with no policies (deny-all backstop). Ownership scoping is therefore application-level, not DB-enforced.
 
 ## payment_orders indexes (created in `20260902000001`)
 
@@ -79,3 +86,15 @@ stateDiagram-v2
         User may create another order
     end note
 ```
+
+## RPC transitions (implemented today)
+
+Only three RPCs write `payment_orders`; all `service_role`-only, `SECURITY DEFINER`.
+
+| RPC | Can move | Notes |
+|---|---|---|
+| `create_manual_payment_order` | — → `PENDING_TRANSFER`; `PENDING_TRANSFER` → `EXPIRED` | PENDING→EXPIRED = stale sweep for the caller (step 2), same `now()` as the view |
+| `confirm_manual_payment_order` | `PENDING_TRANSFER` → `AWAITING_REVIEW` | past deadline: 409, **no write** (uncaught `RAISE` rolls back) |
+| `cancel_manual_payment_order` | `PENDING_TRANSFER` → `CANCELLED` \| `EXPIRED` | past deadline: materializes `EXPIRED` and returns (no `RAISE`, so it persists) |
+
+**Not shipped:** `AWAITING_REVIEW` → `SUCCESS` (admin approve + grant) and → `CANCELLED` (admin reject). Until they land, `AWAITING_REVIEW` is enter-only (no RPC moves an order out of it).
