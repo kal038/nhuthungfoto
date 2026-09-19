@@ -1,5 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
-import { createOrder, generateOrderCode, getOrderByUser } from '@/services/payments'
+import {
+  cancelOrder,
+  confirmOrder,
+  createOrder,
+  generateOrderCode,
+  getOrderByUser,
+} from '@/services/payments'
 import { ORDER_CODE_ALPHABET } from '@/config/payment'
 
 const fakeOrderRow = {
@@ -150,6 +156,98 @@ describe('getOrderByUser', () => {
     maybeSingle.mockResolvedValue({ data: null, error: { code: 'XX000', message: 'boom' } })
 
     await expect(getOrderByUser(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
+      status: 500,
+    })
+  })
+})
+
+describe('confirmOrder', () => {
+  const rpc = vi.fn()
+  const supabase = { rpc } as never
+
+  beforeEach(() => {
+    rpc.mockReset()
+  })
+
+  it('calls the RPC with owner scoping and returns the moved order', async () => {
+    const moved = { ...fakeOrderRow, status: 'AWAITING_REVIEW' as const, confirmed_at: null }
+    rpc.mockResolvedValue({ data: moved, error: null })
+
+    const result = await confirmOrder(supabase, 'user-1', 'order-1')
+
+    expect(rpc).toHaveBeenCalledWith('confirm_manual_payment_order', {
+      p_user_id: 'user-1',
+      p_order_id: 'order-1',
+    })
+    expect(result).toEqual(moved)
+  })
+
+  it('maps no_data_found to 404', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'P0002', message: 'not found' } })
+
+    await expect(confirmOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('maps wrong-state / deadline-miss to 409', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: '55000', message: 'bad state' } })
+
+    await expect(confirmOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
+      status: 409,
+    })
+  })
+
+  it('throws 500 when the RPC returns no order', async () => {
+    rpc.mockResolvedValue({ data: null, error: null })
+
+    await expect(confirmOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
+      status: 500,
+    })
+  })
+})
+
+describe('cancelOrder', () => {
+  const rpc = vi.fn()
+  const supabase = { rpc } as never
+
+  beforeEach(() => {
+    rpc.mockReset()
+  })
+
+  it('calls the RPC with owner scoping and returns the cancelled order', async () => {
+    const cancelled = { ...fakeOrderRow, status: 'CANCELLED' as const, resolved_at: null }
+    rpc.mockResolvedValue({ data: cancelled, error: null })
+
+    const result = await cancelOrder(supabase, 'user-1', 'order-1')
+
+    expect(rpc).toHaveBeenCalledWith('cancel_manual_payment_order', {
+      p_user_id: 'user-1',
+      p_order_id: 'order-1',
+    })
+    expect(result).toEqual(cancelled)
+  })
+
+  it('maps no_data_found to 404', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'P0002', message: 'not found' } })
+
+    await expect(cancelOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('maps AWAITING_REVIEW rejection to 409', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: '55000', message: 'awaiting review' } })
+
+    await expect(cancelOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
+      status: 409,
+    })
+  })
+
+  it('throws 500 when the RPC returns no order', async () => {
+    rpc.mockResolvedValue({ data: null, error: null })
+
+    await expect(cancelOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
       status: 500,
     })
   })

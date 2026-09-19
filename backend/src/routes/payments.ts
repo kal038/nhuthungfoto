@@ -1,15 +1,16 @@
 import { Hono } from 'hono'
 import { getEnabledPaymentPackages } from '@/config/payment-packages'
 import { buildVietQrUrl } from '@/config/payment'
-import { createOrder, getOrderByUser } from '@/services/payments'
+import { cancelOrder, confirmOrder, createOrder, getOrderByUser } from '@/services/payments'
 import { createOrderRequestSchema, orderIdParamsSchema } from '@/schema/payment'
 import { createServiceClient } from '@/lib/supabase'
-import { AppError, ZodParseError } from '@/lib/errors'
+import { ZodParseError } from '@/lib/errors'
 import type { AuthVars } from '@/middleware/auth'
 import type { Env } from '@/types/env'
 import type { Database } from '@/types/database.types'
 
 type OrderStatus = Database['public']['Enums']['order_status']
+type PaymentOrderRow = Database['public']['Tables']['payment_orders']['Row']
 
 // --- Response types (mirror these on the frontend) ---
 
@@ -25,36 +26,61 @@ export interface PaymentPackagesResponse {
   packages: PaymentPackageListItem[]
 }
 
-/** POST /v1/payments response */
+/**
+ * POST /v1/payments response.
+ * API casing = snake_case, matching the DB and /credits/* endpoints.
+ */
 export interface CreateOrderResponse {
   id: string
-  orderCode: string
-  packageId: string
-  packageLabel: string
-  creditAmount: number
-  amountVnd: number
+  order_code: string
+  package_id: string
+  package_label: string
+  credit_amount: number
+  amount_vnd: number
   status: OrderStatus
-  expiresAt: string
-  transferMessage: string
-  qrUrl: string
+  expires_at: string
+  transfer_message: string
+  qr_url: string
 }
 
 /** GET /v1/payments/:orderId/status response */
 export interface OrderStatusResponse {
   id: string
-  orderCode: string
+  order_code: string
   status: OrderStatus // deadline-aware (from payment_orders_effective)
-  packageLabel: string
-  creditAmount: number
-  amountVnd: number
-  confirmedAt: string | null
-  expiresAt: string
-  resolvedAt: string | null
-  transferMessage: string
-  qrUrl: string
+  package_label: string
+  credit_amount: number
+  amount_vnd: number
+  confirmed_at: string | null
+  expires_at: string
+  resolved_at: string | null
+  transfer_message: string
+  qr_url: string
 }
 
 const paymentsRouter = new Hono<{ Bindings: Env; Variables: { user: AuthVars } }>()
+
+/**
+ * Shared read-your-write response for status / confirm / cancel.
+ * `status` is passed explicitly: the effective view supplies the deadline-aware
+ * status for reads, while lifecycle RPCs return the row they just wrote.
+ */
+function toOrderStatusResponse(order: PaymentOrderRow, status: OrderStatus): OrderStatusResponse {
+  return {
+    id: order.id,
+    order_code: order.order_code,
+    status,
+    package_label: order.package_label,
+    credit_amount: order.credit_amount,
+    amount_vnd: order.amount_vnd,
+    confirmed_at: order.confirmed_at,
+    expires_at: order.expires_at,
+    resolved_at: order.resolved_at,
+    // Recomputed server-side so the QR never disappears mid-flow.
+    transfer_message: order.order_code,
+    qr_url: buildVietQrUrl(order.amount_vnd, order.order_code),
+  }
+}
 
 // GET /v1/payments/packages — enabled server-owned credit packages
 paymentsRouter.get('/packages', (c) => {
@@ -91,15 +117,15 @@ paymentsRouter.post('/', async (c) => {
   //read own write just now
   const response: CreateOrderResponse = {
     id: order.id,
-    orderCode: order.order_code,
-    packageId: order.package_id,
-    packageLabel: order.package_label,
-    creditAmount: order.credit_amount,
-    amountVnd: order.amount_vnd,
+    order_code: order.order_code,
+    package_id: order.package_id,
+    package_label: order.package_label,
+    credit_amount: order.credit_amount,
+    amount_vnd: order.amount_vnd,
     status: order.status,
-    expiresAt: order.expires_at,
-    transferMessage,
-    qrUrl,
+    expires_at: order.expires_at,
+    transfer_message: transferMessage,
+    qr_url: qrUrl,
   }
   return c.json(response, 200)
 })
@@ -116,41 +142,39 @@ paymentsRouter.get('/:orderId/status', async (c) => {
 
   const order = await getOrderByUser(supabase, userId, parsed.data.orderId)
 
-  const response: OrderStatusResponse = {
-    id: order.id,
-    orderCode: order.order_code,
-    status: order.effective_status ?? order.status,
-    packageLabel: order.package_label,
-    creditAmount: order.credit_amount,
-    amountVnd: order.amount_vnd,
-    confirmedAt: order.confirmed_at,
-    expiresAt: order.expires_at,
-    resolvedAt: order.resolved_at,
-    // Recomputed server-side so the QR never disappears mid-flow.
-    transferMessage: order.order_code,
-    qrUrl: buildVietQrUrl(order.amount_vnd, order.order_code),
-  }
-  return c.json(response, 200)
+  return c.json(toOrderStatusResponse(order, order.effective_status ?? order.status), 200)
 })
 
-// POST /v1/payments/:orderId/confirm — customer confirms the bank transfer.
-// Wired now; lifecycle RPC not shipped yet.
-paymentsRouter.post('/:orderId/confirm', (c) => {
+// POST /v1/payments/:orderId/confirm — customer confirms the bank transfer
+// PENDING_TRANSFER -> AWAITING_REVIEW (idempotent on repeat)
+paymentsRouter.post('/:orderId/confirm', async (c) => {
+  const userId = c.get('user').id
+  const supabase = createServiceClient(c.env)
+
   const parsed = orderIdParamsSchema.safeParse({ orderId: c.req.param('orderId') })
   if (!parsed.success) {
     throw new ZodParseError('Invalid order id')
   }
-  throw new AppError('Order confirmation will be available once lifecycle RPCs ship', 501)
+
+  const order = await confirmOrder(supabase, userId, parsed.data.orderId)
+
+  return c.json(toOrderStatusResponse(order, order.status), 200)
 })
 
-// POST /v1/payments/:orderId/cancel — customer cancels a pending transfer.
-// Wired now; lifecycle RPC not shipped yet.
-paymentsRouter.post('/:orderId/cancel', (c) => {
+// POST /v1/payments/:orderId/cancel — customer cancels a pending transfer
+// PENDING_TRANSFER -> CANCELLED | EXPIRED (terminal states are idempotent no-ops)
+paymentsRouter.post('/:orderId/cancel', async (c) => {
+  const userId = c.get('user').id
+  const supabase = createServiceClient(c.env)
+
   const parsed = orderIdParamsSchema.safeParse({ orderId: c.req.param('orderId') })
   if (!parsed.success) {
     throw new ZodParseError('Invalid order id')
   }
-  throw new AppError('Order cancellation will be available once lifecycle RPCs ship', 501)
+
+  const order = await cancelOrder(supabase, userId, parsed.data.orderId)
+
+  return c.json(toOrderStatusResponse(order, order.status), 200)
 })
 
 export { paymentsRouter }

@@ -25,15 +25,15 @@ export interface CreatePaymentIntentInput {
 /** Mirrors the backend CreateOrderResponse (routes/payments.ts). */
 export interface CreatePaymentIntentResult {
   id: string
-  orderCode: string
-  packageId: string
-  packageLabel: string
-  creditAmount: number
-  amountVnd: number
+  order_code: string
+  package_id: string
+  package_label: string
+  credit_amount: number
+  amount_vnd: number
   status: PaymentOrderStatus
-  expiresAt: string
-  transferMessage: string
-  qrUrl: string
+  expires_at: string
+  transfer_message: string
+  qr_url: string
 }
 
 async function createPaymentIntent(
@@ -66,8 +66,8 @@ export function useCreatePaymentIntentMutation() {
     onSuccess: (order) => {
       queryClient.setQueryData<PaymentStatusResult>(queryKeys.payments.status(order.id), {
         ...order,
-        confirmedAt: null, // not confirmed yet at creation
-        resolvedAt: null,
+        confirmed_at: null, // not confirmed yet at creation
+        resolved_at: null,
       })
     },
   })

@@ -143,26 +143,91 @@ export async function getOrderByUser(
   return data as unknown as EffectiveOrder
 }
 
-/**
- * Customer confirmation of a completed bank transfer.
- * Lifecycle RPC not shipped yet — placeholder to keep routes thin.
- */
-// export async function confirmOrder(
-//   _supabase: SupabaseClient<Database>,
-//   _userId: string,
-//   _orderId: string,
-// ): Promise<never> {
-//   throw new AppError('Order confirmation will be available once lifecycle RPCs ship', 501)
-// }
+/** Outcomes for confirm_manual_payment_order errors, keyed by SQLSTATE. */
+const CONFIRM_ORDER_ERRORS: PgErrorMapping = {
+  [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'Order not found' },
+  [PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE]: {
+    status: 409,
+    message: 'Order cannot be confirmed in its current state',
+  },
+  [PG_ERRCODE.INVALID_PARAMETER_VALUE]: { status: 400, message: 'Invalid order request' },
+}
+
+/** Outcomes for cancel_manual_payment_order errors, keyed by SQLSTATE. */
+const CANCEL_ORDER_ERRORS: PgErrorMapping = {
+  [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'Order not found' },
+  [PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE]: {
+    status: 409,
+    message: 'Order cannot be cancelled after it is awaiting review',
+  },
+  [PG_ERRCODE.INVALID_PARAMETER_VALUE]: { status: 400, message: 'Invalid order request' },
+}
 
 /**
- * Customer cancellation of a pending transfer order.
- * Lifecycle RPC not shipped yet — placeholder to keep routes thin.
+ * Customer confirmation that the bank transfer was sent.
+ * PENDING_TRANSFER -> AWAITING_REVIEW (idempotent re-confirm returns the row).
+ *
+ * @throws AppError(404) missing order or cross-user access
+ * @throws AppError(409) terminal state, or PENDING_TRANSFER past its deadline
  */
-// export async function cancelOrder(
-//   _supabase: SupabaseClient<Database>,
-//   _userId: string,
-//   _orderId: string,
-// ): Promise<never> {
-//   throw new AppError('Order cancellation will be available once lifecycle RPCs ship', 501)
-// }
+export async function confirmOrder(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  orderId: string,
+): Promise<PaymentOrderRow> {
+  const { data, error } = await supabase.rpc('confirm_manual_payment_order', {
+    p_user_id: userId,
+    p_order_id: orderId,
+  })
+
+  if (error) {
+    throw mapPgError(
+      error,
+      CONFIRM_ORDER_ERRORS,
+      'Failed to confirm payment order',
+      'confirm_manual_payment_order',
+    )
+  }
+
+  if (!data) {
+    console.error('confirm_manual_payment_order RPC returned no order')
+    throw new AppError('Failed to confirm payment order', 500)
+  }
+
+  return data
+}
+
+/**
+ * Customer cancellation before sending money.
+ * PENDING_TRANSFER -> CANCELLED; past deadline -> EXPIRED (materialized);
+ * terminal states return the row unchanged (idempotent no-op).
+ *
+ * @throws AppError(404) missing order or cross-user access
+ * @throws AppError(409) AWAITING_REVIEW (money already claimed; admin owns it)
+ */
+export async function cancelOrder(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+  orderId: string,
+): Promise<PaymentOrderRow> {
+  const { data, error } = await supabase.rpc('cancel_manual_payment_order', {
+    p_user_id: userId,
+    p_order_id: orderId,
+  })
+
+  if (error) {
+    throw mapPgError(
+      error,
+      CANCEL_ORDER_ERRORS,
+      'Failed to cancel payment order',
+      'cancel_manual_payment_order',
+    )
+  }
+
+  if (!data) {
+    console.error('cancel_manual_payment_order RPC returned no order')
+    throw new AppError('Failed to cancel payment order', 500)
+  }
+
+  return data
+}

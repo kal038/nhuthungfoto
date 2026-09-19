@@ -8,16 +8,16 @@ import type { PaymentOrderStatus } from '@/hooks/mutations/useCreatePaymentInten
 /** Mirrors the backend OrderStatusResponse (routes/payments.ts). */
 export interface PaymentStatusResult {
   id: string
-  orderCode: string
+  order_code: string
   status: PaymentOrderStatus
-  packageLabel: string
-  creditAmount: number
-  amountVnd: number
-  confirmedAt: string | null
-  expiresAt: string
-  resolvedAt: string | null
-  transferMessage: string
-  qrUrl: string
+  package_label: string
+  credit_amount: number
+  amount_vnd: number
+  confirmed_at: string | null
+  expires_at: string
+  resolved_at: string | null
+  transfer_message: string
+  qr_url: string
 }
 
 const TERMINAL_STATUSES: readonly PaymentOrderStatus[] = [
