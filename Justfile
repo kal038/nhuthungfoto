@@ -23,6 +23,11 @@ ui:
 server:
     cd backend && npm run dev
 
+# Start backend fully local - no Cloudflare auth, remote bindings disabled (http://localhost:8787)
+
+server-local:
+    cd backend && npx wrangler dev --env dev --local
+
 # Start full stack (frontend + backend)
 
 up: install
