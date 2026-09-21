@@ -16,6 +16,7 @@ import { galleryRouter } from './routes/gallery'
 import { profileRouter } from './routes/profile'
 import { authRouter } from './routes/auth'
 import { paymentsRouter } from './routes/payments'
+import { HTTPException } from 'hono/http-exception'
 import { AppError } from './lib/errors'
 import { sentry } from '@sentry/hono/cloudflare'
 
@@ -39,12 +40,17 @@ app.use('*', myRateLimiter)
 app.use('*', secureHeaders())
 
 app.onError((err, c) => {
-  console.error(err)
+  if (err instanceof HTTPException) {
+    if (err.status >= 500) console.error(err)
+    return err.getResponse()
+  }
 
   if (err instanceof AppError) {
+    if (err.status >= 500) console.error(err)
     return c.json({ error: err.message }, err.status as ContentfulStatusCode)
   }
 
+  console.error(err)
   return c.json({ error: 'Internal Server Error' }, 500)
 })
 
