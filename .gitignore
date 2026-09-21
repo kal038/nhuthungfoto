@@ -47,8 +47,6 @@ docs/antigravity-brain
 .claude
 .mcp.json
 
-#TODO files
-*.todo
 
 #Justfile and Makefile
 Justfile
