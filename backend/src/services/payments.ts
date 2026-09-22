@@ -6,7 +6,6 @@ import {
   ORDER_CODE_ALPHABET,
   ORDER_CODE_LENGTH,
   PAYMENT_EXPIRY_MINUTES,
-  buildVietQrUrl,
 } from '@/config/payment'
 import { AppError } from '@/lib/errors'
 import { PG_ERRCODE, mapPgError, type PgErrorMapping } from '@/lib/pg-errors'
@@ -38,13 +37,6 @@ type PackageSnapshot = {
   amountVnd: number
 }
 
-/** Order + everything the customer needs to pay for it. */
-export interface CreatedOrderResponse {
-  order: PaymentOrderRow
-  transferMessage: string
-  qrUrl: string
-}
-
 // Unbiased random 7-char order code from nanoid (rejection-samples internally).
 export const generateOrderCode = customAlphabet(ORDER_CODE_ALPHABET, ORDER_CODE_LENGTH)
 
@@ -62,7 +54,7 @@ export async function createOrder(
   supabase: SupabaseClient<Database>,
   userId: string,
   input: CreateOrderInput,
-): Promise<CreatedOrderResponse> {
+): Promise<PaymentOrderRow> {
   const pkg = getPaymentPackage(input.packageId)
   if (!pkg) {
     throw new AppError('Unknown package', 400)
@@ -99,11 +91,32 @@ export async function createOrder(
     throw new AppError('Failed to create payment order', 500)
   }
 
-  return {
-    order: data,
-    transferMessage: data.order_code,
-    qrUrl: buildVietQrUrl(data.amount_vnd, data.order_code),
+  return data
+}
+
+/**
+ * The caller's single active order (deadline-aware) or null.
+ * At most one row can match — idx_payment_orders_active_user caps active
+ * orders per user, and effective_status filtering keeps stale
+ * PENDING_TRANSFER rows (past deadline) out.
+ */
+export async function getActiveOrderByUser(
+  supabase: SupabaseClient<Database>,
+  userId: string,
+): Promise<EffectiveOrder | null> {
+  const { data, error } = await supabase
+    .from('payment_orders_effective')
+    .select('*')
+    .eq('user_id', userId)
+    .in('effective_status', ['PENDING_TRANSFER', 'AWAITING_REVIEW'])
+    .maybeSingle()
+
+  if (error) {
+    console.error('Failed to fetch active payment order:', error)
+    throw new AppError('Failed to fetch active payment order', 500)
   }
+
+  return data ? (data as unknown as EffectiveOrder) : null
 }
 
 /**

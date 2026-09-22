@@ -3,6 +3,8 @@
 For UI work, read `docs/design`.
 For the payments system, read `docs/payments/` (state machine, RPC reference, security posture); design rationale lives in `docs/adr/`.
 
+Keep code comments short and to the point; add them only to briefly explain what something is or does.
+
 # Payments model
 
 Two distinct tables — do not conflate them:

@@ -72,11 +72,7 @@ describe('createOrder', () => {
     expect(delta).toBeGreaterThan(29 * 60_000)
     expect(delta).toBeLessThan(31 * 60_000)
 
-    expect(result.order).toEqual(fakeOrderRow)
-    expect(result.transferMessage).toBe('ABC2345')
-    expect(result.qrUrl).toContain('img.vietqr.io')
-    expect(result.qrUrl).toContain('amount=349000')
-    expect(result.qrUrl).toContain(encodeURIComponent('ABC2345'))
+    expect(result).toEqual(fakeOrderRow)
   })
 
   it('maps a unique violation to 409', async () => {

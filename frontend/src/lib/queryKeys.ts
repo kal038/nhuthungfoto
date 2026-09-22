@@ -28,6 +28,8 @@ const moduleKeys = {
 
 const paymentKeys = {
   all: ['payments'] as const,
+  packages: () => [...paymentKeys.all, 'packages'] as const,
+  active: () => [...paymentKeys.all, 'active'] as const,
   statuses: () => [...paymentKeys.all, 'status'] as const,
   status: (orderId: string | null) => [...paymentKeys.statuses(), orderId] as const,
 }

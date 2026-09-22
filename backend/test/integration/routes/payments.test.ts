@@ -7,6 +7,7 @@ import type { Env } from '@/types/env'
 import { AppError } from '@/lib/errors'
 import { cancelOrder, confirmOrder, createOrder, getOrderByUser } from '@/services/payments'
 import { buildVietQrUrl } from '@/config/payment'
+import { getEnabledPaymentPackages } from '@/config/payment-packages'
 
 vi.mock('@/lib/supabase', () => ({
   createServiceClient: vi.fn(() => ({})),
@@ -28,6 +29,8 @@ const fakeOrderRow = {
   amount_vnd: 349_000,
   status: 'PENDING_TRANSFER' as const,
   expires_at: '2026-09-09T10:00:00.000Z',
+  confirmed_at: null,
+  resolved_at: null,
 }
 
 const fakeViewRow = {
@@ -56,45 +59,19 @@ describe('Payment Routes', () => {
     app.route('/v1/payments', paymentsRouter)
   })
 
-  it('returns enabled package fields without internal flags', async () => {
+  it('returns the enabled packages as-is', async () => {
     const response = await app.request('/v1/payments/packages')
     const data = await response.json()
 
     expect(response.status).toBe(200)
     expect(data).toEqual({
-      packages: [
-        {
-          id: 'trial',
-          label: 'Trải nghiệm',
-          credits: 3,
-          amountVnd: 99_000,
-          isPopular: false,
-        },
-        {
-          id: 'practice',
-          label: 'Luyện tập',
-          credits: 12,
-          amountVnd: 349_000,
-          isPopular: true,
-        },
-        {
-          id: 'progress',
-          label: 'Tiến bộ',
-          credits: 30,
-          amountVnd: 749_000,
-          isPopular: false,
-        },
-      ],
+      packages: getEnabledPaymentPackages(),
     })
   })
 
   describe('POST /v1/payments', () => {
-    it('creates an order and maps the row to camelCase', async () => {
-      vi.mocked(createOrder).mockResolvedValue({
-        order: fakeOrderRow as never,
-        transferMessage: fakeOrderRow.order_code,
-        qrUrl: 'https://img.vietqr.io/image/x-y-compact2.png?amount=349000',
-      })
+    it('creates an order and maps the row to the order response', async () => {
+      vi.mocked(createOrder).mockResolvedValue(fakeOrderRow as never)
 
       const response = await app.request('/v1/payments', {
         method: 'POST',
@@ -109,12 +86,14 @@ describe('Payment Routes', () => {
         order_code: 'ABC2345',
         package_id: 'practice',
         package_label: 'Luyện tập',
+        status: 'PENDING_TRANSFER',
         credit_amount: 12,
         amount_vnd: 349_000,
-        status: 'PENDING_TRANSFER',
+        confirmed_at: null,
         expires_at: '2026-09-09T10:00:00.000Z',
+        resolved_at: null,
         transfer_message: 'ABC2345',
-        qr_url: 'https://img.vietqr.io/image/x-y-compact2.png?amount=349000',
+        qr_url: buildVietQrUrl(349_000, 'ABC2345'),
       })
       expect(createOrder).toHaveBeenCalledWith(
         {},
@@ -159,8 +138,9 @@ describe('Payment Routes', () => {
       expect(data).toEqual({
         id: 'order-1',
         order_code: 'ABC2345',
-        status: 'EXPIRED', // effective_status wins over physical status
+        package_id: 'practice',
         package_label: 'Luyện tập',
+        status: 'EXPIRED', // effective_status wins over physical status
         credit_amount: 12,
         amount_vnd: 349_000,
         confirmed_at: null,
