@@ -26,13 +26,13 @@
       ]
     },
     "github-mcp": {
-      "type": "local",
-      "command": [
-        "sh",
-        "-c",
-        "docker run -i --rm -e GITHUB_PERSONAL_ACCESS_TOKEN=$OC_GITHUB_PAT ghcr.io/github/github-mcp-server"
-      ],
-      "enabled": true
+        "type": "remote",
+  "url": "https://api.githubcopilot.com/mcp/",
+  "enabled": true,
+  "oauth": false,
+  "headers": {
+    "Authorization": "Bearer {env:OC_GITHUB_PAT}"
+  }
     },
     "shadcn": {
       "type": "local",
