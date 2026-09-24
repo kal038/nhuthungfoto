@@ -1,0 +1,31 @@
+info:
+  name: POST CREATE ORDER - IDEMPOTENT
+  type: http
+  seq: 3
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/payments
+  auth: inherit
+  # Re-sends the SAME clientRequestId as POST CREATE ORDER.
+  # Same key -> same order (idempotent reuse). Run right after POST CREATE ORDER.
+  body:
+    type: json
+    data: |-
+      {
+        "packageId": "practice",
+        "clientRequestId": "bruno-idem-001"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        expect(res.getBody().id).to.equal(bru.getVar("orderId"));
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

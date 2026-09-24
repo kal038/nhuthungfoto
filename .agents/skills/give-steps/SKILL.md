@@ -15,7 +15,7 @@ Do NOT ask to co-author. Immediately generate a structured plan.
 
 ## Core Output Format
 
-Every response MUST follow this exact structure:
+Every response MUST follow this exact structure, note that standard categories can be found below in "Standard Step Categories" section:
 
 TASK:
 <One-sentence description of the goal>
@@ -29,10 +29,10 @@ CONSTRAINTS:
 
 STEPS:
 
-<Step title>:
+<Standard Category> - <Step title>:
 <Concrete action>
 <Concrete action>
-<Step title>:
+<Standard Category> - <Step title>:
 <Concrete action>
 <Concrete action>
 
@@ -211,4 +211,4 @@ Ensure:
 
 ## Goal
 
-Produce implementation plans that a developer can execute immediately by themselves
+Produce implementation plans that are direct and action-based.

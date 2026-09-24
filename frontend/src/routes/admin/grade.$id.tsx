@@ -14,6 +14,7 @@ import { AccountLayout } from '@/components/features/profile'
 import { AdminGradingForm, AdminAccessDenied } from '@/components/features/admin'
 import { LoadingScreen } from '@/components/ui/loading-dots'
 import { ApiError } from '@/lib/errors'
+import { queryKeys } from '@/lib/queryKeys'
 
 export const Route = createFileRoute('/admin/grade/$id')({
   component: AdminGradeRouteContainer,
@@ -44,7 +45,7 @@ function AdminGradeRouteContainer() {
   // (optimistically, before the invalidation refetch lands), so neighbors
   // on the destination page are derived from the updated set.
   const neighbors = useMemo(() => {
-    const cached = queryClient.getQueryData<AdminQueueResponse>(['admin', 'queue'])
+    const cached = queryClient.getQueryData<AdminQueueResponse>(queryKeys.admin.queue())
     const ids = (cached?.submissions ?? []).map((s) => s.id)
     const index = ids.indexOf(id)
     return {

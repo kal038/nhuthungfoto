@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
 import { ApiError } from '@/lib/errors'
+import { queryKeys } from '@/lib/queryKeys'
 import type { GalleryData } from '@/types/gallery'
 
 export async function getGallery(username: string): Promise<GalleryData> {
@@ -9,7 +10,7 @@ export async function getGallery(username: string): Promise<GalleryData> {
 
 export function useGallery(username: string) {
   return useQuery<GalleryData>({
-    queryKey: ['gallery', username],
+    queryKey: queryKeys.galleries.detail(username),
     queryFn: () => getGallery(username),
     staleTime: 5 * 60 * 1000,
     enabled: !!username,

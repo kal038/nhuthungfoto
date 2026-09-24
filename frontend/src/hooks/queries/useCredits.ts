@@ -1,5 +1,6 @@
 import { useAuthQuery } from '@/hooks/useAuthQuery'
 import { apiFetch } from '@/lib/apiFetch'
+import { queryKeys } from '@/lib/queryKeys'
 
 export interface CreditBalance {
   balance: number
@@ -31,7 +32,7 @@ async function fetchBalance(): Promise<number> {
 
 export function useCreditBalance() {
   return useAuthQuery<number>({
-    queryKey: ['credits', 'balance'],
+    queryKey: queryKeys.credits.balance(),
     queryFn: fetchBalance,
     staleTime: 30 * 1000, // 30s — balance can change frequently
   })
@@ -52,7 +53,7 @@ async function fetchCreditHistory(
 
 export function useCreditHistory(limit: number = 20, offset: number = 0) {
   return useAuthQuery<CreditHistoryResponse>({
-    queryKey: ['credits', 'history', { limit, offset }],
+    queryKey: queryKeys.credits.history({ limit, offset }),
     queryFn: () => fetchCreditHistory(limit, offset),
     staleTime: 60 * 1000, // 1 min
   })

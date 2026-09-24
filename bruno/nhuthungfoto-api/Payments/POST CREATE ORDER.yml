@@ -1,0 +1,40 @@
+info:
+  name: POST CREATE ORDER
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/payments
+  auth: inherit
+  # Fixed clientRequestId = the idempotency key (client owns it; same key -> same order).
+  # To test a truly fresh order after the previous one reached a terminal state
+  # (SUCCESS/CANCELLED/EXPIRED), bump to bruno-idem-002, -003, ...
+  body:
+    type: json
+    data: |-
+      {
+        "packageId": "practice",
+        "clientRequestId": "bruno-idem-001"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.status).to.equal("PENDING_TRANSFER");
+        expect(data.packageId).to.equal("practice");
+        expect(data.amountVnd).to.equal(349000);
+        expect(data.creditAmount).to.equal(12);
+        expect(data.qrUrl).to.include("https");
+        expect(data.transferMessage).to.equal(data.orderCode);
+        // Save for reuse + status + confirm/cancel tests
+        bru.setVar("orderId", data.id);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

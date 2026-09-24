@@ -242,14 +242,18 @@ Probe:
 - idempotency
 - error handling
 - retries
+- timeouts
 - transactions
 - concurrency
+- caching
 - rate limiting
-- input validation
+- input hygiene
 - secrets
-- external API failures
+- failure modes
+- cost planning
+- database migrations
 
-Ask:
+Ask questions like:
 
 > What happens if this request is submitted twice?
 
@@ -271,7 +275,7 @@ Do not merely ask definitions. Tie every question to the actual implementation.
 
 # Stage 5 — AI Orchestration
 
-This is a high-priority stage for AI-enabled projects.
+This is a high-priority stage for AI-enabled projects. Skip if there is no AI implementation in the project.
 
 Determine whether the candidate understands the AI system beyond API invocation.
 
@@ -390,7 +394,7 @@ The candidate should demonstrate that they understand the concept of measuring A
 
 # Stage 7 — Frontend
 
-Do not focus primarily on visual polish.
+Do not focus on visual polish.
 
 Focus on engineering.
 
@@ -403,8 +407,7 @@ Inspect:
 - caching
 - forms
 - validation
-- loading states
-- error states
+- loading/error states
 - optimistic updates
 - accessibility
 - responsive behavior
@@ -426,7 +429,7 @@ Then:
 
 > What happens if the request takes 10 seconds?
 
-For AI interfaces specifically:
+For AI UI specifically:
 
 - streaming
 - cancellation

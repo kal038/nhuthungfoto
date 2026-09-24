@@ -1,0 +1,137 @@
+CURRENT PROGRESS
+
+
+Config - Configure payment and Telegram environment:- Update backend/src/types/env.ts.
+- Add VietQR bank ID, account number, account name, Telegram bot token, Telegram webhook secret, and admin chat ID.
+- Update backend/wrangler.jsonc with non-secret bank display configuration.
+- Keep Telegram credentials and sensitive values in Worker secrets.
+- Do not add Email handlers, Cron triggers, postal-mime, or KV bindings.
+
+
+Create customer payment routes:- Create backend/src/routes/payments.ts.
+- Add an authenticated package-list endpoint.
+- Add an authenticated order-creation endpoint.
+- Accept package ID and client request ID.
+- Return order ID, order code, package label, credit quantity, VND amount, expiry timestamp, transfer message, QR image URL, and status.
+- Add an authenticated customer-confirmation endpoint.
+- Accept the order ID from the route.
+- Move the order to AWAITING_REVIEW and initiate Telegram notification.
+- Make repeated confirmation safe.
+- Add an authenticated customer-cancellation endpoint.
+- Allow cancellation only while the order is PENDING_TRANSFER.
+- Add an authenticated status endpoint.
+- Return status, amount, credit quantity, confirmation time, expiry time, and resolution time.
+- Return 404 for missing and cross-user orders.
+- Mount the router at /v1/payments in backend/src/index.ts.
+
+Create the Telegram service:- Create backend/src/services/telegram.ts.
+- Send a review notification after customer confirmation.
+- Include order ID, order code, amount, credit quantity, customer identifier, and confirmation time.
+- Include an explicit warning requiring bank-app verification before approval.
+- Add approve and reject inline buttons.
+- Keep callback payloads below Telegram’s size limit.
+- Do not include secrets or full customer profile data.
+- Treat Telegram network failures as retryable.
+- Leave the order in AWAITING_REVIEW when notification delivery fails.
+
+Make customer confirmation retry notification:- Store Telegram notification status as PENDING, SENT, or FAILED.
+- When confirmation is repeated, avoid changing the order state or confirmation timestamp.
+- Retry Telegram delivery whenever the notification status is not SENT.
+- Return success only after notification delivery succeeds.
+- Return a retryable gateway error when Telegram delivery fails.
+- Keep the same order, status, and confirmation timestamp across retries.
+
+Create the Telegram webhook:- Create backend/src/schema/telegram.ts.
+- Validate Telegram updates, callback data, and order IDs.
+- Create backend/src/routes/telegram.ts.
+- Mount the route before global Supabase authentication middleware in backend/src/index.ts.
+- Require the Telegram secret-token header.
+- Require the exact configured admin chat ID.
+- Return 403 with no side effects for an unknown chat.
+- Route approve callbacks to the shared credit-grant RPC.
+- Route reject callbacks to the admin-rejection RPC.
+- Acknowledge callbacks after processing.
+- Show ALREADY_GRANTED for repeated approval clicks.
+- Show a clear error when the order is pending customer confirmation, expired, or already cancelled.
+
+UI Data - Implement frontend payment hooks:- Create frontend/src/hooks/queries/usePaymentPackages.ts.
+- Create frontend/src/hooks/mutations/useCreatePaymentOrder.ts.
+- Create frontend/src/hooks/mutations/useConfirmPayment.ts.
+- Create frontend/src/hooks/mutations/useCancelPayment.ts.
+- Create frontend/src/hooks/queries/usePaymentStatus.ts.
+- Poll every three seconds during the first 90 seconds. (why have to poll?)
+- Reduce polling frequency after 90 seconds.
+- Stop polling at SUCCESS, CANCELLED, or EXPIRED. (re-think meaning of expire here since user could have taken a photo of the QR before it expired and transfer after)
+- Invalidate credit balance and history after SUCCESS.
+- Surface retryable notification errors without discarding the active order.
+
+UI Components - Implement the manual-payment UI:- Update frontend/src/routes/credits.tsx.
+- Preserve the existing balance and transaction history.
+- Add package selection and order creation.
+- Display the VietQR image, exact amount, account details, expiry time, and copyable transfer message.
+- Add the “Tôi đã chuyển khoản” confirmation button.
+- Add a cancellation action only for PENDING_TRANSFER.
+- Warn users to confirm only after the transfer completes.
+- Show AWAITING_REVIEW with an explanation that an admin will verify the bank transfer manually.
+- Show retry guidance when Telegram notification delivery fails.
+- After 90 seconds, switch to passive waiting copy.
+- Do not promise push notifications.
+- Show SUCCESS and the refreshed balance.
+- Show CANCELLED with a new-order action.
+- Show EXPIRED with a new-order action.
+- Follow .agent/design-system/nhuthungfoto/MASTER.md for typography, colors, spacing, focus behavior, responsive layout, accessibility, and 150–300 ms transitions.
+
+
+
+
+
+
+
+Testing - Add backend tests:- Test valid and invalid package IDs.
+- Test server-owned package price and credit snapshots.
+- Test stale PENDING_TRANSFER orders becoming EXPIRED.
+- Test active-order reuse.
+- Test same client request ID retry behavior.
+- Test concurrent order creation produces only one active order.
+- Test cross-user order access returns 404.
+- Test confirmation transition and repeated confirmation.
+- Test customer cancellation of PENDING_TRANSFER.
+- Test that AWAITING_REVIEW cannot be customer-cancelled.
+- Test Telegram notification retry.
+- Test wrong webhook secret and wrong chat ID.
+- Test approval before customer confirmation fails.
+- Test approval of expired or cancelled orders fails.
+- Test approval grants exact package credits.
+- Test repeated approval grants credits once.
+- Test concurrent approval grants credits once.
+- Test Telegram rejection changes no credits.
+
+Testing - Add frontend tests:- Test package selection and QR order display.
+- Test confirmation button behavior.
+- Test cancellation visibility and behavior.
+- Test restored active orders.
+- Test that restoration prevents duplicate order creation.
+- Test AWAITING_REVIEW polling.
+- Test notification retry error handling.
+- Test SUCCESS balance refresh.
+- Test CANCELLED cleanup.
+- Test EXPIRED cleanup and new-order flow.
+- Test sign-out and user-switch cleanup.
+- Test keyboard accessibility and mobile behavior.
+
+Verify - Final verification:
+- Apply all migrations to local Supabase.
+- Regenerate database types.
+- Run backend lint, typecheck, and tests.
+- Run frontend lint, typecheck, build, and tests.
+- Create an order locally and verify its expiry timestamp.
+- Confirm the transfer and verify Telegram receives the review message.
+- Check the banking app manually.
+- Approve through Telegram.
+- Verify the order becomes SUCCESS, exactly one payment row appears, exactly one credit-history row appears, and the balance increases once.
+- Click approve repeatedly and verify no additional credits are granted.
+- Test customer cancellation before confirmation.
+- Test that cancellation is blocked after confirmation.
+- Test the rejection path.
+- Test stale-order expiration and active-order replacement.
+- Deploy to staging and complete one small real VietQR transfer before production release.

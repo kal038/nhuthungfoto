@@ -1,0 +1,29 @@
+info:
+  name: POST CREATE ORDER - ERROR
+  type: http
+  seq: 4
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/payments
+  auth: inherit
+  body:
+    type: json
+    data: |-
+      {
+        "packageId": "nope",
+        "clientRequestId": "bruno-test-bad-pkg"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Unknown package -> ZodParseError -> 400
+        expect(res.getStatus()).to.equal(400);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

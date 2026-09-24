@@ -1,5 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import type { PortfolioPhoto, PortfolioListResponse } from '@/types/portfolio'
+import { queryKeys } from '@/lib/queryKeys'
 
 const API_URL = import.meta.env.VITE_API_URL as string
 
@@ -12,7 +13,7 @@ export async function getPortfolioPhotos(): Promise<PortfolioPhoto[]> {
 
 export function usePortfolioPhotos() {
   return useQuery<PortfolioPhoto[]>({
-    queryKey: ['portfolio-photos'],
+    queryKey: queryKeys.portfolioPhotos.lists(),
     queryFn: getPortfolioPhotos,
     staleTime: 15 * 60 * 1000,
   })

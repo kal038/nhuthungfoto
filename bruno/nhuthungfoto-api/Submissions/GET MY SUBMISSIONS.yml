@@ -1,0 +1,40 @@
+info:
+  name: GET MY SUBMISSIONS
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8787/v1/submissions/me
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.submissions).to.be.an("array");
+        // newest first
+        for (let i = 1; i < data.submissions.length; i++) {
+          expect(new Date(data.submissions[i].createdAt).getTime())
+            .to.be.at.most(new Date(data.submissions[i - 1].createdAt).getTime());
+        }
+        for (const s of data.submissions) {
+          expect(s.id).to.be.a("string");
+          expect(s.status).to.be.a("string");
+          if (s.originalPhotoUrl) {
+            expect(s.originalPhotoUrl).to.include("https");
+          }
+        }
+        // save newest submission id for the review test
+        if (data.submissions.length > 0) {
+          bru.setVar("submissionId", data.submissions[0].id);
+          bru.setVar("submissionStatus", data.submissions[0].status);
+        }
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
