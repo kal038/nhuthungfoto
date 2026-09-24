@@ -604,6 +604,19 @@ graph LR
 | Image optimization | `<img srcset>` with WebP format, lazy loading via `loading="lazy"` |
 | i18n | Vietnamese-first, structure ready for `next-intl` or similar |
 
+### Time-dependent UI
+
+Calling `Date.now()` during render reads the current time, but passing time does
+not trigger a React re-render. A countdown or relative-time label would stay
+unchanged until another update happened. Use `useNow()` to subscribe to a clock:
+its default one-minute tick suits coarse labels (such as hours remaining);
+`useNow(5_000)` keeps the payment deadline responsive. Fixed timestamps do not
+need a tick.
+
+The payment countdown only prompts a status refetch when its deadline passes.
+The backend's effective status determines whether the order is `EXPIRED`; the
+client clock is not the source of truth.
+
 ### Framer Motion Presets
 
 ```tsx

@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
 import { queryKeys } from '@/lib/queryKeys'
-import type { PaymentOrder } from '@/types/payment'
+import type { ActivePaymentOrderResponse, PaymentOrder } from '@/types/payment'
 
 async function confirmPayment(orderId: string): Promise<PaymentOrder> {
   return apiFetch<PaymentOrder>(`/payments/${orderId}/confirm`, { method: 'POST' })
@@ -29,7 +29,8 @@ export function useConfirmPayment(orderId: string | null) {
     },
     onSuccess: (order) => {
       queryClient.setQueryData<PaymentOrder>(queryKeys.payments.status(order.id), order)
-      queryClient.setQueryData<PaymentOrder | null>(queryKeys.payments.active(), order)
+      // The active query caches { order } — keep its shape for cache reads.
+      queryClient.setQueryData<ActivePaymentOrderResponse>(queryKeys.payments.active(), { order })
     },
   })
 }

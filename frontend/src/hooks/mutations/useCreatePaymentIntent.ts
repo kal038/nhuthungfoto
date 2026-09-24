@@ -1,7 +1,11 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { apiFetch } from '@/lib/apiFetch'
 import { queryKeys } from '@/lib/queryKeys'
-import type { CreatePaymentIntentResult, PaymentOrder } from '@/types/payment'
+import type {
+  ActivePaymentOrderResponse,
+  CreatePaymentIntentResult,
+  PaymentOrder,
+} from '@/types/payment'
 
 export type { PaymentOrderStatus } from '@/types/payment'
 
@@ -25,7 +29,8 @@ export function useCreatePaymentIntentMutation() {
   return useMutation({
     mutationFn: createPaymentIntent,
     onSuccess: (order) => {
-      queryClient.setQueryData<PaymentOrder | null>(queryKeys.payments.active(), order)
+      // The active query caches { order } — keep its shape for cache reads.
+      queryClient.setQueryData<ActivePaymentOrderResponse>(queryKeys.payments.active(), { order })
       queryClient.setQueryData<PaymentOrder>(queryKeys.payments.status(order.id), order)
     },
   })

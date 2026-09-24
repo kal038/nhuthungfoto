@@ -6,6 +6,7 @@ import { useUserProfile } from '@/hooks/queries/useUserProfile'
 import { useCreditBalance } from '@/hooks/queries/useCredits'
 import { AccountLayout } from '@/components/features/profile'
 import { CreditHistoryList } from '@/components/features/credits/CreditHistoryList'
+import { PaymentOrderPanel } from '@/components/features/payments'
 import { LoadingScreen } from '@/components/ui/loading-dots'
 
 export const Route = createFileRoute('/credits')({
@@ -20,7 +21,7 @@ function CreditsContainer() {
     if (!authLoading && !user) {
       navigate({ to: '/login' })
     }
-  }, [authLoading, user])
+  }, [authLoading, navigate, user])
 
   const { data: profile } = useUserProfile()
   const { data: balance, isLoading: balanceLoading } = useCreditBalance()
@@ -45,6 +46,9 @@ function CreditsContainer() {
           </p>
         </section>
 
+        {/* Buy credits / active manual-payment order */}
+        <PaymentOrderPanel key={user.id} />
+
         {/* Transaction ledger */}
         <section>
           <h2 className="font-heading text-lg font-semibold text-zinc-900 mb-4">
@@ -56,4 +60,3 @@ function CreditsContainer() {
     </AccountLayout>
   )
 }
-

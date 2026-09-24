@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase'
+import { queryKeys } from '@/lib/queryKeys'
+import { useQueryClient } from '@tanstack/react-query'
 import type { Session, User } from '@supabase/supabase-js'
-import { createContext, useContext, useEffect, useState } from 'react'
+import { createContext, useContext, useEffect, useRef, useState } from 'react'
 
 //first define the context shape
 //then create context obj
@@ -19,6 +21,8 @@ type AuthContextShape = {
 const AuthContext = createContext<AuthContextShape | null>(null)
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const queryClient = useQueryClient()
+  const previousUserId = useRef<string | null>(null)
   const [session, setSession] = useState<Session | null>(null)
   const [user, setUser] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
@@ -71,13 +75,19 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((_event, session) => {
+      const nextUserId = session?.user.id ?? null
+      if (previousUserId.current !== nextUserId) {
+        queryClient.removeQueries({ queryKey: queryKeys.payments.all })
+        queryClient.removeQueries({ queryKey: queryKeys.credits.all })
+        previousUserId.current = nextUserId
+      }
       setSession(session)
       setUser(session?.user ?? null)
       setLoading(false)
     })
 
     return () => subscription.unsubscribe()
-  }, [])
+  }, [queryClient])
 
   return (
     <AuthContext.Provider value={{ session, user, loading, signIn, signUp, signOut }}>

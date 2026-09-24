@@ -8,11 +8,9 @@ import { ApiError } from '@/lib/errors'
  * - Skips retries on 401/403 (auth failures are never transient)
  * - Allows per-query overrides via the standard options object
  */
-export function useAuthQuery<
-  TQueryFnData = unknown,
-  TError = Error,
-  TData = TQueryFnData,
->(options: UseQueryOptions<TQueryFnData, TError, TData>) {
+export function useAuthQuery<TQueryFnData = unknown, TError = Error, TData = TQueryFnData>(
+  options: UseQueryOptions<TQueryFnData, TError, TData>,
+) {
   const { session } = useAuth()
 
   return useQuery<TQueryFnData, TError, TData>({
@@ -23,7 +21,9 @@ export function useAuthQuery<
       if (error instanceof ApiError && [401, 403].includes(error.status)) {
         return false
       }
-      // Allow up to 2 retries for transient errors (502, 503, network)
+      if (typeof options.retry === 'function') return options.retry(count, error)
+      if (typeof options.retry === 'number') return count < options.retry
+      if (typeof options.retry === 'boolean') return options.retry
       return count < 2
     },
   })
