@@ -15,8 +15,7 @@ const paymentGuards = {
       meta: {
         type: 'problem',
         docs: {
-          description:
-            'Require user_id scoping on payment_orders_effective reads.',
+          description: 'Require user_id scoping on payment_orders_effective reads.',
         },
         schema: [],
         messages: {
@@ -26,8 +25,7 @@ const paymentGuards = {
       },
       create(context) {
         const VIEW = 'payment_orders_effective'
-        const isUserId = (arg) =>
-          arg && arg.type === 'Literal' && arg.value === 'user_id'
+        const isUserId = (arg) => arg && arg.type === 'Literal' && arg.value === 'user_id'
 
         return {
           CallExpression(node) {
@@ -51,23 +49,13 @@ const paymentGuards = {
             let scoped = false
             for (;;) {
               const member = cur.parent
-              if (
-                !member ||
-                member.type !== 'MemberExpression' ||
-                member.object !== cur
-              ) {
+              if (!member || member.type !== 'MemberExpression' || member.object !== cur) {
                 break
               }
               const call = member.parent
               if (call && call.type === 'CallExpression' && call.callee === member) {
-                const name =
-                  member.property.type === 'Identifier'
-                    ? member.property.name
-                    : null
-                if (
-                  (name === 'eq' || name === 'in') &&
-                  isUserId(call.arguments[0])
-                ) {
+                const name = member.property.type === 'Identifier' ? member.property.name : null
+                if ((name === 'eq' || name === 'in') && isUserId(call.arguments[0])) {
                   scoped = true
                 }
                 cur = call
@@ -87,7 +75,7 @@ const paymentGuards = {
 }
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', '.wrangler']),
   {
     files: ['**/*.ts'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
@@ -97,10 +85,7 @@ export default defineConfig([
     },
     plugins: { local: paymentGuards },
     rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'warn',
-        { argsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
       // Lazy-expiry law (AGENTS.md): order state has one canonical READ
       // source — the payment_orders_effective view (effective_status). Reading
       // the raw table in TS is always a stale-status bug. The lifecycle RPCs
@@ -117,6 +102,7 @@ export default defineConfig([
       ],
       // Ownership scoping is application-level (see rule docs above).
       'local/scope-order-read-by-user': 'error',
+      'no-inline-comments': 'error',
     },
   },
   eslintConfigPrettier,

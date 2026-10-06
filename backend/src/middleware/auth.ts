@@ -41,6 +41,7 @@ export const authMiddleware = createMiddleware<{
       email: payload.email,
       role: payload.role || 'authenticated',
     })
-    await next() //run next middleware or to handler if done with all middlwares
+    // Run next middleware or forward to handler.
+    await next()
   })
 })

@@ -38,7 +38,8 @@ export const PAYMENT_PACKAGES = [
   },
 ] as const satisfies readonly PaymentPackage[]
 
-export type PaymentPackageId = (typeof PAYMENT_PACKAGES)[number]['id'] // union of all current 'id's ('trial'|'practice'|'progress') thanks to "as const"
+// Union of all current 'id's ('trial'|'practice'|'progress') thanks to "as const".
+export type PaymentPackageId = (typeof PAYMENT_PACKAGES)[number]['id']
 
 export function getEnabledPaymentPackages(): readonly PaymentPackage[] {
   return PAYMENT_PACKAGES.filter((paymentPackage) => paymentPackage.enabled)
