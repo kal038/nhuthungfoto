@@ -1,7 +1,8 @@
 import { z } from 'zod/v4'
 
 const ALLOWED_MIME_TYPES = ['image/jpeg', 'image/png', 'image/webp'] as const
-export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024 // 20MB
+// 20MB maximum file size.
+export const MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024
 
 export type PresignedUrlResult = {
   uploadUrl: string
