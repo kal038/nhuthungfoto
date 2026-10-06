@@ -1,0 +1,4 @@
+name: Dev
+variables:
+  - secret: true
+    name: MY_TELEGRAM_BOT
