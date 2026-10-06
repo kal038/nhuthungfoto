@@ -65,7 +65,7 @@ submissionsRouter.post('/', async (c) => {
     throw new ZodParseError()
   }
   const { fileName, contentType, fileSizeBytes, moduleId } = result.data
-  const userId = c.get('user').id //grab userId from context of request
+  const userId = c.get('user').id
   const safeFileName = fileName.replace(/[^a-zA-Z0-9._-]/g, '')
   const submissionId = crypto.randomUUID()
   const objectKey = `${userId}/${submissionId}/${safeFileName}`
@@ -151,15 +151,15 @@ submissionsRouter.get('/me', async (c) => {
 
 // POST /v1/submissions/:id/grade — spend credits and start grading atomic
 submissionsRouter.post('/:id/grade', async (c) => {
-  const submissionId = c.req.param('id') //from request path
-  const userId = c.get('user').id //from worker context, enriched by auth middleware
+  const submissionId = c.req.param('id')
+  const userId = c.get('user').id
   const supabase = createServiceClient(c.env)
 
   const body = await c.req.json().catch(() => {
     throw new BadRequestError('Request body must be valid JSON')
   })
 
-  const result = gradeSubmissionSchema.safeParse(body) //from request body
+  const result = gradeSubmissionSchema.safeParse(body)
   if (!result.success) {
     throw new ZodParseError()
   }

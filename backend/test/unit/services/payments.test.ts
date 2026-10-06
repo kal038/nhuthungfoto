@@ -1,10 +1,12 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import {
+  approveOrder,
   cancelOrder,
   confirmOrder,
   createOrder,
   generateOrderCode,
   getOrderByUser,
+  rejectOrder,
 } from '@/services/payments'
 import { ORDER_CODE_ALPHABET } from '@/config/payment'
 
@@ -245,6 +247,82 @@ describe('cancelOrder', () => {
 
     await expect(cancelOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
       status: 500,
+    })
+  })
+})
+
+describe('approveOrder', () => {
+  const rpc = vi.fn()
+  const supabase = { rpc } as never
+
+  beforeEach(() => {
+    rpc.mockReset()
+  })
+
+  it('calls approve_manual_payment_order RPC and returns the approved order', async () => {
+    const approved = { ...fakeOrderRow, status: 'SUCCESS' as const, resolved_at: '2026-10-06T10:00:00Z' }
+    rpc.mockResolvedValue({ data: approved, error: null })
+
+    const result = await approveOrder(supabase, 'order-1', { method: 'telegram' })
+
+    expect(rpc).toHaveBeenCalledWith('approve_manual_payment_order', {
+      p_order_id: 'order-1',
+      p_approval_metadata: { method: 'telegram' },
+    })
+    expect(result).toEqual(approved)
+  })
+
+  it('maps no_data_found to 404', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'P0002', message: 'not found' } })
+
+    await expect(approveOrder(supabase, 'order-1')).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('maps state conflict to 409', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: '55000', message: 'not awaiting review' } })
+
+    await expect(approveOrder(supabase, 'order-1')).rejects.toMatchObject({
+      status: 409,
+    })
+  })
+})
+
+describe('rejectOrder', () => {
+  const rpc = vi.fn()
+  const supabase = { rpc } as never
+
+  beforeEach(() => {
+    rpc.mockReset()
+  })
+
+  it('calls reject_manual_payment_order RPC and returns the cancelled order', async () => {
+    const rejected = { ...fakeOrderRow, status: 'CANCELLED' as const, resolved_at: '2026-10-06T10:00:00Z' }
+    rpc.mockResolvedValue({ data: rejected, error: null })
+
+    const result = await rejectOrder(supabase, 'order-1', { method: 'telegram' })
+
+    expect(rpc).toHaveBeenCalledWith('reject_manual_payment_order', {
+      p_order_id: 'order-1',
+      p_approval_metadata: { method: 'telegram' },
+    })
+    expect(result).toEqual(rejected)
+  })
+
+  it('maps no_data_found to 404', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: 'P0002', message: 'not found' } })
+
+    await expect(rejectOrder(supabase, 'order-1')).rejects.toMatchObject({
+      status: 404,
+    })
+  })
+
+  it('maps state conflict to 409', async () => {
+    rpc.mockResolvedValue({ data: null, error: { code: '55000', message: 'not awaiting review' } })
+
+    await expect(rejectOrder(supabase, 'order-1')).rejects.toMatchObject({
+      status: 409,
     })
   })
 })

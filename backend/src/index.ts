@@ -16,6 +16,7 @@ import { galleryRouter } from './routes/gallery'
 import { profileRouter } from './routes/profile'
 import { authRouter } from './routes/auth'
 import { paymentsRouter } from './routes/payments'
+import { telegramRouter } from './routes/telegram'
 import { HTTPException } from 'hono/http-exception'
 import { AppError } from './lib/errors'
 import { sentry } from '@sentry/hono/cloudflare'
@@ -60,6 +61,7 @@ app.onError((err, c) => {
 app.route('/health', healthRouter)
 app.route('/portfolio', portfolioRouter)
 app.route('/v1/auth', authRouter)
+app.route('/v1/telegram', telegramRouter)
 
 // ---------------------
 // Routes Protected

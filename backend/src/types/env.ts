@@ -1,10 +1,10 @@
 /**
- * Cloudflare Workers environment bindings.
+ * Cloudflare Workers environment bindings including env vars and secrets
  *
- * Native R2 bindings are injected by the runtime via wrangler.jsonc.
- * Secrets are set via `wrangler secret put` (prod) or `.dev.vars` (local).
- * Vars are set in wrangler.jsonc under "vars".
+ * Env vars get injected with wrangler.jsonc
+ * Secrets are set via `wrangler secret put` (prod) or `.dev.vars` file
  */
+
 export interface Env {
   // ---------------------
   // R2 Buckets (native bindings)
@@ -64,4 +64,8 @@ export interface Env {
   // ---------------------
 
   ADMIN_EMAILS: string
+
+  TELEGRAM_BOT_TOKEN: string
+  TELEGRAM_CHAT_ID: string
+  TELEGRAM_WEBHOOK_SECRET: string
 }

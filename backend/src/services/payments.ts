@@ -10,6 +10,8 @@ import {
 import { AppError } from '@/lib/errors'
 import { PG_ERRCODE, mapPgError, type PgErrorMapping } from '@/lib/pg-errors'
 import type { CreateOrderInput } from '@/schema/payment'
+import { sendPaymentReviewNotification } from '@/services/telegram'
+import type { Env } from '@/types/env'
 
 type PaymentOrderRow = Database['public']['Tables']['payment_orders']['Row']
 type OrderStatus = Database['public']['Enums']['order_status']
@@ -180,13 +182,19 @@ const CANCEL_ORDER_ERRORS: PgErrorMapping = {
  * Customer confirmation that the bank transfer was sent.
  * PENDING_TRANSFER -> AWAITING_REVIEW (idempotent re-confirm returns the row).
  *
+ * After the DB transition succeeds, sends a Telegram review notification.
+ * On re-confirm, retries delivery if the previous attempt was not SENT.
+ * Returns success only after Telegram delivery succeeds.
+ *
  * @throws AppError(404) missing order or cross-user access
  * @throws AppError(409) terminal state, or PENDING_TRANSFER past its deadline
+ * @throws AppError(502) Telegram delivery failure (retryable)
  */
 export async function confirmOrder(
   supabase: SupabaseClient<Database>,
   userId: string,
   orderId: string,
+  env?: Env,
 ): Promise<PaymentOrderRow> {
   const { data, error } = await supabase.rpc('confirm_manual_payment_order', {
     p_user_id: userId,
@@ -207,7 +215,38 @@ export async function confirmOrder(
     throw new AppError('Failed to confirm payment order', 500)
   }
 
-  return data
+  // Skip notification if no env provided (e.g. testing) or already delivered on a previous confirm.
+  if (!env || data.telegram_notification_status === 'SENT') {
+    return data
+  }
+
+  // Attempt Telegram notification delivery.
+  try {
+    await sendPaymentReviewNotification(env, {
+      orderId: data.id,
+      orderCode: data.order_code,
+      amountVnd: data.amount_vnd,
+      creditAmount: data.credit_amount,
+      userId: data.user_id,
+      confirmedAt: data.confirmed_at ?? new Date().toISOString(),
+    })
+
+    await supabase.rpc('update_telegram_notification_status', {
+      p_order_id: data.id,
+      p_status: 'SENT',
+    })
+
+    return { ...data, telegram_notification_status: 'SENT' }
+  } catch (err) {
+    console.error('Telegram notification delivery failed:', err)
+
+    await supabase.rpc('update_telegram_notification_status', {
+      p_order_id: data.id,
+      p_status: 'FAILED',
+    })
+
+    throw new AppError('Failed to deliver review notification — please retry', 502)
+  }
 }
 
 /**
@@ -244,3 +283,93 @@ export async function cancelOrder(
 
   return data
 }
+
+/** Outcomes for approve_manual_payment_order errors, keyed by SQLSTATE. */
+const APPROVE_ORDER_ERRORS: PgErrorMapping = {
+  [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'Order not found' },
+  [PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE]: {
+    status: 409,
+    message: 'Order cannot be approved in its current state',
+  },
+  [PG_ERRCODE.INVALID_PARAMETER_VALUE]: { status: 400, message: 'Invalid order request' },
+}
+
+/** Outcomes for reject_manual_payment_order errors, keyed by SQLSTATE. */
+const REJECT_ORDER_ERRORS: PgErrorMapping = {
+  [PG_ERRCODE.NO_DATA_FOUND]: { status: 404, message: 'Order not found' },
+  [PG_ERRCODE.OBJECT_NOT_IN_PREREQUISITE_STATE]: {
+    status: 409,
+    message: 'Order cannot be rejected in its current state',
+  },
+  [PG_ERRCODE.INVALID_PARAMETER_VALUE]: { status: 400, message: 'Invalid order request' },
+}
+
+/**
+ * Admin approves payment order after verifying bank transfer.
+ * Atomically grants credits, writes payments ledger, and sets status to SUCCESS.
+ * Idempotent: repeated calls on SUCCESS return the order.
+ *
+ * @throws AppError(404) order not found
+ * @throws AppError(409) order not in AWAITING_REVIEW
+ */
+export async function approveOrder(
+  supabase: SupabaseClient<Database>,
+  orderId: string,
+  approvalMetadata?: Database['public']['Tables']['payment_orders']['Row']['approval_metadata'],
+): Promise<PaymentOrderRow> {
+  const { data, error } = await supabase.rpc('approve_manual_payment_order', {
+    p_order_id: orderId,
+    p_approval_metadata: approvalMetadata ?? undefined,
+  })
+
+  if (error) {
+    throw mapPgError(
+      error,
+      APPROVE_ORDER_ERRORS,
+      'Failed to approve payment order',
+      'approve_manual_payment_order',
+    )
+  }
+
+  if (!data) {
+    console.error('approve_manual_payment_order RPC returned no order')
+    throw new AppError('Failed to approve payment order', 500)
+  }
+
+  return data
+}
+
+/**
+ * Admin rejects payment order (no matching bank transfer).
+ * Moves AWAITING_REVIEW -> CANCELLED.
+ *
+ * @throws AppError(404) order not found
+ * @throws AppError(409) order not in AWAITING_REVIEW
+ */
+export async function rejectOrder(
+  supabase: SupabaseClient<Database>,
+  orderId: string,
+  approvalMetadata?: Database['public']['Tables']['payment_orders']['Row']['approval_metadata'],
+): Promise<PaymentOrderRow> {
+  const { data, error } = await supabase.rpc('reject_manual_payment_order', {
+    p_order_id: orderId,
+    p_approval_metadata: approvalMetadata ?? undefined,
+  })
+
+  if (error) {
+    throw mapPgError(
+      error,
+      REJECT_ORDER_ERRORS,
+      'Failed to reject payment order',
+      'reject_manual_payment_order',
+    )
+  }
+
+  if (!data) {
+    console.error('reject_manual_payment_order RPC returned no order')
+    throw new AppError('Failed to reject payment order', 500)
+  }
+
+  return data
+}
+
