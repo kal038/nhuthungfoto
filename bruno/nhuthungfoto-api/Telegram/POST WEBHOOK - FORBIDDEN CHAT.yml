@@ -1,0 +1,41 @@
+info:
+  name: POST WEBHOOK - FORBIDDEN CHAT
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/telegram/webhook
+  auth: none
+  headers:
+    - name: X-Telegram-Bot-Api-Secret-Token
+      value: "{{TELEGRAM_WEBHOOK_SECRET}}"
+  body:
+    type: json
+    # Valid secret, but chat ID does not match configured admin chat.
+    data: |-
+      {
+        "callback_query": {
+          "id": "bruno-cb-forbidden-001",
+          "from": { "id": 123456789 },
+          "message": {
+            "message_id": 999,
+            "chat": { "id": 99999999 }
+          },
+          "data": "approve:00000000-0000-0000-0000-000000000000"
+        }
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(403);
+        const data = res.getBody();
+        expect(data.error).to.equal("Forbidden");
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

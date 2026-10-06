@@ -1,5 +1,5 @@
 info:
-  name: POST CANCEL - NOT IMPLEMENTED
+  name: POST CANCEL
   type: http
   seq: 8
 
@@ -12,8 +12,10 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        // Lifecycle RPC not shipped yet
-        expect(res.getStatus()).to.equal(501);
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.id).to.equal(bru.getVar("orderId"));
+        expect(["CANCELLED", "EXPIRED"]).to.include(data.status);
 
 settings:
   encodeUrl: true

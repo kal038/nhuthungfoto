@@ -1,0 +1,38 @@
+info:
+  name: POST WEBHOOK - NON CALLBACK
+  type: http
+  seq: 6
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/telegram/webhook
+  auth: none
+  headers:
+    - name: X-Telegram-Bot-Api-Secret-Token
+      value: "{{TELEGRAM_WEBHOOK_SECRET}}"
+  body:
+    type: json
+    # Telegram sends non-callback updates (text messages, etc.)
+    # that the webhook should acknowledge without processing.
+    data: |-
+      {
+        "message": {
+          "message_id": 1,
+          "chat": { "id": {{TELEGRAM_CHAT_ID}}, "type": "private" },
+          "text": "hello bot"
+        }
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.ok).to.equal(true);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

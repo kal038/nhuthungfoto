@@ -1,12 +1,6 @@
 CURRENT PROGRESS
 
-Start of implementing the admin side of payment confirmation which leads to credit granting at the end
-
-Config - Configure payment and Telegram environment:- Update backend/src/types/env.ts.
-- Add VietQR bank ID, account number, account name, Telegram bot token, Telegram webhook secret, and admin chat ID.
-- Update backend/wrangler.jsonc with non-secret bank display configuration.
-- Keep Telegram credentials and sensitive values in Worker secrets.
-- Do not add Email handlers, Cron triggers, postal-mime, or KV bindings.
+text the telegram flow (manual, unit, and Bruno API)
 
 Create the Telegram service:- Create backend/src/services/telegram.ts.
 - Send a review notification after customer confirmation.
@@ -14,7 +8,6 @@ Create the Telegram service:- Create backend/src/services/telegram.ts.
 - Include an explicit warning requiring bank-app verification before approval.
 - Add approve and reject inline buttons.
 - Keep callback payloads below Telegram’s size limit.
-- Do not include secrets or full customer profile data.
 - Treat Telegram network failures as retryable.
 - Leave the order in AWAITING_REVIEW when notification delivery fails.
 
@@ -37,6 +30,8 @@ Create the Telegram webhook:- Create backend/src/schema/telegram.ts.
 - Acknowledge callbacks after processing.
 - Show ALREADY_GRANTED for repeated approval clicks.
 - Show a clear error when the order is pending customer confirmation, expired, or already cancelled.
+
+
 
 UI Data - Implement frontend payment hooks:- Create frontend/src/hooks/queries/usePaymentPackages.ts.
 - Create frontend/src/hooks/mutations/useCreatePaymentOrder.ts.

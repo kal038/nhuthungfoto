@@ -1,0 +1,44 @@
+info:
+  name: POST WEBHOOK - ALREADY RESOLVED
+  type: http
+  seq: 8
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/telegram/webhook
+  auth: none
+  headers:
+    - name: X-Telegram-Bot-Api-Secret-Token
+      value: "{{TELEGRAM_WEBHOOK_SECRET}}"
+  body:
+    type: json
+    # Approves an order that was already approved/rejected — the RPC returns 409,
+    # webhook answers the callback with a toast and returns 200 to Telegram.
+    # Run APPROVE or REJECT first to put the order in a terminal state.
+    data: |-
+      {
+        "callback_query": {
+          "id": "bruno-cb-duplicate-001",
+          "from": { "id": 123456789 },
+          "message": {
+            "message_id": 999,
+            "chat": { "id": {{TELEGRAM_CHAT_ID}} }
+          },
+          "data": "approve:{{orderId}}"
+        }
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        // Webhook still returns 200 to Telegram (AppError 409 is caught internally).
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.ok).to.equal(true);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
