@@ -2,11 +2,7 @@ import type { SupabaseClient } from '@supabase/supabase-js'
 import { customAlphabet } from 'nanoid'
 import type { Database } from '@/types/database.types'
 import { getPaymentPackage } from '@/config/payment-packages'
-import {
-  ORDER_CODE_ALPHABET,
-  ORDER_CODE_LENGTH,
-  PAYMENT_EXPIRY_MINUTES,
-} from '@/config/payment'
+import { ORDER_CODE_ALPHABET, ORDER_CODE_LENGTH, PAYMENT_EXPIRY_MINUTES } from '@/config/payment'
 import { AppError } from '@/lib/errors'
 import { PG_ERRCODE, mapPgError, type PgErrorMapping } from '@/lib/pg-errors'
 import type { CreateOrderInput } from '@/schema/payment'
@@ -21,14 +17,12 @@ const TELEGRAM_NOTIFICATION_STATUS = {
   PENDING: 'PENDING',
   SENT: 'SENT',
   FAILED: 'FAILED',
-} as const satisfies Record<
-  string,
-  Database['public']['Enums']['telegram_notification_status']
->
+} as const satisfies Record<string, Database['public']['Enums']['telegram_notification_status']>
 
-// The generated view Row marks every column nullable (views carry no
-// constraints). The underlying table enforces NOT NULL, so the table Row is
-// the truthful nullability — combine it with the view's effective_status.
+// Retries for the SENT write; the claim lease blocks duplicates meanwhile.
+const TELEGRAM_STATUS_MAX_ATTEMPTS = 3
+
+// View Row over-nullifies every column; the table's NOT NULL constraints are the truth.
 export type EffectiveOrder = PaymentOrderRow & { effective_status: OrderStatus | null }
 
 /** Outcomes for create_manual_payment_order errors, keyed by SQLSTATE. */
@@ -162,9 +156,7 @@ export async function getOrderByUser(
     throw new AppError('Order not found', 404)
   }
 
-  //good data, return to user
-  // Cast: the generated view Row over-nullifies every column; the table's
-  // NOT NULL constraints are the real guarantee.
+  // Good data; cast because the view Row over-nullifies (table NOT NULL is the guarantee).
   return data as unknown as EffectiveOrder
 }
 
@@ -192,13 +184,12 @@ const CANCEL_ORDER_ERRORS: PgErrorMapping = {
  * Customer confirmation that the bank transfer was sent.
  * PENDING_TRANSFER -> AWAITING_REVIEW (idempotent re-confirm returns the row).
  *
- * After the DB transition succeeds, sends a Telegram review notification.
- * On re-confirm, retries delivery if the previous attempt was not SENT.
- * Returns success only after Telegram delivery succeeds.
+ * After the DB transition succeeds, sends a claim-leased Telegram review
+ * notification; success is returned only after delivery is recorded as SENT.
  *
  * @throws AppError(404) missing order or cross-user access
  * @throws AppError(409) terminal state, or PENDING_TRANSFER past its deadline
- * @throws AppError(502) Telegram delivery failure (retryable)
+ * @throws AppError(502) Telegram delivery / status-recording failure (retryable)
  */
 export async function confirmOrder(
   supabase: SupabaseClient<Database>,
@@ -225,13 +216,24 @@ export async function confirmOrder(
     throw new AppError('Failed to confirm payment order', 500)
   }
 
-  // Skip notification if no env provided (e.g. testing) or already delivered on a previous confirm.
+  // Skip when no env (tests) or already delivered.
   if (!env || data.telegram_notification_status === TELEGRAM_NOTIFICATION_STATUS.SENT) {
     return data
   }
 
-  // Attempt Telegram notification delivery. A failure here is retryable; record FAILED so a
-  // later idempotent re-confirm retries instead of treating it as already delivered.
+  // Claim the send lease before calling Telegram.
+  const { data: claimed, error: claimError } = await supabase.rpc('claim_telegram_notification', {
+    p_order_id: data.id,
+  })
+  if (claimError) {
+    console.error('Failed to claim Telegram notification:', claimError.message)
+    throw new AppError('Failed to deliver review notification — please retry', 502)
+  }
+  if (!claimed) {
+    return data
+  }
+
+  // Send; on failure record FAILED (releases the claim) and surface a retryable 502.
   try {
     await sendPaymentReviewNotification(env, {
       orderId: data.id,
@@ -242,7 +244,7 @@ export async function confirmOrder(
       confirmedAt: data.confirmed_at ?? new Date().toISOString(),
     })
   } catch (err) {
-    // Log only the class/message: a fetch rejection's cause can embed the bot-token URL.
+    // Log class/message only: a fetch cause can embed the bot-token URL.
     const reason = err instanceof Error ? `${err.name}: ${err.message}` : 'unknown error'
     console.error('Telegram notification delivery failed:', reason)
 
@@ -257,13 +259,23 @@ export async function confirmOrder(
     throw new AppError('Failed to deliver review notification — please retry', 502)
   }
 
-  // The message was sent; record it so re-confirms don't resend a duplicate card.
-  const { error: statusError } = await supabase.rpc('update_telegram_notification_status', {
-    p_order_id: data.id,
-    p_status: TELEGRAM_NOTIFICATION_STATUS.SENT,
-  })
-  if (statusError) {
-    console.error('Failed to record notification status:', statusError.message)
+  // Record SENT (retried); the held claim blocks a duplicate send meanwhile.
+  let statusFailed = false
+  let statusErrorMessage = ''
+  for (let attempt = 1; attempt <= TELEGRAM_STATUS_MAX_ATTEMPTS; attempt++) {
+    const { error: statusError } = await supabase.rpc('update_telegram_notification_status', {
+      p_order_id: data.id,
+      p_status: TELEGRAM_NOTIFICATION_STATUS.SENT,
+    })
+    if (!statusError) {
+      statusFailed = false
+      break
+    }
+    statusFailed = true
+    statusErrorMessage = statusError.message
+  }
+  if (statusFailed) {
+    console.error('Failed to record notification status:', statusErrorMessage)
     throw new AppError('Failed to record review notification status — please retry', 502)
   }
 
@@ -393,4 +405,3 @@ export async function rejectOrder(
 
   return data
 }
-

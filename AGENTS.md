@@ -3,7 +3,7 @@
 For UI work, read `docs/design`.
 For the payments system, read `docs/payments/` (state machine, RPC reference, security posture); design rationale lives in `docs/adr/`.
 
-Keep code comments short and to the point; add them only to briefly explain what something is or does.
+Keep code comments short and to the point; add them only to briefly explain what something is or does. Enforced by `local/one-line-comment` (JSDoc blocks excepted).
 
 # Payments model
 
@@ -92,7 +92,7 @@ stateDiagram-v2
 
 ## RPC transitions (implemented today)
 
-Six RPCs write `payment_orders`; all `service_role`-only, `SECURITY DEFINER`.
+Seven RPCs write `payment_orders`; all `service_role`-only, `SECURITY DEFINER`.
 
 | RPC | Can move | Notes |
 |---|---|---|
@@ -101,7 +101,8 @@ Six RPCs write `payment_orders`; all `service_role`-only, `SECURITY DEFINER`.
 | `cancel_manual_payment_order` | `PENDING_TRANSFER` → `CANCELLED` \| `EXPIRED` | past deadline: materializes `EXPIRED` and returns (no `RAISE`, so it persists) |
 | `approve_manual_payment_order` | `AWAITING_REVIEW` → `SUCCESS` | grants credits (idempotency key `payment-order:<id>`) and inserts the `payments` ledger row with `status='SUCCESS'`; already-`SUCCESS` returns the row |
 | `reject_manual_payment_order` | `AWAITING_REVIEW` → `CANCELLED` | terminal states return the row (idempotent no-op) |
-| `update_telegram_notification_status` | no state change | records `telegram_notification_status` (`PENDING`/`SENT`/`FAILED`); stamps `telegram_notified_at` when `SENT` |
+| `claim_telegram_notification` | no state change | leases the Telegram send (`telegram_send_claimed_at`, 60s); returns `false` if already `SENT` or another caller holds a fresh claim |
+| `update_telegram_notification_status` | no state change | records `telegram_notification_status` (`PENDING`/`SENT`/`FAILED`); stamps `telegram_notified_at` when `SENT` and releases the send claim |
 
 Admin resolution (`AWAITING_REVIEW` → `SUCCESS`/`CANCELLED`) is triggered from the
 Telegram webhook: the review card's inline buttons call

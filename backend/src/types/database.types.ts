@@ -125,6 +125,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         Insert: {
@@ -145,6 +146,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at?: string | null
+          telegram_send_claimed_at?: string | null
           user_id: string
         }
         Update: {
@@ -165,6 +167,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at?: string | null
+          telegram_send_claimed_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -489,6 +492,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -518,6 +522,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -526,6 +531,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      claim_telegram_notification: {
+        Args: { p_order_id: string }
+        Returns: boolean
       }
       confirm_manual_payment_order: {
         Args: { p_order_id: string; p_user_id: string }
@@ -547,6 +556,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -582,6 +592,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -611,6 +622,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -664,6 +676,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {

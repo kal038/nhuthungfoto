@@ -1,10 +1,7 @@
-// Hono custom middleware to verify bearer token found on a request
-// If token is valid, add user info to context, forward to next
-// If invalid return 401 unauthorized
-//
-// Supabase uses ES256 (asymmetric JWTs). We verify tokens using their
-// public JWKS endpoint — no shared secret needed. The JWKS key may rotate,
-// so Hono's jwk() middleware handles caching and re-fetching automatically.
+/**
+ * Hono middleware verifying a bearer token: valid adds the user to context, invalid returns 401.
+ * Supabase uses ES256 asymmetric JWTs verified via its public JWKS endpoint (Hono's jwk caches/rotates).
+ */
 
 import type { Env } from '@/types/env'
 import { createMiddleware } from 'hono/factory'

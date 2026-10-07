@@ -2,15 +2,8 @@ import { Hono } from 'hono'
 import type { Env } from '@/types/env'
 import { createServiceClient } from '@/lib/supabase'
 import { approveOrder, rejectOrder } from '@/services/payments'
-import {
-  answerCallbackQuery,
-  editReviewMessage,
-  escapeMarkdownV2,
-} from '@/services/telegram'
-import {
-  telegramCallbackUpdateSchema,
-  parseCallbackData,
-} from '@/schema/telegram'
+import { answerCallbackQuery, editReviewMessage, escapeMarkdownV2 } from '@/services/telegram'
+import { telegramCallbackUpdateSchema, parseCallbackData } from '@/schema/telegram'
 import { AppError } from '@/lib/errors'
 
 export type TelegramWebhookAction = 'approve' | 'reject'
@@ -22,10 +15,7 @@ export interface TelegramActionPayload {
 
 export const telegramRouter = new Hono<{ Bindings: Env }>()
 
-/**
- * Validates Telegram secret token header against configured webhook secret.
- */
-export function isValidTelegramSecret(
+export function isCorrectWebhookSecret(
   providedSecret: string | undefined,
   expectedSecret: string,
 ): boolean {
@@ -33,10 +23,7 @@ export function isValidTelegramSecret(
   return providedSecret === expectedSecret
 }
 
-/**
- * Validates chat ID against configured admin chat ID.
- */
-export function isAuthorizedAdminChat(
+export function isCorrectChat(
   chatId: number | string | undefined,
   expectedChatId: string,
 ): boolean {
@@ -44,9 +31,6 @@ export function isAuthorizedAdminChat(
   return String(chatId) === String(expectedChatId)
 }
 
-/**
- * Builds a MarkdownV2-escaped resolved message for the edited Telegram card.
- */
 function buildResolvedText(
   action: TelegramWebhookAction,
   orderCode: string,
@@ -70,7 +54,7 @@ function buildResolvedText(
  */
 telegramRouter.post('/webhook', async (c) => {
   const secretHeader = c.req.header('X-Telegram-Bot-Api-Secret-Token')
-  if (!isValidTelegramSecret(secretHeader, c.env.TELEGRAM_WEBHOOK_SECRET)) {
+  if (!isCorrectWebhookSecret(secretHeader, c.env.TELEGRAM_WEBHOOK_SECRET)) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 
@@ -88,7 +72,7 @@ telegramRouter.post('/webhook', async (c) => {
   const callbackQueryId = callback_query.id
 
   // Reject updates from unknown chats with no side effects.
-  if (!isAuthorizedAdminChat(chatId, c.env.TELEGRAM_CHAT_ID)) {
+  if (!isCorrectChat(chatId, c.env.TELEGRAM_CHAT_ID)) {
     return c.json({ error: 'Forbidden' }, 403)
   }
 
@@ -105,7 +89,7 @@ telegramRouter.post('/webhook', async (c) => {
     if (action === 'approve') {
       const updatedOrder = await approveOrder(supabase, orderId, metadata)
 
-      // Acknowledge first so the admin's spinner resolves even if the card edit fails.
+      // Acknowledge before editing, so the spinner resolves regardless.
       await answerCallbackQuery(
         c.env,
         callbackQueryId,
@@ -117,13 +101,17 @@ telegramRouter.post('/webhook', async (c) => {
         c.env,
         chatId,
         messageId,
-        buildResolvedText('approve', updatedOrder.order_code, updatedOrder.amount_vnd, updatedOrder.credit_amount),
+        buildResolvedText(
+          'approve',
+          updatedOrder.order_code,
+          updatedOrder.amount_vnd,
+          updatedOrder.credit_amount,
+        ),
       )
     } else {
       const updatedOrder = await rejectOrder(supabase, orderId, metadata)
 
-      // Terminal orders are a no-op for reject; don't relabel an order another
-      // admin already approved (or that expired) as rejected.
+      // Reject is a no-op for terminal orders; don't relabel them as rejected.
       if (updatedOrder.status !== 'CANCELLED') {
         await answerCallbackQuery(
           c.env,
@@ -140,7 +128,12 @@ telegramRouter.post('/webhook', async (c) => {
         c.env,
         chatId,
         messageId,
-        buildResolvedText('reject', updatedOrder.order_code, updatedOrder.amount_vnd, updatedOrder.credit_amount),
+        buildResolvedText(
+          'reject',
+          updatedOrder.order_code,
+          updatedOrder.amount_vnd,
+          updatedOrder.credit_amount,
+        ),
       )
     }
   } catch (err) {

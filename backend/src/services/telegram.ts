@@ -75,8 +75,7 @@ export async function sendPaymentReviewNotification(
     '*Kiểm tra app ngân hàng trước khi duyệt\\!*',
   ].join('\n')
 
-  // Callback data must stay under 64 bytes (Telegram limit).
-  // Format: "action:orderId" — orderId is a UUID (36 chars) + prefix ≤ 8 chars.
+  // Callback data must stay under Telegram's 64-byte limit: "action:orderId".
   const result = await callTelegramApi<{ message_id: number; chat: { id: number } }>(
     env.TELEGRAM_BOT_TOKEN,
     'sendMessage',
@@ -99,9 +98,7 @@ export async function sendPaymentReviewNotification(
 }
 
 /**
- * Acknowledges Telegram callback query to dismiss client spinner and display toast.
- *
- * An already-answered / expired callback (redelivered webhook) is a no-op, not a failure.
+ * Acknowledges the callback query; an expired/already-answered query is a no-op.
  */
 export async function answerCallbackQuery(
   env: Env,
@@ -123,10 +120,7 @@ export async function answerCallbackQuery(
 }
 
 /**
- * Edits Telegram message text to reflect resolved state and remove inline action buttons.
- *
- * Editing with identical text is a Telegram no-op ("message is not modified") — treat it as
- * success so a redelivered webhook does not fail forever.
+ * Edits the resolved card and removes the buttons; an identical re-edit is a no-op.
  */
 export async function editReviewMessage(
   env: Env,

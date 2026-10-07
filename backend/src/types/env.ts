@@ -6,65 +6,45 @@
  */
 
 export interface Env {
-  // ---------------------
   // R2 Buckets (native bindings)
-  // ---------------------
   R2_UPLOADS_RAW: R2Bucket
   R2_PORTFOLIO_PUBLIC: R2Bucket
 
-  // ---------------------
   // R2 Buckets (names for aws4fetch)
-  // ---------------------
   R2_UPLOADS_RAW_NAME: string
   R2_PORTFOLIO_PUBLIC_NAME: string
 
-  // ---------------------
   // R2 Public URLs (for serving assets)
-  // ---------------------
   R2_UPLOADS_RAW_PUBLIC_URL: string
   R2_PORTFOLIO_PUBLIC_URL: string
 
-  // ---------------------
   // Rate Limiting (Cloudflare binding)
-  // ---------------------
   RATE_LIMITER: RateLimit
 
-  // ---------------------
   // Analytics Engine (custom business metrics)
-  // ---------------------
   ANALYTICS?: AnalyticsEngineDataset
 
-  // ---------------------
   // R2 S3-compatible API (secrets — for pre-signed URLs)
-  // ---------------------
   R2_ACCESS_KEY_ID: string
   R2_SECRET_ACCESS_KEY: string
   CLOUDFLARE_ACCOUNT_ID: string
 
-  // ---------------------
   // Supabase (secrets)
-  // ---------------------
   SUPABASE_URL: string
   SUPABASE_ANON_KEY: string
   SUPABASE_SECRET_KEY: string
 
-  // ---------------------
   // Config vars
-  // ---------------------
   FRONTEND_URL: string
   SENTRY_DSN: string
 
-  // ---------------------
   // Environment
-  // ---------------------
   ENVIRONMENT?: string
 
-  // ---------------------
-  // ADMIN_EMAILS
-  // ---------------------
-
+  // Admin allowlist
   ADMIN_EMAILS: string
 
+  // Telegram
   TELEGRAM_BOT_TOKEN: string
   TELEGRAM_CHAT_ID: string
   TELEGRAM_WEBHOOK_SECRET: string
