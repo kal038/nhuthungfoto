@@ -9,6 +9,11 @@ import {
   rejectOrder,
 } from '@/services/payments'
 import { ORDER_CODE_ALPHABET } from '@/config/payment'
+import { sendPaymentReviewNotification } from '@/services/telegram'
+
+vi.mock('@/services/telegram', () => ({
+  sendPaymentReviewNotification: vi.fn(),
+}))
 
 const fakeOrderRow = {
   id: 'order-1',
@@ -201,6 +206,58 @@ describe('confirmOrder', () => {
 
     await expect(confirmOrder(supabase, 'user-1', 'order-1')).rejects.toMatchObject({
       status: 500,
+    })
+  })
+
+  describe('with Telegram delivery', () => {
+    const env = { TELEGRAM_BOT_TOKEN: 'token', TELEGRAM_CHAT_ID: '123' } as never
+    const deliverable = {
+      ...fakeOrderRow,
+      status: 'AWAITING_REVIEW' as const,
+      confirmed_at: '2026-10-06T10:00:00.000Z',
+      telegram_notification_status: 'PENDING' as const,
+    }
+
+    beforeEach(() => {
+      vi.mocked(sendPaymentReviewNotification).mockReset()
+    })
+
+    it('records SENT after delivery and returns the updated status', async () => {
+      rpc.mockResolvedValueOnce({ data: deliverable, error: null })
+      rpc.mockResolvedValueOnce({ data: null, error: null })
+      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
+
+      const result = await confirmOrder(supabase, 'user-1', 'order-1', env)
+
+      expect(result.telegram_notification_status).toBe('SENT')
+      expect(rpc).toHaveBeenNthCalledWith(2, 'update_telegram_notification_status', {
+        p_order_id: 'order-1',
+        p_status: 'SENT',
+      })
+    })
+
+    it('surfaces a retryable 502 when the SENT status cannot be recorded', async () => {
+      rpc.mockResolvedValueOnce({ data: deliverable, error: null })
+      rpc.mockResolvedValueOnce({ data: null, error: { code: 'XX000', message: 'boom' } })
+      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
+
+      await expect(confirmOrder(supabase, 'user-1', 'order-1', env)).rejects.toMatchObject({
+        status: 502,
+      })
+    })
+
+    it('records FAILED and throws 502 when delivery fails', async () => {
+      rpc.mockResolvedValueOnce({ data: deliverable, error: null })
+      rpc.mockResolvedValueOnce({ data: null, error: null })
+      vi.mocked(sendPaymentReviewNotification).mockRejectedValueOnce(new Error('network down'))
+
+      await expect(confirmOrder(supabase, 'user-1', 'order-1', env)).rejects.toMatchObject({
+        status: 502,
+      })
+      expect(rpc).toHaveBeenNthCalledWith(2, 'update_telegram_notification_status', {
+        p_order_id: 'order-1',
+        p_status: 'FAILED',
+      })
     })
   })
 })

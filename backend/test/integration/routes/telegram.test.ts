@@ -15,10 +15,14 @@ vi.mock('@/services/payments', () => ({
   rejectOrder: vi.fn(),
 }))
 
-vi.mock('@/services/telegram', () => ({
-  answerCallbackQuery: vi.fn(),
-  editReviewMessage: vi.fn(),
-}))
+vi.mock('@/services/telegram', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@/services/telegram')>()
+  return {
+    ...actual,
+    answerCallbackQuery: vi.fn(),
+    editReviewMessage: vi.fn(),
+  }
+})
 
 describe('Telegram Webhook Route', () => {
   const fakeEnv: Env = {
@@ -124,6 +128,13 @@ describe('Telegram Webhook Route', () => {
       10,
       expect.stringContaining('ĐÃ DUYỆT'),
     )
+    // Amount must be MarkdownV2-escaped (dot separator) or Telegram rejects the edit.
+    expect(editReviewMessage).toHaveBeenCalledWith(
+      fakeEnv,
+      987654321,
+      10,
+      expect.stringContaining('349\\.000'),
+    )
     expect(answerCallbackQuery).toHaveBeenCalledWith(
       fakeEnv,
       'cb-1',
@@ -177,6 +188,46 @@ describe('Telegram Webhook Route', () => {
       'cb-2',
       expect.stringContaining('Đã từ chối'),
     )
+  })
+
+  it('does not relabel an already-resolved order when rejecting', async () => {
+    vi.mocked(rejectOrder).mockResolvedValue({
+      id: '0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11',
+      // reject is a no-op here: another admin already approved it.
+      status: 'SUCCESS',
+      order_code: 'ABC2345',
+      amount_vnd: 349_000,
+      credit_amount: 12,
+      user_id: 'user-1',
+    } as never)
+
+    const res = await app.request('/webhook/webhook', {
+      method: 'POST',
+      headers: {
+        'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        callback_query: {
+          id: 'cb-5',
+          from: { id: 987654321 },
+          message: {
+            message_id: 14,
+            chat: { id: 987654321 },
+          },
+          data: 'reject:0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11',
+        },
+      }),
+    })
+
+    expect(res.status).toBe(200)
+    expect(answerCallbackQuery).toHaveBeenCalledWith(
+      fakeEnv,
+      'cb-5',
+      expect.stringContaining('SUCCESS'),
+      true,
+    )
+    expect(editReviewMessage).not.toHaveBeenCalled()
   })
 
   it('shows error toast when RPC raises 409 (e.g. wrong order state)', async () => {

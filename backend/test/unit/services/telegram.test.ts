@@ -64,6 +64,30 @@ describe('Telegram service', () => {
       ])
     })
 
+    it('escapes MarkdownV2-reserved characters in dynamic values', async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        json: async () => ({
+          ok: true,
+          result: { message_id: 42, chat: { id: 123456789 } },
+        }),
+      } as Response)
+
+      await sendPaymentReviewNotification(fakeEnv, {
+        orderId: '0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11',
+        orderCode: 'ABC2345',
+        amountVnd: 349_000,
+        creditAmount: 12,
+        userId: 'user-123',
+        confirmedAt: '2026-10-06T10:00:00Z',
+      })
+
+      const requestBody = JSON.parse(
+        vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string,
+      )
+      expect(requestBody.text).toContain('349\\.000')
+      expect(requestBody.text).toContain('2026\\-10\\-06T10:00:00Z')
+    })
+
     it('throws AppError 502 when Telegram API returns ok: false', async () => {
       vi.mocked(globalThis.fetch).mockResolvedValueOnce({
         json: async () => ({
@@ -108,6 +132,17 @@ describe('Telegram service', () => {
         }),
       )
     })
+
+    it('treats an already-answered / expired callback as a no-op', async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        json: async () => ({
+          ok: false,
+          description: 'Bad Request: query is too old and response timeout expired',
+        }),
+      } as Response)
+
+      await expect(answerCallbackQuery(fakeEnv, 'cb-query-123')).resolves.toBeUndefined()
+    })
   })
 
   describe('editReviewMessage', () => {
@@ -131,6 +166,19 @@ describe('Telegram service', () => {
           }),
         }),
       )
+    })
+
+    it('treats "message is not modified" as success (idempotent re-edit)', async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        json: async () => ({
+          ok: false,
+          description: 'Bad Request: message is not modified',
+        }),
+      } as Response)
+
+      await expect(
+        editReviewMessage(fakeEnv, '123456789', 42, '*ĐÃ DUYỆT*'),
+      ).resolves.toBeUndefined()
     })
   })
 })
