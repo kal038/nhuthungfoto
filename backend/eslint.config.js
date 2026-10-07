@@ -7,6 +7,49 @@ import { defineConfig, globalIgnores } from 'eslint/config'
 // Local guard rules for the payments read/write boundary (see AGENTS.md).
 const paymentGuards = {
   rules: {
+    // Code comments stay one line (AGENTS.md). JSDoc blocks on exports are the
+    // documented exception. Flags a run of consecutive `//` lines and any
+    // multi-line non-JSDoc block comment.
+    'one-line-comment': {
+      meta: {
+        type: 'suggestion',
+        docs: { description: 'Keep code comments to a single line (JSDoc exempt).' },
+        schema: [],
+        messages: {
+          oneLine: 'Keep code comments to one line (JSDoc blocks are allowed).',
+        },
+      },
+      create(context) {
+        const sourceCode = context.sourceCode ?? context.getSourceCode()
+        return {
+          Program() {
+            const comments = sourceCode.getAllComments()
+            const isJsDoc = (c) => c.type === 'Block' && c.value.startsWith('*')
+            const adjacent = (a, b) =>
+              a?.type === 'Line' && b?.type === 'Line' && b.loc.start.line === a.loc.end.line + 1
+
+            for (let i = 0; i < comments.length; i++) {
+              const comment = comments[i]
+              if (isJsDoc(comment)) continue
+
+              if (comment.type === 'Block' && comment.loc.end.line > comment.loc.start.line) {
+                context.report({ loc: comment.loc, messageId: 'oneLine' })
+                continue
+              }
+
+              // Report only the first line of a consecutive `//` run.
+              if (
+                comment.type === 'Line' &&
+                !adjacent(comments[i - 1], comment) &&
+                adjacent(comment, comments[i + 1])
+              ) {
+                context.report({ loc: comment.loc, messageId: 'oneLine' })
+              }
+            }
+          },
+        }
+      },
+    },
     // Non-admin order reads MUST scope by user_id. The read client is
     // service_role, which has BYPASSRLS and the table has RLS enabled with no
     // policies — so Postgres will happily return ANY user's row if the query
@@ -78,6 +121,8 @@ export default defineConfig([
   globalIgnores(['dist', '.wrangler']),
   {
     files: ['**/*.ts'],
+    // Generated files — do not lint.
+    ignores: ['worker-configuration.d.ts', 'src/types/database.types.ts'],
     extends: [js.configs.recommended, ...tseslint.configs.recommended],
     languageOptions: {
       ecmaVersion: 2020,
@@ -85,7 +130,10 @@ export default defineConfig([
     },
     plugins: { local: paymentGuards },
     rules: {
-      '@typescript-eslint/no-unused-vars': ['warn', { argsIgnorePattern: '^_' }],
+      '@typescript-eslint/no-unused-vars': [
+        'warn',
+        { argsIgnorePattern: '^_', ignoreRestSiblings: true },
+      ],
       // Lazy-expiry law (AGENTS.md): order state has one canonical READ
       // source — the payment_orders_effective view (effective_status). Reading
       // the raw table in TS is always a stale-status bug. The lifecycle RPCs
@@ -102,6 +150,7 @@ export default defineConfig([
       ],
       // Ownership scoping is application-level (see rule docs above).
       'local/scope-order-read-by-user': 'error',
+      'local/one-line-comment': 'error',
       'no-inline-comments': 'error',
     },
   },

@@ -2,7 +2,8 @@
 
 > Source of truth: [`20260903000001_create_manual_payment_order.sql`](../../backend/supabase/migrations/20260903000001_create_manual_payment_order.sql),
 > [`20260914000001_confirm_cancel_payment_order_rpc.sql`](../../backend/supabase/migrations/20260914000001_confirm_cancel_payment_order_rpc.sql),
-> [`20261006000001_approve_reject_telegram_rpcs.sql`](../../backend/supabase/migrations/20261006000001_approve_reject_telegram_rpcs.sql)
+> [`20261006000001_approve_reject_telegram_rpcs.sql`](../../backend/supabase/migrations/20261006000001_approve_reject_telegram_rpcs.sql),
+> [`20261007000002_claim_telegram_notification.sql`](../../backend/supabase/migrations/20261007000002_claim_telegram_notification.sql)
 
 ## States
 
@@ -26,7 +27,7 @@
 
 ## Transitions (implemented)
 
-Six RPCs write `payment_orders`. Both columns below are required to
+Seven RPCs write `payment_orders`. Both columns below are required to
 read the diagram: what moves the state, and where in the RPC it happens.
 
 | # | From | To | RPC (step) | Trigger |
@@ -39,8 +40,9 @@ read the diagram: what moves the state, and where in the RPC it happens.
 | 6 | `AWAITING_REVIEW` | `SUCCESS` | `approve_manual_payment_order` (7) | admin verifies the bank transfer, grants credits, writes the ledger row |
 | 7 | `AWAITING_REVIEW` | `CANCELLED` | `reject_manual_payment_order` (5) | admin finds no matching transfer |
 
-`update_telegram_notification_status` also writes `payment_orders`, but only the
-notification bookkeeping columns — it never changes `status`.
+`claim_telegram_notification` and `update_telegram_notification_status` also
+write `payment_orders`, but only notification bookkeeping columns — neither
+changes `status`.
 
 ## Non-transitions (no write, or 409)
 
@@ -92,7 +94,9 @@ stateDiagram-v2
   with no credit grant. Terminal states return the row unchanged.
 
 The card's delivery is tracked by `update_telegram_notification_status`
-(`PENDING`/`SENT`/`FAILED`); a re-confirm retries delivery until it is `SENT`.
+(`PENDING`/`SENT`/`FAILED`). Sends are serialised by `claim_telegram_notification`
+— a 60s lease — so parallel confirms cannot produce duplicate cards; a re-confirm
+retries delivery until the status is `SENT`.
 
 ## Why the deadline branch differs between confirm and cancel
 

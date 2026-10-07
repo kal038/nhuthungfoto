@@ -2,9 +2,10 @@
 
 > Source of truth: [`20260903000001_create_manual_payment_order.sql`](../../backend/supabase/migrations/20260903000001_create_manual_payment_order.sql),
 > [`20260914000001_confirm_cancel_payment_order_rpc.sql`](../../backend/supabase/migrations/20260914000001_confirm_cancel_payment_order_rpc.sql),
-> [`20261006000001_approve_reject_telegram_rpcs.sql`](../../backend/supabase/migrations/20261006000001_approve_reject_telegram_rpcs.sql)
+> [`20261006000001_approve_reject_telegram_rpcs.sql`](../../backend/supabase/migrations/20261006000001_approve_reject_telegram_rpcs.sql),
+> [`20261007000002_claim_telegram_notification.sql`](../../backend/supabase/migrations/20261007000002_claim_telegram_notification.sql)
 
-Six RPCs write `payment_orders`. All are `SECURITY DEFINER`,
+Seven RPCs write `payment_orders`. All are `SECURITY DEFINER`,
 `SET search_path = public, pg_temp`, and callable only by `service_role`
 (see [security.md](./security.md)). Step numbers below match the SQL comments.
 
@@ -169,6 +170,35 @@ Notes
 
 ---
 
+## `claim_telegram_notification`
+
+```
+claim_telegram_notification(p_order_id uuid) RETURNS boolean
+```
+
+Serialises Telegram review-card delivery. `confirmOrder` must win this before
+calling `sendMessage`; it exists because Telegram has no idempotency key, so
+parallel confirms / retries would otherwise send duplicate cards.
+
+| Step | Does |
+|---|---|
+| 1 | validate inputs (400) |
+| 2 | `SELECT ... WHERE id = p_order_id FOR UPDATE` → 404 if none (the row lock serialises callers) |
+| 3 | already `SENT`, or a claim held within the 60s lease → return `false` |
+| 4 | set `telegram_send_claimed_at = now()`; return `true` |
+
+Notes
+
+- A caller blocked on the lock re-reads the committed claim and loses — only one
+  claim per order per lease window.
+- The claim is released by `update_telegram_notification_status` on
+  `SENT`/`FAILED`, so a failed send can be retried.
+- A stale claim (process died mid-send) expires after 60s, after which a later
+  confirm may retry. This is the residual window: a kill between Telegram's 200
+  and the `SENT` write can still yield one duplicate card.
+
+---
+
 ## `update_telegram_notification_status`
 
 ```
@@ -184,13 +214,15 @@ Telegram review card is delivered (or fails).
 | Step | Does |
 |---|---|
 | 1 | validate params (400) |
-| 2 | set `telegram_notification_status = p_status`; when `p_status='SENT'` also set `telegram_notified_at=now()`; return row → 404 if the id is unknown |
+| 2 | set `telegram_notification_status = p_status`; when `SENT` stamp `telegram_notified_at=now()`; on `SENT`/`FAILED` clear `telegram_send_claimed_at` (release the claim); return row → 404 if the id is unknown |
 
 Notes
 
 - Enum values: `PENDING`/`SENT`/`FAILED`.
 - `confirmOrder` records `SENT` on success and `FAILED` on delivery failure; a
-  re-confirm retries until `SENT`, so the admin never gets a duplicate card.
+  re-confirm retries until `SENT`. The `SENT` write is retried a few times while
+  the claim lease is still held, so a transient write failure does not force a
+  resend.
 
 ---
 
@@ -203,4 +235,5 @@ Notes
 | `cancel_manual_payment_order` | `cancelOrder` | `POST /v1/payments/:id/cancel` | live |
 | `approve_manual_payment_order` | `approveOrder` | `POST /v1/telegram/webhook` (approve button) | live |
 | `reject_manual_payment_order` | `rejectOrder` | `POST /v1/telegram/webhook` (reject button) | live |
+| `claim_telegram_notification` | `confirmOrder` | internal (before Telegram send) | live |
 | `update_telegram_notification_status` | `confirmOrder` | internal (after Telegram delivery) | live |
