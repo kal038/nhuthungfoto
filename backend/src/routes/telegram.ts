@@ -5,6 +5,7 @@ import { approveOrder, rejectOrder } from '@/services/payments'
 import {
   answerCallbackQuery,
   editReviewMessage,
+  escapeMarkdownV2,
 } from '@/services/telegram'
 import {
   telegramCallbackUpdateSchema,
@@ -53,7 +54,7 @@ function buildResolvedText(
   creditAmount: number,
 ): string {
   const verb = action === 'approve' ? 'ĐÃ DUYỆT' : 'ĐÃ TỪ CHỐI'
-  const formattedAmount = new Intl.NumberFormat('vi-VN').format(amountVnd)
+  const formattedAmount = escapeMarkdownV2(new Intl.NumberFormat('vi-VN').format(amountVnd))
 
   return [
     `*${verb}*`,
@@ -104,6 +105,13 @@ telegramRouter.post('/webhook', async (c) => {
     if (action === 'approve') {
       const updatedOrder = await approveOrder(supabase, orderId, metadata)
 
+      // Acknowledge first so the admin's spinner resolves even if the card edit fails.
+      await answerCallbackQuery(
+        c.env,
+        callbackQueryId,
+        `Đã duyệt — ${updatedOrder.credit_amount} credits cấp cho user`,
+      )
+
       // Edit Telegram card to reflect resolution and remove buttons.
       await editReviewMessage(
         c.env,
@@ -111,14 +119,22 @@ telegramRouter.post('/webhook', async (c) => {
         messageId,
         buildResolvedText('approve', updatedOrder.order_code, updatedOrder.amount_vnd, updatedOrder.credit_amount),
       )
-
-      await answerCallbackQuery(
-        c.env,
-        callbackQueryId,
-        `Đã duyệt — ${updatedOrder.credit_amount} credits cấp cho user`,
-      )
     } else {
       const updatedOrder = await rejectOrder(supabase, orderId, metadata)
+
+      // Terminal orders are a no-op for reject; don't relabel an order another
+      // admin already approved (or that expired) as rejected.
+      if (updatedOrder.status !== 'CANCELLED') {
+        await answerCallbackQuery(
+          c.env,
+          callbackQueryId,
+          `Đơn hàng đã được xử lý (${updatedOrder.status})`,
+          true,
+        )
+        return c.json({ ok: true }, 200)
+      }
+
+      await answerCallbackQuery(c.env, callbackQueryId, 'Đã từ chối đơn hàng')
 
       await editReviewMessage(
         c.env,
@@ -126,8 +142,6 @@ telegramRouter.post('/webhook', async (c) => {
         messageId,
         buildResolvedText('reject', updatedOrder.order_code, updatedOrder.amount_vnd, updatedOrder.credit_amount),
       )
-
-      await answerCallbackQuery(c.env, callbackQueryId, 'Đã từ chối đơn hàng')
     }
   } catch (err) {
     if (err instanceof AppError) {

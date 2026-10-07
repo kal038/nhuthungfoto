@@ -16,6 +16,16 @@ import type { Env } from '@/types/env'
 type PaymentOrderRow = Database['public']['Tables']['payment_orders']['Row']
 type OrderStatus = Database['public']['Enums']['order_status']
 
+// Typed mirror of the telegram_notification_status DB enum, so bare strings can't drift.
+const TELEGRAM_NOTIFICATION_STATUS = {
+  PENDING: 'PENDING',
+  SENT: 'SENT',
+  FAILED: 'FAILED',
+} as const satisfies Record<
+  string,
+  Database['public']['Enums']['telegram_notification_status']
+>
+
 // The generated view Row marks every column nullable (views carry no
 // constraints). The underlying table enforces NOT NULL, so the table Row is
 // the truthful nullability — combine it with the view's effective_status.
@@ -216,11 +226,12 @@ export async function confirmOrder(
   }
 
   // Skip notification if no env provided (e.g. testing) or already delivered on a previous confirm.
-  if (!env || data.telegram_notification_status === 'SENT') {
+  if (!env || data.telegram_notification_status === TELEGRAM_NOTIFICATION_STATUS.SENT) {
     return data
   }
 
-  // Attempt Telegram notification delivery.
+  // Attempt Telegram notification delivery. A failure here is retryable; record FAILED so a
+  // later idempotent re-confirm retries instead of treating it as already delivered.
   try {
     await sendPaymentReviewNotification(env, {
       orderId: data.id,
@@ -230,23 +241,33 @@ export async function confirmOrder(
       userId: data.user_id,
       confirmedAt: data.confirmed_at ?? new Date().toISOString(),
     })
-
-    await supabase.rpc('update_telegram_notification_status', {
-      p_order_id: data.id,
-      p_status: 'SENT',
-    })
-
-    return { ...data, telegram_notification_status: 'SENT' }
   } catch (err) {
-    console.error('Telegram notification delivery failed:', err)
+    // Log only the class/message: a fetch rejection's cause can embed the bot-token URL.
+    const reason = err instanceof Error ? `${err.name}: ${err.message}` : 'unknown error'
+    console.error('Telegram notification delivery failed:', reason)
 
-    await supabase.rpc('update_telegram_notification_status', {
+    const { error: failError } = await supabase.rpc('update_telegram_notification_status', {
       p_order_id: data.id,
-      p_status: 'FAILED',
+      p_status: TELEGRAM_NOTIFICATION_STATUS.FAILED,
     })
+    if (failError) {
+      console.error('Failed to record notification status:', failError.message)
+    }
 
     throw new AppError('Failed to deliver review notification — please retry', 502)
   }
+
+  // The message was sent; record it so re-confirms don't resend a duplicate card.
+  const { error: statusError } = await supabase.rpc('update_telegram_notification_status', {
+    p_order_id: data.id,
+    p_status: TELEGRAM_NOTIFICATION_STATUS.SENT,
+  })
+  if (statusError) {
+    console.error('Failed to record notification status:', statusError.message)
+    throw new AppError('Failed to record review notification status — please retry', 502)
+  }
+
+  return { ...data, telegram_notification_status: TELEGRAM_NOTIFICATION_STATUS.SENT }
 }
 
 /**

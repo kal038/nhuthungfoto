@@ -51,6 +51,11 @@ function formatVnd(amount: number): string {
   return new Intl.NumberFormat('vi-VN').format(amount)
 }
 
+/** Escapes MarkdownV2 reserved characters in dynamic values (Telegram parse_mode). */
+export function escapeMarkdownV2(value: string): string {
+  return value.replace(/[_*[\]()~`>#+\-=|{}.!]/g, '\\$&')
+}
+
 /**
  * Sends order review notification card with bank-app warning and inline action buttons to admin chat.
  */
@@ -62,10 +67,10 @@ export async function sendPaymentReviewNotification(
     '*Xác nhận chuyển khoản mới*',
     '',
     `Mã đơn: \`${params.orderCode}\``,
-    `Số tiền: *${formatVnd(params.amountVnd)} VND*`,
+    `Số tiền: *${escapeMarkdownV2(formatVnd(params.amountVnd))} VND*`,
     `Credits: *${params.creditAmount}*`,
     `User: \`${params.userId}\``,
-    `Xác nhận lúc: ${params.confirmedAt}`,
+    `Xác nhận lúc: ${escapeMarkdownV2(params.confirmedAt)}`,
     '',
     '*Kiểm tra app ngân hàng trước khi duyệt\\!*',
   ].join('\n')
@@ -95,6 +100,8 @@ export async function sendPaymentReviewNotification(
 
 /**
  * Acknowledges Telegram callback query to dismiss client spinner and display toast.
+ *
+ * An already-answered / expired callback (redelivered webhook) is a no-op, not a failure.
  */
 export async function answerCallbackQuery(
   env: Env,
@@ -102,15 +109,24 @@ export async function answerCallbackQuery(
   text?: string,
   showAlert = false,
 ): Promise<void> {
-  await callTelegramApi(env.TELEGRAM_BOT_TOKEN, 'answerCallbackQuery', {
-    callback_query_id: callbackQueryId,
-    text,
-    show_alert: showAlert,
-  })
+  try {
+    await callTelegramApi(env.TELEGRAM_BOT_TOKEN, 'answerCallbackQuery', {
+      callback_query_id: callbackQueryId,
+      text,
+      show_alert: showAlert,
+    })
+  } catch (err) {
+    const message = err instanceof AppError ? err.message : ''
+    if (/query is too old|query ID is invalid/i.test(message)) return
+    throw err
+  }
 }
 
 /**
  * Edits Telegram message text to reflect resolved state and remove inline action buttons.
+ *
+ * Editing with identical text is a Telegram no-op ("message is not modified") — treat it as
+ * success so a redelivered webhook does not fail forever.
  */
 export async function editReviewMessage(
   env: Env,
@@ -118,11 +134,17 @@ export async function editReviewMessage(
   messageId: number,
   text: string,
 ): Promise<void> {
-  await callTelegramApi(env.TELEGRAM_BOT_TOKEN, 'editMessageText', {
-    chat_id: chatId,
-    message_id: messageId,
-    text,
-    parse_mode: 'MarkdownV2',
-    reply_markup: { inline_keyboard: [] },
-  })
+  try {
+    await callTelegramApi(env.TELEGRAM_BOT_TOKEN, 'editMessageText', {
+      chat_id: chatId,
+      message_id: messageId,
+      text,
+      parse_mode: 'MarkdownV2',
+      reply_markup: { inline_keyboard: [] },
+    })
+  } catch (err) {
+    const message = err instanceof AppError ? err.message : ''
+    if (/message is not modified/i.test(message)) return
+    throw err
+  }
 }
