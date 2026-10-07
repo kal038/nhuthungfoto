@@ -222,39 +222,109 @@ describe('confirmOrder', () => {
       vi.mocked(sendPaymentReviewNotification).mockReset()
     })
 
-    it('records SENT after delivery and returns the updated status', async () => {
-      rpc.mockResolvedValueOnce({ data: deliverable, error: null })
-      rpc.mockResolvedValueOnce({ data: null, error: null })
+    it('claims the send, records SENT after delivery, and returns the updated status', async () => {
+      rpc.mockImplementation(async (name: string) => {
+        if (name === 'confirm_manual_payment_order') return { data: deliverable, error: null }
+        if (name === 'claim_telegram_notification') return { data: true, error: null }
+        if (name === 'update_telegram_notification_status') return { data: null, error: null }
+        throw new Error(`unexpected rpc: ${name}`)
+      })
       vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
 
       const result = await confirmOrder(supabase, 'user-1', 'order-1', env)
 
       expect(result.telegram_notification_status).toBe('SENT')
-      expect(rpc).toHaveBeenNthCalledWith(2, 'update_telegram_notification_status', {
+      expect(rpc).toHaveBeenCalledWith('claim_telegram_notification', { p_order_id: 'order-1' })
+      expect(rpc).toHaveBeenCalledWith('update_telegram_notification_status', {
         p_order_id: 'order-1',
         p_status: 'SENT',
       })
     })
 
-    it('surfaces a retryable 502 when the SENT status cannot be recorded', async () => {
-      rpc.mockResolvedValueOnce({ data: deliverable, error: null })
-      rpc.mockResolvedValueOnce({ data: null, error: { code: 'XX000', message: 'boom' } })
+    it('does not send when the claim is lost (parallel confirm / already sent)', async () => {
+      rpc.mockImplementation(async (name: string) => {
+        if (name === 'confirm_manual_payment_order') return { data: deliverable, error: null }
+        if (name === 'claim_telegram_notification') return { data: false, error: null }
+        return { data: null, error: null }
+      })
+
+      const result = await confirmOrder(supabase, 'user-1', 'order-1', env)
+
+      expect(result).toEqual(deliverable)
+      expect(sendPaymentReviewNotification).not.toHaveBeenCalled()
+      expect(rpc).not.toHaveBeenCalledWith(
+        'update_telegram_notification_status',
+        expect.anything(),
+      )
+    })
+
+    it('throws 502 without sending when the claim RPC fails', async () => {
+      rpc.mockImplementation(async (name: string) => {
+        if (name === 'confirm_manual_payment_order') return { data: deliverable, error: null }
+        if (name === 'claim_telegram_notification')
+          return { data: null, error: { code: 'XX000', message: 'boom' } }
+        return { data: null, error: null }
+      })
+
+      await expect(confirmOrder(supabase, 'user-1', 'order-1', env)).rejects.toMatchObject({
+        status: 502,
+      })
+      expect(sendPaymentReviewNotification).not.toHaveBeenCalled()
+    })
+
+    it('retries the SENT write and succeeds on a later attempt', async () => {
+      let statusCalls = 0
+      rpc.mockImplementation(async (name: string) => {
+        if (name === 'confirm_manual_payment_order') return { data: deliverable, error: null }
+        if (name === 'claim_telegram_notification') return { data: true, error: null }
+        if (name === 'update_telegram_notification_status') {
+          statusCalls++
+          return statusCalls === 1
+            ? { data: null, error: { code: 'XX000', message: 'transient' } }
+            : { data: null, error: null }
+        }
+        throw new Error(`unexpected rpc: ${name}`)
+      })
+      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
+
+      const result = await confirmOrder(supabase, 'user-1', 'order-1', env)
+
+      expect(result.telegram_notification_status).toBe('SENT')
+      expect(statusCalls).toBe(2)
+    })
+
+    it('surfaces a retryable 502 after exhausting SENT write attempts', async () => {
+      let statusCalls = 0
+      rpc.mockImplementation(async (name: string) => {
+        if (name === 'confirm_manual_payment_order') return { data: deliverable, error: null }
+        if (name === 'claim_telegram_notification') return { data: true, error: null }
+        if (name === 'update_telegram_notification_status') {
+          statusCalls++
+          return { data: null, error: { code: 'XX000', message: 'boom' } }
+        }
+        throw new Error(`unexpected rpc: ${name}`)
+      })
       vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
 
       await expect(confirmOrder(supabase, 'user-1', 'order-1', env)).rejects.toMatchObject({
         status: 502,
       })
+      expect(statusCalls).toBe(3)
     })
 
-    it('records FAILED and throws 502 when delivery fails', async () => {
-      rpc.mockResolvedValueOnce({ data: deliverable, error: null })
-      rpc.mockResolvedValueOnce({ data: null, error: null })
+    it('records FAILED (releasing the claim) and throws 502 when delivery fails', async () => {
+      rpc.mockImplementation(async (name: string) => {
+        if (name === 'confirm_manual_payment_order') return { data: deliverable, error: null }
+        if (name === 'claim_telegram_notification') return { data: true, error: null }
+        if (name === 'update_telegram_notification_status') return { data: null, error: null }
+        throw new Error(`unexpected rpc: ${name}`)
+      })
       vi.mocked(sendPaymentReviewNotification).mockRejectedValueOnce(new Error('network down'))
 
       await expect(confirmOrder(supabase, 'user-1', 'order-1', env)).rejects.toMatchObject({
         status: 502,
       })
-      expect(rpc).toHaveBeenNthCalledWith(2, 'update_telegram_notification_status', {
+      expect(rpc).toHaveBeenCalledWith('update_telegram_notification_status', {
         p_order_id: 'order-1',
         p_status: 'FAILED',
       })
