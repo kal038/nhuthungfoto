@@ -6,3 +6,5 @@ variables:
     name: TELEGRAM_WEBHOOK_SECRET
   - secret: false
     name: TELEGRAM_CHAT_ID
+  - secret: false
+    name: TELEGRAM_WEBHOOK_URL

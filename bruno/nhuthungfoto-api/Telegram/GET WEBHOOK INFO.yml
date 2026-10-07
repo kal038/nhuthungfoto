@@ -1,0 +1,26 @@
+info:
+  name: GET WEBHOOK INFO
+  type: http
+  seq: 10
+
+http:
+  method: GET
+  url: https://api.telegram.org/bot{{MY_TELEGRAM_BOT}}/getWebhookInfo
+  auth: none
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.ok).to.equal(true);
+        // Empty url means Telegram will not deliver callbacks to our Worker.
+        console.log("webhook url:", data.result && data.result.url);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

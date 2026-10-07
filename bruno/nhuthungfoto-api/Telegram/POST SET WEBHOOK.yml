@@ -1,0 +1,34 @@
+info:
+  name: POST SET WEBHOOK
+  type: http
+  seq: 11
+
+http:
+  method: POST
+  url: https://api.telegram.org/bot{{MY_TELEGRAM_BOT}}/setWebhook
+  auth: none
+  body:
+    type: json
+    # Points Telegram at this Worker's webhook. Telegram requires a public HTTPS url,
+    # so use a tunnel (e.g. cloudflared) when testing against localhost:8787.
+    # secret_token is echoed back as the X-Telegram-Bot-Api-Secret-Token header.
+    data: |-
+      {
+        "url": "{{TELEGRAM_WEBHOOK_URL}}",
+        "secret_token": "{{TELEGRAM_WEBHOOK_SECRET}}"
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.ok).to.equal(true);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false
