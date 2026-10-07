@@ -1,5 +1,5 @@
 info:
-  name: POST CONFIRM - NOT IMPLEMENTED
+  name: POST CONFIRM
   type: http
   seq: 7
 
@@ -12,8 +12,10 @@ runtime:
   scripts:
     - type: after-response
       code: |-
-        // Lifecycle RPC not shipped yet
-        expect(res.getStatus()).to.equal(501);
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.id).to.equal(bru.getVar("orderId"));
+        expect(data.status).to.equal("AWAITING_REVIEW");
 
 settings:
   encodeUrl: true

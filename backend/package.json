@@ -12,11 +12,12 @@
     "test": "vitest",
     "test:coverage": "vitest run --coverage",
     "db:push": "supabase db push",
-    "db:types": "supabase gen types typescript --linked --schema public > src/types/database.types.ts"
+    "db:types": "supabase gen types typescript --linked --schema public > src/types/database.types.ts",
+    "telegram:webhook": "node scripts/set-telegram-webhook.mjs"
   },
   "dependencies": {
-    "@sentry/cloudflare": "^10.69.0",
-    "@sentry/hono": "^10.69.0",
+    "@sentry/cloudflare": "^10.76.0",
+    "@sentry/hono": "^10.76.0",
     "@supabase/supabase-js": "^2.105.1",
     "aws4fetch": "^1.0.20",
     "hono": "^4.13.7",
@@ -27,11 +28,12 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20260907.1",
     "@eslint/js": "^10.0.1",
-    "@vitest/coverage-v8": "^4.1.1",
+    "@vitest/coverage-v8": "^5.0.0",
     "eslint": "^10.0.3",
     "eslint-config-prettier": "^10.1.8",
     "globals": "^17.4.0",
     "prettier": "^3.8.1",
+    "supabase": "^2.119.0",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.57.0",
     "vitest": "^5.0.0",

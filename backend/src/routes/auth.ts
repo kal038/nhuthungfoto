@@ -13,8 +13,7 @@ export interface UsernameCheckResponse {
 
 const authRouter = new Hono<{ Bindings: Env }>()
 
-// POST /v1/auth/check-username
-// Public endpoint to check username availability before signup
+// POST /v1/auth/check-username — public username availability check.
 authRouter.post('/check-username', async (c) => {
   const body = await c.req.json().catch(() => {
     throw new BadRequestError('Request body must be valid JSON')

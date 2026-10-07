@@ -31,3 +31,12 @@ ADMIN_EMAILS=
 
 #Sentry Keys
 SENTRY_API_KEY=
+
+#TELEGRAM 
+TELEGRAM_BOT_TOKEN=
+TELEGRAM_CHAT_ID=
+TELEGRAM_WEBHOOK_SECRET=
+# Public HTTPS URL Telegram posts callbacks to (see `npm run telegram:webhook -- set --url=...`).
+# Not read at runtime; only used by the webhook registration script / reference.
+TELEGRAM_WEBHOOK_URL=
+

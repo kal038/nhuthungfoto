@@ -125,6 +125,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         Insert: {
@@ -145,6 +146,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at?: string | null
+          telegram_send_claimed_at?: string | null
           user_id: string
         }
         Update: {
@@ -165,6 +167,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at?: string | null
+          telegram_send_claimed_at?: string | null
           user_id?: string
         }
         Relationships: [
@@ -469,6 +472,36 @@ export type Database = {
         }
         Returns: undefined
       }
+      approve_manual_payment_order: {
+        Args: { p_approval_metadata?: Json; p_order_id: string }
+        Returns: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
       cancel_manual_payment_order: {
         Args: { p_order_id: string; p_user_id: string }
         Returns: {
@@ -489,6 +522,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -497,6 +531,10 @@ export type Database = {
           isOneToOne: true
           isSetofReturn: false
         }
+      }
+      claim_telegram_notification: {
+        Args: { p_order_id: string }
+        Returns: boolean
       }
       confirm_manual_payment_order: {
         Args: { p_order_id: string; p_user_id: string }
@@ -518,6 +556,7 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -553,6 +592,37 @@ export type Database = {
             | Database["public"]["Enums"]["telegram_notification_status"]
             | null
           telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
+      }
+      reject_manual_payment_order: {
+        Args: { p_approval_metadata?: Json; p_order_id: string }
+        Returns: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
           user_id: string
         }
         SetofOptions: {
@@ -582,6 +652,39 @@ export type Database = {
           p_user_id: string
         }
         Returns: number
+      }
+      update_telegram_notification_status: {
+        Args: {
+          p_order_id: string
+          p_status: Database["public"]["Enums"]["telegram_notification_status"]
+        }
+        Returns: {
+          amount_vnd: number
+          approval_metadata: Json | null
+          client_request_id: string
+          confirmed_at: string | null
+          created_at: string
+          credit_amount: number
+          expires_at: string
+          id: string
+          order_code: string
+          package_id: string
+          package_label: string
+          resolved_at: string | null
+          status: Database["public"]["Enums"]["order_status"]
+          telegram_notification_status:
+            | Database["public"]["Enums"]["telegram_notification_status"]
+            | null
+          telegram_notified_at: string | null
+          telegram_send_claimed_at: string | null
+          user_id: string
+        }
+        SetofOptions: {
+          from: "*"
+          to: "payment_orders"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
     }
     Enums: {

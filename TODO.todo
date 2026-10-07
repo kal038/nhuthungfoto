@@ -1,28 +1,6 @@
 CURRENT PROGRESS
 
-
-Config - Configure payment and Telegram environment:- Update backend/src/types/env.ts.
-- Add VietQR bank ID, account number, account name, Telegram bot token, Telegram webhook secret, and admin chat ID.
-- Update backend/wrangler.jsonc with non-secret bank display configuration.
-- Keep Telegram credentials and sensitive values in Worker secrets.
-- Do not add Email handlers, Cron triggers, postal-mime, or KV bindings.
-
-
-Create customer payment routes:- Create backend/src/routes/payments.ts.
-- Add an authenticated package-list endpoint.
-- Add an authenticated order-creation endpoint.
-- Accept package ID and client request ID.
-- Return order ID, order code, package label, credit quantity, VND amount, expiry timestamp, transfer message, QR image URL, and status.
-- Add an authenticated customer-confirmation endpoint.
-- Accept the order ID from the route.
-- Move the order to AWAITING_REVIEW and initiate Telegram notification.
-- Make repeated confirmation safe.
-- Add an authenticated customer-cancellation endpoint.
-- Allow cancellation only while the order is PENDING_TRANSFER.
-- Add an authenticated status endpoint.
-- Return status, amount, credit quantity, confirmation time, expiry time, and resolution time.
-- Return 404 for missing and cross-user orders.
-- Mount the router at /v1/payments in backend/src/index.ts.
+text the telegram flow (manual, unit, and Bruno API)
 
 Create the Telegram service:- Create backend/src/services/telegram.ts.
 - Send a review notification after customer confirmation.
@@ -30,7 +8,6 @@ Create the Telegram service:- Create backend/src/services/telegram.ts.
 - Include an explicit warning requiring bank-app verification before approval.
 - Add approve and reject inline buttons.
 - Keep callback payloads below Telegram’s size limit.
-- Do not include secrets or full customer profile data.
 - Treat Telegram network failures as retryable.
 - Leave the order in AWAITING_REVIEW when notification delivery fails.
 
@@ -53,6 +30,8 @@ Create the Telegram webhook:- Create backend/src/schema/telegram.ts.
 - Acknowledge callbacks after processing.
 - Show ALREADY_GRANTED for repeated approval clicks.
 - Show a clear error when the order is pending customer confirmation, expired, or already cancelled.
+
+
 
 UI Data - Implement frontend payment hooks:- Create frontend/src/hooks/queries/usePaymentPackages.ts.
 - Create frontend/src/hooks/mutations/useCreatePaymentOrder.ts.

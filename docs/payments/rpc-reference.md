@@ -1,9 +1,11 @@
 # Payments — RPC reference
 
 > Source of truth: [`20260903000001_create_manual_payment_order.sql`](../../backend/supabase/migrations/20260903000001_create_manual_payment_order.sql),
-> [`20260914000001_confirm_cancel_payment_order_rpc.sql`](../../backend/supabase/migrations/20260914000001_confirm_cancel_payment_order_rpc.sql)
+> [`20260914000001_confirm_cancel_payment_order_rpc.sql`](../../backend/supabase/migrations/20260914000001_confirm_cancel_payment_order_rpc.sql),
+> [`20261006000001_approve_reject_telegram_rpcs.sql`](../../backend/supabase/migrations/20261006000001_approve_reject_telegram_rpcs.sql),
+> [`20261007000002_claim_telegram_notification.sql`](../../backend/supabase/migrations/20261007000002_claim_telegram_notification.sql)
 
-Three RPCs write `payment_orders`. All are `SECURITY DEFINER`,
+Seven RPCs write `payment_orders`. All are `SECURITY DEFINER`,
 `SET search_path = public, pg_temp`, and callable only by `service_role`
 (see [security.md](./security.md)). Step numbers below match the SQL comments.
 
@@ -110,10 +112,128 @@ Notes
 
 ---
 
+## `approve_manual_payment_order`
+
+```
+approve_manual_payment_order(
+  p_order_id          uuid,
+  p_approval_metadata jsonb DEFAULT NULL
+) RETURNS public.payment_orders
+```
+
+Admin verified the bank transfer. `AWAITING_REVIEW → SUCCESS`, credits granted
+and the ledger row written atomically with the status flip.
+
+| Step | Does |
+|---|---|
+| 1 | validate inputs (400) |
+| 2 | `SELECT ... WHERE id = p_order_id FOR UPDATE` → 404 if none |
+| 3 | already `SUCCESS` → return row (idempotent; credits not re-granted) |
+| 4 | not `AWAITING_REVIEW` → **409** |
+| 5 | `add_credits(...)` — `PURCHASE` grant keyed `payment-order:<id>` |
+| 6 | `INSERT` `payments` ledger row (`provider='manual'`, `status='SUCCESS'`, `external_ref=order_code`) |
+| 7 | set `status='SUCCESS'`, `resolved_at=now()`, `approval_metadata`; return row |
+
+Notes
+
+- Re-approval short-circuits at step 3, so neither credits nor the ledger row can
+  duplicate (`payments.external_ref` is also unique).
+- The ledger `status` is `SUCCESS`. Before
+  [`20261007000001_fix_approve_payment_ledger_status.sql`](../../backend/supabase/migrations/20261007000001_fix_approve_payment_ledger_status.sql)
+  it fell back to the column default `PENDING`; that migration fixes the RPC and
+  backfills affected rows.
+
+---
+
+## `reject_manual_payment_order`
+
+```
+reject_manual_payment_order(
+  p_order_id          uuid,
+  p_approval_metadata jsonb DEFAULT NULL
+) RETURNS public.payment_orders
+```
+
+Admin found no matching bank transfer. `AWAITING_REVIEW → CANCELLED`.
+
+| Step | Does |
+|---|---|
+| 1 | validate inputs (400) |
+| 2 | `SELECT ... WHERE id = p_order_id FOR UPDATE` → 404 if none |
+| 3 | terminal (`SUCCESS`/`CANCELLED`/`EXPIRED`) → return row (idempotent no-op) |
+| 4 | not `AWAITING_REVIEW` → **409** |
+| 5 | set `status='CANCELLED'`, `resolved_at=now()`, `approval_metadata`; return row |
+
+Notes
+
+- No credits are granted and no `payments` ledger row is written.
+
+---
+
+## `claim_telegram_notification`
+
+```
+claim_telegram_notification(p_order_id uuid) RETURNS boolean
+```
+
+Serialises Telegram review-card delivery. `confirmOrder` must win this before
+calling `sendMessage`; it exists because Telegram has no idempotency key, so
+parallel confirms / retries would otherwise send duplicate cards.
+
+| Step | Does |
+|---|---|
+| 1 | validate inputs (400) |
+| 2 | `SELECT ... WHERE id = p_order_id FOR UPDATE` → 404 if none (the row lock serialises callers) |
+| 3 | already `SENT`, or a claim held within the 60s lease → return `false` |
+| 4 | set `telegram_send_claimed_at = now()`; return `true` |
+
+Notes
+
+- A caller blocked on the lock re-reads the committed claim and loses — only one
+  claim per order per lease window.
+- The claim is released by `update_telegram_notification_status` on
+  `SENT`/`FAILED`, so a failed send can be retried.
+- A stale claim (process died mid-send) expires after 60s, after which a later
+  confirm may retry. This is the residual window: a kill between Telegram's 200
+  and the `SENT` write can still yield one duplicate card.
+
+---
+
+## `update_telegram_notification_status`
+
+```
+update_telegram_notification_status(
+  p_order_id uuid,
+  p_status   public.telegram_notification_status
+) RETURNS public.payment_orders
+```
+
+Bookkeeping only — it never changes `status`. Called by `confirmOrder` after the
+Telegram review card is delivered (or fails).
+
+| Step | Does |
+|---|---|
+| 1 | validate params (400) |
+| 2 | set `telegram_notification_status = p_status`; when `SENT` stamp `telegram_notified_at=now()`; on `SENT`/`FAILED` clear `telegram_send_claimed_at` (release the claim); return row → 404 if the id is unknown |
+
+Notes
+
+- Enum values: `PENDING`/`SENT`/`FAILED`.
+- `confirmOrder` records `SENT` on success and `FAILED` on delivery failure; a
+  re-confirm retries until `SENT`. The `SENT` write is retried a few times while
+  the claim lease is still held, so a transient write failure does not force a
+  resend.
+
+---
+
 ## Callers (backend)
 
 | RPC | Service | Route | Status |
 |---|---|---|---|
 | `create_manual_payment_order` | `createOrder` | `POST /v1/payments` | live |
-| `confirm_manual_payment_order` | `confirmOrder` (commented out) | `POST /v1/payments/:id/confirm` | **501** |
-| `cancel_manual_payment_order` | `cancelOrder` (commented out) | `POST /v1/payments/:id/cancel` | **501** |
+| `confirm_manual_payment_order` | `confirmOrder` | `POST /v1/payments/:id/confirm` | live |
+| `cancel_manual_payment_order` | `cancelOrder` | `POST /v1/payments/:id/cancel` | live |
+| `approve_manual_payment_order` | `approveOrder` | `POST /v1/telegram/webhook` (approve button) | live |
+| `reject_manual_payment_order` | `rejectOrder` | `POST /v1/telegram/webhook` (reject button) | live |
+| `claim_telegram_notification` | `confirmOrder` | internal (before Telegram send) | live |
+| `update_telegram_notification_status` | `confirmOrder` | internal (after Telegram delivery) | live |

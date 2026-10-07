@@ -1,5 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { spendCredits, addCredits, getBalance, getHistory, spendAndStartGrading } from '@/services/credit'
+import {
+  spendCredits,
+  addCredits,
+  getBalance,
+  getHistory,
+  spendAndStartGrading,
+} from '@/services/credit'
 import { AppError } from '@/lib/errors'
 
 describe('Credit Service', () => {
@@ -15,9 +21,15 @@ describe('Credit Service', () => {
   describe('spendCredits', () => {
     it('calls spend_credits RPC successfully', async () => {
       mockSupabase.rpc.mockResolvedValue({ data: 9, error: null })
-      
-      const newBalance = await spendCredits(mockSupabase as any, 'user-1', 1, { sub_id: 'sub-1' }, 'key-1')
-      
+
+      const newBalance = await spendCredits(
+        mockSupabase as never,
+        'user-1',
+        1,
+        { sub_id: 'sub-1' },
+        'key-1',
+      )
+
       expect(mockSupabase.rpc).toHaveBeenCalledWith('spend_credits', {
         p_user_id: 'user-1',
         p_amount: 1,
@@ -31,65 +43,72 @@ describe('Credit Service', () => {
     it('throws 402 on insufficient credits (23514 check_violation)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '23514', message: 'Insufficient credits' }
+        error: { code: '23514', message: 'Insufficient credits' },
       })
 
-      await expect(spendCredits(mockSupabase as any, 'user-1', 10))
-        .rejects
-        .toThrowError(new AppError('Insufficient credits', 402))
+      await expect(spendCredits(mockSupabase as never, 'user-1', 10)).rejects.toThrowError(
+        new AppError('Insufficient credits', 402),
+      )
     })
 
     it('throws 409 on idempotency key collision (23505 unique_violation)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '23505', message: 'duplicate key value violates unique constraint' }
+        error: { code: '23505', message: 'duplicate key value violates unique constraint' },
       })
 
-      await expect(spendCredits(mockSupabase as any, 'user-1', 10, {}, 'duplicate-key'))
-        .rejects
-        .toThrowError(new AppError('Request already processed', 409))
+      await expect(
+        spendCredits(mockSupabase as never, 'user-1', 10, {}, 'duplicate-key'),
+      ).rejects.toThrowError(new AppError('Request already processed', 409))
     })
 
     it('throws 403 on unauthorized (42501 insufficient_privilege)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '42501', message: 'Unauthorized' }
+        error: { code: '42501', message: 'Unauthorized' },
       })
 
-      await expect(spendCredits(mockSupabase as any, 'user-1', 10))
-        .rejects
-        .toThrowError(new AppError('Unauthorized', 403))
+      await expect(spendCredits(mockSupabase as never, 'user-1', 10)).rejects.toThrowError(
+        new AppError('Unauthorized', 403),
+      )
     })
 
     it('throws 400 on non-positive amount (22023 invalid_parameter_value)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '22023', message: 'Amount must be positive' }
+        error: { code: '22023', message: 'Amount must be positive' },
       })
 
-      await expect(spendCredits(mockSupabase as any, 'user-1', 0))
-        .rejects
-        .toThrowError(new AppError('Amount must be positive', 400))
+      await expect(spendCredits(mockSupabase as never, 'user-1', 0)).rejects.toThrowError(
+        new AppError('Amount must be positive', 400),
+      )
     })
 
     it('throws 500 on generic error', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { message: 'DB Down' }
+        error: { message: 'DB Down' },
       })
 
-      await expect(spendCredits(mockSupabase as any, 'user-1', 10))
-        .rejects
-        .toThrowError(new AppError('Failed to spend credits', 500))
+      await expect(spendCredits(mockSupabase as never, 'user-1', 10)).rejects.toThrowError(
+        new AppError('Failed to spend credits', 500),
+      )
     })
   })
 
   describe('addCredits', () => {
     it('calls add_credits RPC successfully', async () => {
       mockSupabase.rpc.mockResolvedValue({ data: 20, error: null })
-      
-      const newBalance = await addCredits(mockSupabase as any, 'user-1', 10, 'PURCHASE', null, 'key-2')
-      
+
+      const newBalance = await addCredits(
+        mockSupabase as never,
+        'user-1',
+        10,
+        'PURCHASE',
+        null,
+        'key-2',
+      )
+
       expect(mockSupabase.rpc).toHaveBeenCalledWith('add_credits', {
         p_user_id: 'user-1',
         p_amount: 10,
@@ -103,61 +122,69 @@ describe('Credit Service', () => {
     it('throws 403 on unauthorized (42501 insufficient_privilege)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '42501', message: 'Unauthorized' }
+        error: { code: '42501', message: 'Unauthorized' },
       })
 
-      await expect(addCredits(mockSupabase as any, 'user-1', 10))
-        .rejects
-        .toThrowError(new AppError('Unauthorized', 403))
+      await expect(addCredits(mockSupabase as never, 'user-1', 10)).rejects.toThrowError(
+        new AppError('Unauthorized', 403),
+      )
     })
 
     it('throws 400 on non-positive amount (22023 invalid_parameter_value)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '22023', message: 'Amount must be positive' }
+        error: { code: '22023', message: 'Amount must be positive' },
       })
 
-      await expect(addCredits(mockSupabase as any, 'user-1', -5))
-        .rejects
-        .toThrowError(new AppError('Amount must be positive', 400))
+      await expect(addCredits(mockSupabase as never, 'user-1', -5)).rejects.toThrowError(
+        new AppError('Amount must be positive', 400),
+      )
     })
 
     it('throws 404 on user not found (P0002 no_data_found)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: 'P0002', message: 'User not found' }
+        error: { code: 'P0002', message: 'User not found' },
       })
 
-      await expect(addCredits(mockSupabase as any, 'missing-user', 10))
-        .rejects
-        .toThrowError(new AppError('User not found', 404))
+      await expect(addCredits(mockSupabase as never, 'missing-user', 10)).rejects.toThrowError(
+        new AppError('User not found', 404),
+      )
     })
 
     it('throws 409 on idempotency key collision (23505 unique_violation)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '23505', message: 'duplicate key value violates unique constraint' }
+        error: { code: '23505', message: 'duplicate key value violates unique constraint' },
       })
 
-      await expect(addCredits(mockSupabase as any, 'user-1', 10, 'PURCHASE', null, 'duplicate-key'))
-        .rejects
-        .toThrowError(new AppError('Request already processed', 409))
+      await expect(
+        addCredits(mockSupabase as never, 'user-1', 10, 'PURCHASE', null, 'duplicate-key'),
+      ).rejects.toThrowError(new AppError('Request already processed', 409))
     })
   })
 
   describe('getHistory', () => {
     it('selects explicit columns and paginates', async () => {
-      const entry = { id: 'h-1', amount: 10, type: 'STARTER_BONUS', metadata: null, created_at: '2026-07-21' }
+      const entry = {
+        id: 'h-1',
+        amount: 10,
+        type: 'STARTER_BONUS',
+        metadata: null,
+        created_at: '2026-07-21',
+      }
       const mockRange = vi.fn().mockResolvedValue({ data: [entry], error: null, count: 1 })
       const mockOrder = vi.fn().mockReturnValue({ range: mockRange })
       const mockEq = vi.fn().mockReturnValue({ order: mockOrder })
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq })
       mockSupabase.from.mockReturnValue({ select: mockSelect })
 
-      const result = await getHistory(mockSupabase as any, 'user-1', 10, 5)
+      const result = await getHistory(mockSupabase as never, 'user-1', 10, 5)
 
       expect(mockSupabase.from).toHaveBeenCalledWith('credit_history')
-      expect(mockSelect).toHaveBeenCalledWith('id, amount, type, metadata, created_at', { count: 'exact' })
+      expect(mockSelect).toHaveBeenCalledWith('id, amount, type, metadata, created_at', {
+        count: 'exact',
+      })
       expect(mockRange).toHaveBeenCalledWith(5, 14)
       expect(result).toEqual({ entries: [entry], total: 1 })
     })
@@ -170,7 +197,7 @@ describe('Credit Service', () => {
       const mockSelect = vi.fn().mockReturnValue({ eq: mockEq })
       mockSupabase.from.mockReturnValue({ select: mockSelect })
 
-      const balance = await getBalance(mockSupabase as any, 'user-1')
+      const balance = await getBalance(mockSupabase as never, 'user-1')
       expect(balance).toBe(15)
     })
   })
@@ -180,7 +207,12 @@ describe('Credit Service', () => {
       mockSupabase.rpc.mockResolvedValue({ data: 9, error: null })
 
       const newBalance = await spendAndStartGrading(
-        mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1',
+        mockSupabase as never,
+        'user-1',
+        'sub-1',
+        1,
+        'AI',
+        'grade_sub-1',
       )
 
       expect(mockSupabase.rpc).toHaveBeenCalledWith('spend_and_start_grading', {
@@ -198,7 +230,13 @@ describe('Credit Service', () => {
       mockSupabase.rpc.mockResolvedValue({ data: 6, error: null })
 
       await spendAndStartGrading(
-        mockSupabase as any, 'user-1', 'sub-1', 3, 'HUNG', 'grade_sub-1', { module: 'portrait' },
+        mockSupabase as never,
+        'user-1',
+        'sub-1',
+        3,
+        'HUNG',
+        'grade_sub-1',
+        { module: 'portrait' },
       )
 
       expect(mockSupabase.rpc).toHaveBeenCalledWith('spend_and_start_grading', {
@@ -214,78 +252,78 @@ describe('Credit Service', () => {
     it('throws 402 on insufficient credits (23514 check_violation)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '23514', message: 'Insufficient credits' }
+        error: { code: '23514', message: 'Insufficient credits' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 10, 'AI', 'grade_sub-1'))
-        .rejects
-        .toThrowError(new AppError('Insufficient credits', 402))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-1', 10, 'AI', 'grade_sub-1'),
+      ).rejects.toThrowError(new AppError('Insufficient credits', 402))
     })
 
     it('throws 409 when submission not in UPLOADED (55000 object_not_in_prerequisite_state)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '55000', message: 'Submission not in UPLOADED status: GRADING' }
+        error: { code: '55000', message: 'Submission not in UPLOADED status: GRADING' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
-        .rejects
-        .toThrowError(new AppError('Submission cannot be graded in its current status', 409))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'),
+      ).rejects.toThrowError(new AppError('Submission cannot be graded in its current status', 409))
     })
 
     it('throws 409 on idempotency key replay (23505 unique_violation)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '23505', message: 'duplicate key value violates unique constraint' }
+        error: { code: '23505', message: 'duplicate key value violates unique constraint' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
-        .rejects
-        .toThrowError(new AppError('Request already processed', 409))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'),
+      ).rejects.toThrowError(new AppError('Request already processed', 409))
     })
 
     it('throws 404 on missing or foreign submission (P0002 no_data_found)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: 'P0002', message: 'Submission not found' }
+        error: { code: 'P0002', message: 'Submission not found' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-x', 1, 'AI', 'grade_sub-x'))
-        .rejects
-        .toThrowError(new AppError('Submission not found', 404))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-x', 1, 'AI', 'grade_sub-x'),
+      ).rejects.toThrowError(new AppError('Submission not found', 404))
     })
 
     it('throws 403 on unauthorized (42501 insufficient_privilege)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '42501', message: 'Unauthorized' }
+        error: { code: '42501', message: 'Unauthorized' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
-        .rejects
-        .toThrowError(new AppError('Unauthorized', 403))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'),
+      ).rejects.toThrowError(new AppError('Unauthorized', 403))
     })
 
     it('throws 400 on non-positive amount (22023 invalid_parameter_value)', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { code: '22023', message: 'Amount must be positive' }
+        error: { code: '22023', message: 'Amount must be positive' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 0, 'AI', 'grade_sub-1'))
-        .rejects
-        .toThrowError(new AppError('Amount must be positive', 400))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-1', 0, 'AI', 'grade_sub-1'),
+      ).rejects.toThrowError(new AppError('Amount must be positive', 400))
     })
 
     it('throws 500 on generic error', async () => {
       mockSupabase.rpc.mockResolvedValue({
         data: null,
-        error: { message: 'DB Down' }
+        error: { message: 'DB Down' },
       })
 
-      await expect(spendAndStartGrading(mockSupabase as any, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'))
-        .rejects
-        .toThrowError(new AppError('Failed to start grading', 500))
+      await expect(
+        spendAndStartGrading(mockSupabase as never, 'user-1', 'sub-1', 1, 'AI', 'grade_sub-1'),
+      ).rejects.toThrowError(new AppError('Failed to start grading', 500))
     })
   })
 })

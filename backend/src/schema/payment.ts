@@ -1,17 +1,14 @@
 import { z } from 'zod/v4'
 import { getEnabledPaymentPackages } from '@/config/payment-packages'
 
-// Enabled-only package ids — what can actually be sold right now.
-// Cast through string[] because z.enum wants a non-empty literal tuple and
-// the map result is widened by TS; the catalog owns the true values.
+// Enabled-only package ids; cast through string[] for z.enum's non-empty literal tuple.
 export const PACKAGE_IDS = getEnabledPaymentPackages().map((p) => p.id)
 
 if (PACKAGE_IDS.length === 0) {
   throw new Error('No enabled payment packages — misconfigured catalog')
 }
 
-// POST /v1/payments — create order.
-// Client knows only what it clicked (package) + its idempotency key (clientRequestId)
+// POST /v1/payments — create order from { packageId, clientRequestId }.
 export const createOrderRequestSchema = z
   .object({
     packageId: z.enum(PACKAGE_IDS, { message: 'Unknown package' }),
@@ -26,8 +23,7 @@ export const createOrderRequestSchema = z
 
 export type CreateOrderInput = z.infer<typeof createOrderRequestSchema>
 
-// Route params for status / confirm / cancel — orderId was minted by the server
-// at creation, so the client only ever plays it back. Never parsed as body.
+// Route params for status / confirm / cancel; orderId is server-minted.
 export const orderIdParamsSchema = z
   .object({
     orderId: z.uuid({ message: 'orderId must be a valid UUID' }),
@@ -35,4 +31,3 @@ export const orderIdParamsSchema = z
   .strict()
 
 export type OrderIdParams = z.infer<typeof orderIdParamsSchema>
-

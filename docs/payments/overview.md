@@ -26,12 +26,14 @@ that actually arrived — manual today, Stripe later.
    (`POST /v1/payments`) → status `PENDING_TRANSFER`, server-computed
    `expires_at`, an `order_code`, and a VietQR URL.
 3. User transfers the money, then either:
-   - **confirms** → `confirm_manual_payment_order` → `AWAITING_REVIEW`, or
+   - **confirms** → `confirm_manual_payment_order` → `AWAITING_REVIEW`
+     (and a Telegram review card is sent to the admin chat), or
    - **cancels** → `cancel_manual_payment_order` → `CANCELLED`.
 4. If the deadline passes first, the order is `EXPIRED` (see
    [reads-and-expiry.md](./reads-and-expiry.md)).
-5. Admin verifies the bank statement and either approves (→ `SUCCESS`, credits
-   granted) or rejects (→ `CANCELLED`). **Not shipped yet.**
+5. Admin verifies the bank statement from the Telegram card and either approves
+   (`approve_manual_payment_order` → `SUCCESS`, credits + a `payments` row with
+   `status='SUCCESS'`) or rejects (`reject_manual_payment_order` → `CANCELLED`).
 
 ## Glossary
 
@@ -42,6 +44,7 @@ that actually arrived — manual today, Stripe later.
 | **effective status** | `status` with lazy expiry applied (`payment_orders_effective.effective_status`) |
 | **materialize** | physically flip a stale row `PENDING_TRANSFER → EXPIRED` (vs computing it on read) |
 | **order code** | 7-char `[A-Z0-9]` transfer reference, also the QR message |
+| **notification status** | `telegram_notification_status` — whether the admin review card was delivered (`PENDING`/`SENT`/`FAILED`) |
 | **one-active-order cap** | DB partial unique index `idx_payment_orders_active_user` |
 
 ## Where to go next

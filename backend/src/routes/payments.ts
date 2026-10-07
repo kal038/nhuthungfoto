@@ -128,7 +128,7 @@ paymentsRouter.post('/:orderId/confirm', async (c) => {
     throw new ZodParseError('Invalid order id')
   }
 
-  const order = await confirmOrder(supabase, userId, parsed.data.orderId)
+  const order = await confirmOrder(supabase, userId, parsed.data.orderId, c.env)
 
   return c.json(toOrderResponse(order), 200)
 })

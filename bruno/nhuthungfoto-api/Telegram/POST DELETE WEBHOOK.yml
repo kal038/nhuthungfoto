@@ -1,0 +1,31 @@
+info:
+  name: POST DELETE WEBHOOK
+  type: http
+  seq: 12
+
+http:
+  method: POST
+  url: https://api.telegram.org/bot{{MY_TELEGRAM_BOT}}/setWebhook
+  auth: none
+  body:
+    type: json
+    # Empty url clears the webhook (Telegram stops delivering callbacks).
+    data: |-
+      {
+        "url": ""
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.ok).to.equal(true);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
+  forwardAuthorizationHeader: false

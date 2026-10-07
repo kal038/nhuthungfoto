@@ -5,14 +5,20 @@ import { authMiddleware } from '@/middleware/auth'
 
 // Mock hono/jwk so we can control auth behavior without real crypto
 describe('authMiddleware', () => {
-  let app: Hono<{ Bindings: Env; Variables: { user: { id: string; email?: string; role: string } } }>
+  let app: Hono<{
+    Bindings: Env
+    Variables: { user: { id: string; email?: string; role: string } }
+  }>
 
   const mockEnv: Env = {
     SUPABASE_URL: 'https://test.supabase.co',
   } as Env
 
   beforeEach(() => {
-    app = new Hono<{ Bindings: Env; Variables: { user: { id: string; email?: string; role: string } } }>()
+    app = new Hono<{
+      Bindings: Env
+      Variables: { user: { id: string; email?: string; role: string } }
+    }>()
     app.use('*', async (c, next) => {
       c.env = mockEnv
       await next()
@@ -84,8 +90,7 @@ describe('authMiddleware', () => {
     app.use('/protected', authMiddleware)
     app.get('/protected', (c) => c.json({ user: c.get('user') }))
 
-    // The real jwk middleware will try to fetch from the Supabase JWKS URL
-    // and fail because there's no Authorization header, resulting in 401
+    // jwk middleware fetches the JWKS URL and fails without an Authorization header.
     const response = await app.request('/protected')
     expect(response.status).toBe(401)
   })

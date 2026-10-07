@@ -47,7 +47,7 @@ Never remove `security_invoker`.
 |---|---|---|
 | `payment_orders` (table) | revoked from `PUBLIC`/`anon`/`authenticated`; `service_role` only | enabled, **no policies** (deny-all backstop) |
 | `payment_orders_effective` (view) | `service_role` only | `security_invoker = true` |
-| the three RPCs | `EXECUTE` to `service_role` only | run as owner |
+| the seven RPCs | `EXECUTE` to `service_role` only | run as owner |
 
 ## Where ownership is actually enforced
 

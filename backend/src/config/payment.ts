@@ -1,4 +1,5 @@
-export const ORDER_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789' // no 0/O/1/I
+// Base32 Crockford subset: no 0/O/1/I to avoid ambiguity.
+export const ORDER_CODE_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'
 export const ORDER_CODE_LENGTH = 7
 export const PAYMENT_EXPIRY_MINUTES = 30
 

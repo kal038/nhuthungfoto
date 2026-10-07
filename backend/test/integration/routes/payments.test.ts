@@ -35,7 +35,8 @@ const fakeOrderRow = {
 
 const fakeViewRow = {
   ...fakeOrderRow,
-  effective_status: 'EXPIRED' as const, // stale PENDING_TRANSFER past its deadline
+  // Stale PENDING_TRANSFER past its deadline.
+  effective_status: 'EXPIRED' as const,
   confirmed_at: null,
   resolved_at: null,
 }
@@ -140,7 +141,8 @@ describe('Payment Routes', () => {
         order_code: 'ABC2345',
         package_id: 'practice',
         package_label: 'Luyện tập',
-        status: 'EXPIRED', // effective_status wins over physical status
+        // effective_status wins over physical status
+        status: 'EXPIRED',
         credit_amount: 12,
         amount_vnd: 349_000,
         confirmed_at: null,
@@ -187,7 +189,7 @@ describe('Payment Routes', () => {
       expect(response.status).toBe(200)
       expect(data.status).toBe('AWAITING_REVIEW')
       expect(data.confirmed_at).toBe('2026-09-11T09:00:00.000Z')
-      expect(confirmOrder).toHaveBeenCalledWith({}, 'user-123', uuid)
+      expect(confirmOrder).toHaveBeenCalledWith({}, 'user-123', uuid, undefined)
     })
 
     it('cancel returns the cancelled order', async () => {
