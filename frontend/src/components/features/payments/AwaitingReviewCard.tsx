@@ -38,7 +38,7 @@ export function AwaitingReviewCard({ order }: AwaitingReviewCardProps) {
   // Idempotent re-confirm: retries the admin notification if it never sent.
   const handleResend = () => {
     confirmMutation.mutate(undefined, {
-      onSuccess: () => toast.success('Đã gửi lại thông báo cho admin'),
+      onSuccess: () => toast.success('Đã xử lý yêu cầu gửi thông báo cho admin'),
       onError: (err) => {
         if (err instanceof ApiError && err.status === 404) {
           toast.error('Không tìm thấy đơn hàng')

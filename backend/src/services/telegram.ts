@@ -13,32 +13,29 @@ export interface PaymentReviewNotificationParams {
 }
 
 /** Telegram Bot API response envelope. */
-interface TelegramResponse<T = unknown> {
+interface TelegramResponse {
   ok: boolean
   description?: string
-  result?: T
 }
 
-/** Calls a Telegram Bot API method and returns the parsed result. */
-async function callTelegramApi<T>(
+/** Calls a Telegram Bot API method; resolves on ok, throws on failure. */
+async function callTelegramApi(
   botToken: string,
   method: string,
   body: Record<string, unknown>,
-): Promise<T> {
+): Promise<void> {
   const res = await fetch(`${TELEGRAM_API}/bot${botToken}/${method}`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(body),
   })
 
-  const json = (await res.json()) as TelegramResponse<T>
+  const json = (await res.json()) as TelegramResponse
 
   if (!json.ok) {
     console.error(`Telegram ${method} failed:`, json.description)
     throw new AppError(`Telegram API error: ${json.description ?? 'unknown'}`, 502)
   }
-
-  return json.result as T
 }
 
 /** Formats VND amount with dot-separated thousands. */
