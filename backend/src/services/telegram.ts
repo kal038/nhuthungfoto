@@ -12,11 +12,6 @@ export interface PaymentReviewNotificationParams {
   readonly confirmedAt: string
 }
 
-export interface TelegramMessageResult {
-  readonly messageId: number
-  readonly chatId: number | string
-}
-
 /** Telegram Bot API response envelope. */
 interface TelegramResponse<T = unknown> {
   ok: boolean
@@ -62,7 +57,7 @@ export function escapeMarkdownV2(value: string): string {
 export async function sendPaymentReviewNotification(
   env: Env,
   params: PaymentReviewNotificationParams,
-): Promise<TelegramMessageResult> {
+): Promise<void> {
   const text = [
     '*Xác nhận chuyển khoản mới*',
     '',
@@ -75,26 +70,20 @@ export async function sendPaymentReviewNotification(
     '*Kiểm tra app ngân hàng trước khi duyệt\\!*',
   ].join('\n')
 
-  // Callback data must stay under Telegram's 64-byte limit: "action:orderId".
-  const result = await callTelegramApi<{ message_id: number; chat: { id: number } }>(
-    env.TELEGRAM_BOT_TOKEN,
-    'sendMessage',
-    {
-      chat_id: env.TELEGRAM_CHAT_ID,
-      text,
-      parse_mode: 'MarkdownV2',
-      reply_markup: {
-        inline_keyboard: [
-          [
-            { text: '✅ Duyệt', callback_data: `approve:${params.orderId}` },
-            { text: '❌ Từ chối', callback_data: `reject:${params.orderId}` },
-          ],
+  // Callback_data determines what Telegram sends to us in webhook upon inline keyboard button pressed by admin
+  await callTelegramApi(env.TELEGRAM_BOT_TOKEN, 'sendMessage', {
+    chat_id: env.TELEGRAM_CHAT_ID,
+    text,
+    parse_mode: 'MarkdownV2',
+    reply_markup: {
+      inline_keyboard: [
+        [
+          { text: '✅ Duyệt', callback_data: `approve:${params.orderId}` },
+          { text: '❌ Từ chối', callback_data: `reject:${params.orderId}` },
         ],
-      },
+      ],
     },
-  )
-
-  return { messageId: result.message_id, chatId: result.chat.id }
+  })
 }
 
 /**

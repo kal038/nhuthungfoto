@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import { useQueryClient } from '@tanstack/react-query'
-import { RefreshCw } from 'lucide-react'
+import { RefreshCw, Send } from 'lucide-react'
+import { toast } from 'sonner'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Separator } from '@/components/ui/separator'
+import { useConfirmPayment } from '@/hooks/mutations/useConfirmPayment'
+import { ApiError } from '@/lib/errors'
 import { queryKeys } from '@/lib/queryKeys'
 import type { PaymentOrder } from '@/types/payment'
 import { cn } from '@/lib/utils'
@@ -16,10 +19,11 @@ interface AwaitingReviewCardProps {
 
 /**
  * AWAITING_REVIEW: money is claimed, admin verifies the bank statement.
- * No polling — window-focus refetch plus this manual refresh.
+ * Status refreshes on window focus; the manual refresh and resend are fallbacks.
  */
 export function AwaitingReviewCard({ order }: AwaitingReviewCardProps) {
   const queryClient = useQueryClient()
+  const confirmMutation = useConfirmPayment(order.id)
   const [refreshing, setRefreshing] = useState(false)
 
   const handleRefresh = async () => {
@@ -31,22 +35,48 @@ export function AwaitingReviewCard({ order }: AwaitingReviewCardProps) {
     setRefreshing(false)
   }
 
+  // Idempotent re-confirm: retries the admin notification if it never sent.
+  const handleResend = () => {
+    confirmMutation.mutate(undefined, {
+      onSuccess: () => toast.success('Đã gửi lại thông báo cho admin'),
+      onError: (err) => {
+        if (err instanceof ApiError && err.status === 404) {
+          toast.error('Không tìm thấy đơn hàng')
+        } else {
+          toast.error('Chưa gửi được thông báo — thử lại sau')
+        }
+      },
+    })
+  }
+
   const status = paymentStatusMeta.AWAITING_REVIEW
 
   return (
     <div className="fade-in space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <Badge variant={status.variant}>{status.label}</Badge>
-        <Button
-          variant="ghost"
-          size="sm"
-          className="min-h-11"
-          onClick={handleRefresh}
-          disabled={refreshing}
-        >
-          <RefreshCw className={cn(refreshing && 'animate-spin')} />
-          Làm mới
-        </Button>
+        <div className="flex flex-wrap items-center gap-1">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="min-h-11 text-zinc-500 hover:text-zinc-900"
+            onClick={handleResend}
+            disabled={confirmMutation.isPending}
+          >
+            <Send />
+            {confirmMutation.isPending ? 'Đang gửi…' : 'Gửi lại thông báo'}
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="min-h-11 text-zinc-500 hover:text-zinc-900"
+            onClick={handleRefresh}
+            disabled={refreshing}
+          >
+            <RefreshCw className={cn(refreshing && 'animate-spin')} />
+            Làm mới
+          </Button>
+        </div>
       </div>
 
       <div className="rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">

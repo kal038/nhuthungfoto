@@ -1,10 +1,12 @@
 name: Dev
 variables:
+  - name: TELEGRAM_CHAT_ID
+    value: ""
+  - name: TELEGRAM_WEBHOOK_URL
+    value: ""
   - secret: true
     name: MY_TELEGRAM_BOT
+    description: ""
   - secret: true
     name: TELEGRAM_WEBHOOK_SECRET
-  - secret: false
-    name: TELEGRAM_CHAT_ID
-  - secret: false
-    name: TELEGRAM_WEBHOOK_URL
+    description: ""

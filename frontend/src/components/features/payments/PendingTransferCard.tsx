@@ -44,12 +44,9 @@ export function PendingTransferCard({ order }: PendingTransferCardProps) {
     void queryClient.invalidateQueries({ queryKey: queryKeys.payments.status(order.id) })
   }
 
-  // Deadline crossed on-screen: refetch so the server flips the order to
-  // EXPIRED (effective status) — no client-side status guessing.
   useEffect(() => {
     if (!pastDeadline) return
     invalidateOrder()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [pastDeadline, order.id, queryClient])
 
   const handleConfirm = () => {
@@ -63,6 +60,9 @@ export function PendingTransferCard({ order }: PendingTransferCardProps) {
           invalidateOrder()
         } else if (err instanceof ApiError && err.status === 404) {
           toast.error('Không tìm thấy đơn hàng')
+          invalidateOrder()
+        } else if (err instanceof ApiError && err.status === 502) {
+          toast.error('Đã ghi nhận chuyển khoản nhưng chưa gửi được thông báo cho admin.')
           invalidateOrder()
         } else {
           toast.error(err instanceof Error ? err.message : 'Xác nhận thất bại, thử lại sau')
