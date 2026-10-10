@@ -1,6 +1,6 @@
 CURRENT PROGRESS
 
-text the telegram flow (manual, unit, and Bruno API)
+manually verify the payment flow end to end, including the Telegram bot.
 
 Create the Telegram service:- Create backend/src/services/telegram.ts.
 - Send a review notification after customer confirmation.
@@ -33,84 +33,3 @@ Create the Telegram webhook:- Create backend/src/schema/telegram.ts.
 
 
 
-UI Data - Implement frontend payment hooks:- Create frontend/src/hooks/queries/usePaymentPackages.ts.
-- Create frontend/src/hooks/mutations/useCreatePaymentOrder.ts.
-- Create frontend/src/hooks/mutations/useConfirmPayment.ts.
-- Create frontend/src/hooks/mutations/useCancelPayment.ts.
-- Create frontend/src/hooks/queries/usePaymentStatus.ts.
-- Poll every three seconds during the first 90 seconds. (why have to poll?)
-- Reduce polling frequency after 90 seconds.
-- Stop polling at SUCCESS, CANCELLED, or EXPIRED. (re-think meaning of expire here since user could have taken a photo of the QR before it expired and transfer after)
-- Invalidate credit balance and history after SUCCESS.
-- Surface retryable notification errors without discarding the active order.
-
-UI Components - Implement the manual-payment UI:- Update frontend/src/routes/credits.tsx.
-- Preserve the existing balance and transaction history.
-- Add package selection and order creation.
-- Display the VietQR image, exact amount, account details, expiry time, and copyable transfer message.
-- Add the “Tôi đã chuyển khoản” confirmation button.
-- Add a cancellation action only for PENDING_TRANSFER.
-- Warn users to confirm only after the transfer completes.
-- Show AWAITING_REVIEW with an explanation that an admin will verify the bank transfer manually.
-- Show retry guidance when Telegram notification delivery fails.
-- After 90 seconds, switch to passive waiting copy.
-- Do not promise push notifications.
-- Show SUCCESS and the refreshed balance.
-- Show CANCELLED with a new-order action.
-- Show EXPIRED with a new-order action.
-- Follow .agent/design-system/nhuthungfoto/MASTER.md for typography, colors, spacing, focus behavior, responsive layout, accessibility, and 150–300 ms transitions.
-
-
-
-
-
-
-
-Testing - Add backend tests:- Test valid and invalid package IDs.
-- Test server-owned package price and credit snapshots.
-- Test stale PENDING_TRANSFER orders becoming EXPIRED.
-- Test active-order reuse.
-- Test same client request ID retry behavior.
-- Test concurrent order creation produces only one active order.
-- Test cross-user order access returns 404.
-- Test confirmation transition and repeated confirmation.
-- Test customer cancellation of PENDING_TRANSFER.
-- Test that AWAITING_REVIEW cannot be customer-cancelled.
-- Test Telegram notification retry.
-- Test wrong webhook secret and wrong chat ID.
-- Test approval before customer confirmation fails.
-- Test approval of expired or cancelled orders fails.
-- Test approval grants exact package credits.
-- Test repeated approval grants credits once.
-- Test concurrent approval grants credits once.
-- Test Telegram rejection changes no credits.
-
-Testing - Add frontend tests:- Test package selection and QR order display.
-- Test confirmation button behavior.
-- Test cancellation visibility and behavior.
-- Test restored active orders.
-- Test that restoration prevents duplicate order creation.
-- Test AWAITING_REVIEW polling.
-- Test notification retry error handling.
-- Test SUCCESS balance refresh.
-- Test CANCELLED cleanup.
-- Test EXPIRED cleanup and new-order flow.
-- Test sign-out and user-switch cleanup.
-- Test keyboard accessibility and mobile behavior.
-
-Verify - Final verification:
-- Apply all migrations to local Supabase.
-- Regenerate database types.
-- Run backend lint, typecheck, and tests.
-- Run frontend lint, typecheck, build, and tests.
-- Create an order locally and verify its expiry timestamp.
-- Confirm the transfer and verify Telegram receives the review message.
-- Check the banking app manually.
-- Approve through Telegram.
-- Verify the order becomes SUCCESS, exactly one payment row appears, exactly one credit-history row appears, and the balance increases once.
-- Click approve repeatedly and verify no additional credits are granted.
-- Test customer cancellation before confirmation.
-- Test that cancellation is blocked after confirmation.
-- Test the rejection path.
-- Test stale-order expiration and active-order replacement.
-- Deploy to staging and complete one small real VietQR transfer before production release.

@@ -134,7 +134,12 @@ describe('getOrderByUser', () => {
   })
 
   it('reads via the effective view and filters by id + user', async () => {
-    const viewRow = { ...fakeOrderRow, effective_status: 'EXPIRED', confirmed_at: null, resolved_at: null }
+    const viewRow = {
+      ...fakeOrderRow,
+      effective_status: 'EXPIRED',
+      confirmed_at: null,
+      resolved_at: null,
+    }
     maybeSingle.mockResolvedValue({ data: viewRow, error: null })
 
     const result = await getOrderByUser(supabase, 'user-1', 'order-1')
@@ -229,7 +234,7 @@ describe('confirmOrder', () => {
         if (name === 'update_telegram_notification_status') return { data: null, error: null }
         throw new Error(`unexpected rpc: ${name}`)
       })
-      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
+      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce(undefined)
 
       const result = await confirmOrder(supabase, 'user-1', 'order-1', env)
 
@@ -252,10 +257,7 @@ describe('confirmOrder', () => {
 
       expect(result).toEqual(deliverable)
       expect(sendPaymentReviewNotification).not.toHaveBeenCalled()
-      expect(rpc).not.toHaveBeenCalledWith(
-        'update_telegram_notification_status',
-        expect.anything(),
-      )
+      expect(rpc).not.toHaveBeenCalledWith('update_telegram_notification_status', expect.anything())
     })
 
     it('throws 502 without sending when the claim RPC fails', async () => {
@@ -285,7 +287,7 @@ describe('confirmOrder', () => {
         }
         throw new Error(`unexpected rpc: ${name}`)
       })
-      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
+      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce(undefined)
 
       const result = await confirmOrder(supabase, 'user-1', 'order-1', env)
 
@@ -304,7 +306,7 @@ describe('confirmOrder', () => {
         }
         throw new Error(`unexpected rpc: ${name}`)
       })
-      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce({ messageId: 1, chatId: 123 })
+      vi.mocked(sendPaymentReviewNotification).mockResolvedValueOnce(undefined)
 
       await expect(confirmOrder(supabase, 'user-1', 'order-1', env)).rejects.toMatchObject({
         status: 502,
@@ -387,7 +389,11 @@ describe('approveOrder', () => {
   })
 
   it('calls approve_manual_payment_order RPC and returns the approved order', async () => {
-    const approved = { ...fakeOrderRow, status: 'SUCCESS' as const, resolved_at: '2026-10-06T10:00:00Z' }
+    const approved = {
+      ...fakeOrderRow,
+      status: 'SUCCESS' as const,
+      resolved_at: '2026-10-06T10:00:00Z',
+    }
     rpc.mockResolvedValue({ data: approved, error: null })
 
     const result = await approveOrder(supabase, 'order-1', { method: 'telegram' })
@@ -425,7 +431,11 @@ describe('rejectOrder', () => {
   })
 
   it('calls reject_manual_payment_order RPC and returns the cancelled order', async () => {
-    const rejected = { ...fakeOrderRow, status: 'CANCELLED' as const, resolved_at: '2026-10-06T10:00:00Z' }
+    const rejected = {
+      ...fakeOrderRow,
+      status: 'CANCELLED' as const,
+      resolved_at: '2026-10-06T10:00:00Z',
+    }
     rpc.mockResolvedValue({ data: rejected, error: null })
 
     const result = await rejectOrder(supabase, 'order-1', { method: 'telegram' })

@@ -42,9 +42,13 @@ they disagree, read the SQL and fix the page.
 
 ## Known gaps
 
-- **Frontend** — no payment UI yet.
 - **Admin surface** — approve/reject only run from the Telegram webhook; there is no admin web UI.
 - **Providers** — the `payments` ledger is manual-only; Stripe (or any other provider) is not wired yet.
+
+The customer UI lives on `/credits` (`frontend/src/components/features/payments/`):
+package picker → VietQR transfer card → awaiting-review card (polls every 15s) →
+result card. A confirm that records the transfer but fails the Telegram
+notification returns `502`; the review card offers a "Gửi lại thông báo" resend.
 
 ## Telegram webhook registration (ops)
 

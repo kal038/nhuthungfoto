@@ -35,7 +35,7 @@ describe('Telegram service', () => {
         }),
       } as Response)
 
-      const result = await sendPaymentReviewNotification(fakeEnv, {
+      await sendPaymentReviewNotification(fakeEnv, {
         orderId: '0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11',
         orderCode: 'ABC2345',
         amountVnd: 349_000,
@@ -44,7 +44,6 @@ describe('Telegram service', () => {
         confirmedAt: '2026-10-06T10:00:00Z',
       })
 
-      expect(result).toEqual({ messageId: 42, chatId: 123456789 })
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://api.telegram.org/botfake-token-123/sendMessage',
         expect.objectContaining({
@@ -54,9 +53,7 @@ describe('Telegram service', () => {
         }),
       )
 
-      const requestBody = JSON.parse(
-        vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string,
-      )
+      const requestBody = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string)
       expect(requestBody.chat_id).toBe('123456789')
       expect(requestBody.reply_markup.inline_keyboard[0]).toEqual([
         { text: '✅ Duyệt', callback_data: 'approve:0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11' },
@@ -81,9 +78,7 @@ describe('Telegram service', () => {
         confirmedAt: '2026-10-06T10:00:00Z',
       })
 
-      const requestBody = JSON.parse(
-        vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string,
-      )
+      const requestBody = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string)
       expect(requestBody.text).toContain('349\\.000')
       expect(requestBody.text).toContain('2026\\-10\\-06T10:00:00Z')
     })

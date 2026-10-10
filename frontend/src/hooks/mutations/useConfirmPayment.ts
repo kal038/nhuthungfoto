@@ -12,12 +12,13 @@ async function confirmPayment(orderId: string): Promise<PaymentOrder> {
  * Idempotent server-side — a repeat call returns the row unchanged.
  *
  * On success the response IS the new order state: write it straight into the
- * status cache (usePaymentStatus renders it instantly, polling continues) and
+ * status cache (usePaymentStatus renders it instantly) and
  * refresh the active-order entry (still active, but now AWAITING_REVIEW).
  *
  * Errors pass through for the UI to map:
  * - 409: past deadline (order effectively EXPIRED) or already resolved
  * - 404: unknown / cross-user order
+ * - 502: transfer recorded, but the admin Telegram notification failed (retryable)
  */
 export function useConfirmPayment(orderId: string | null) {
   const queryClient = useQueryClient()
