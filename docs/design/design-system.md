@@ -339,43 +339,54 @@ graph TD
 
 ### 3.5 Booking Page (Phase 3)
 
-![1-on-1 coaching booking page — session type cards, calendar, instructor profile, payment options](/Users/khoilam/.gemini/antigravity/brain/e7fed741-e51d-4472-bfcc-c2728df83294/booking_page_1773382921821.png)
+Booking is handled by Cal.com's hosted page. The app page is a launcher plus a booking history — not a custom calendar or payment flow.
+
+![1-on-1 coaching booking page](/Users/khoilam/.gemini/antigravity/brain/e7fed741-e51d-4472-bfcc-c2728df83294/booking_page_1773382921821.png)
 
 **Layout:**
 
 ```
-┌──────────────────────────┬──────────────────┐
-│    Session Type Cards    │  Instructor      │
-│    [Online] [In-Person]  │  Profile Card    │
-├──────────────────────────┤                  │
-│    Calendar + Time Slots │  Availability    │
-│                          │  Rating + Stats  │
-├──────────────────────────┤                  │
-│    Photo Upload Area     │                  │
-├──────────────────────────┴──────────────────┤
-│    Payment + Confirm CTA                    │
-│    [VietQR] [Momo]                          │
+┌─────────────────────────────────────────────┐
+│  Header: "Đặt lịch 1-1 với Nhựt Hùng"        │
+├─────────────────────────────────────────────┤
+│  Session Summary + Policy                   │
+│  Instructor Card                            │
+├─────────────────────────────────────────────┤
+│  [ Tiếp tục đặt lịch ]  →  Cal.com          │
+│  "Bạn sẽ nhận email xác nhận từ Cal.com"     │
+├─────────────────────────────────────────────┤
+│  Buổi học của tôi                            │
+│  • upcoming / past rows                     │
+│  • status badge, Meet link                  │
 └─────────────────────────────────────────────┘
 ```
 
-**Session Type Cards:**
+**Session Summary:**
 
 | Element | Specification |
 |---------|---------------|
-| **Online card** | Google Meet icon (SVG), "30 phút" / "60 phút" toggle, blue accent |
-| **In-person card** | Map pin icon, "Tại Việt Nam", amber accent |
-| **Selection** | Ring border highlight + checkmark on selected |
-| **Radio behavior** | Only one can be selected at a time |
+| **Duration** | "45 phút" — text-sm, zinc-500, clock icon |
+| **Location** | Google Meet icon + "Google Meet" |
+| **Format** | "1-1 với Nhựt Hùng" |
+| **Policy** | "Huỷ hoặc đổi lịch trước 24 giờ" — text-xs, zinc-400 |
 
-**Calendar Widget:**
+**CTA:**
 
 | Element | Specification |
 |---------|---------------|
-| **Style** | shadcn Calendar component, customized |
-| **Available dates** | Blue-50 background, blue-600 text |
-| **Selected date** | Blue-600 background, white text |
-| **Unavailable** | `text-zinc-300`, not clickable |
-| **Time slots** | Grid of pill buttons below calendar, selected = blue filled |
+| **Label** | "Tiếp tục đặt lịch" — blue-600 filled button, full width on mobile |
+| **Action** | Opens Hung's hosted Cal.com page (new tab) with name/email prefilled |
+| **Note** | "Bạn sẽ nhận email xác nhận từ Cal.com" below the button |
+
+**Booking List:**
+
+| Element | Specification |
+|---------|---------------|
+| **Row** | Local date + time, duration, status badge |
+| **Status** | Upcoming (green), Cancelled (zinc), Past (muted) |
+| **Actions** | None in-app; Cal.com's confirmation email and calendar invite carry the cancel/reschedule links |
+| **Meet link** | "Tham gia Google Meet" link for upcoming sessions |
+| **Empty state** | "Bạn chưa có buổi học nào." + CTA to book |
 
 **Instructor Card:**
 
@@ -385,7 +396,6 @@ graph TD
 | **Name** | "Nhựt Hùng" — H3, font-semibold |
 | **Credentials** | "25+ năm kinh nghiệm" — text-sm, zinc-500 |
 | **Rating** | Star icons (filled) + rating number |
-| **Availability** | Live counter: "3 chỗ trống hôm nay" — green badge |
 
 ---
 
@@ -417,7 +427,7 @@ graph LR
     D --> D2["Portfolio Belt"]
     D --> D3["Lesson Sidebar"]
     D --> D4["Grading Panel"]
-    D --> D5["Booking Calendar"]
+    D --> D5["Booking Launcher"]
 ```
 
 ### shadcn/ui Components to Use
@@ -427,7 +437,6 @@ graph LR
 | `Button` | CTAs, form submits | Blue-600 primary, zinc-900 secondary |
 | `Card` | Content containers | White surface, shadow-md, rounded-lg |
 | `Dialog` | Modals, confirmations | Blur backdrop, 16px radius |
-| `Calendar` | Booking date picker | Blue accent for available/selected |
 | `Avatar` | User profiles, instructor | Circle, border variant |
 | `Badge` | Credits, status, scores | Blue/amber/green variants |
 | `Input` | Forms, search | Zinc-200 border, zinc-900 focus |

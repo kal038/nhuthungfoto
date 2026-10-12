@@ -79,7 +79,7 @@ Side-by-side comparison of instant **AI Grading** (Habit loop) and premium **Nhá
 ### 3.5 Booking & Coaching
 ![Booking page](/Users/khoilam/.gemini/antigravity/brain/e7fed741-e51d-4472-bfcc-c2728df83294/booking_page_1773382921821.png)
 
-Simple booking flow for 1-on-1 sessions with VietQR/Momo payment integration.
+1-on-1 sessions are booked through Hung's hosted Cal.com page (redirect), with the student's sessions listed in-app.
 
 ---
 

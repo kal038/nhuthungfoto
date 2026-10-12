@@ -20,7 +20,7 @@ The nhuthungfoto platform follows a **Serverless-First** approach to minimize in
 - **Object Storage (Cloudflare R2)**: S3-compatible API chosen for zero egress bandwidth fees. Globally distributed via Cloudflare's Edge.
 - **Message Queue (AWS SQS)**: Decouples upload requests from image processing. Native Lambda trigger eliminates polling code.
 - **AI Orchestrator**: Managed service within the backend that interacts with Gemini/GPT APIs for grading and content generation.
-- **Integration Layer**: Calendly (Booking), SePay/Momo (Payments), Google Meet (Coaching).
+- **Integration Layer**: Cal.com (Booking), SePay/Momo (Payments), Google Meet (Coaching).
 
 ### 1.2 Infrastructure & Hosting
 
@@ -127,15 +127,16 @@ The frontend adheres to strict separation of concerns, heavily relying on **TanS
 - `created_at`: `timestamptz`
 - **RLS**: Owner read-only (for order history).
 
-#### `public.bookings` (Calendly Sync)
+#### `public.bookings` (Cal.com Sync)
 
-- `id`: `uuid` (PK)
+- `calcom_booking_uid`: `text` (PK, Cal.com booking UID)
 - `user_id`: `uuid` (FK to profiles)
-- `calendly_event_id`: `text` (unique)
-- `session_time`: `timestamptz`
-- `session_type`: `text` ('ONLINE', 'INPERSON')
-- `status`: `text`
-- **RLS**: Owner can read; Admin write.
+- `start_time`: `timestamptz`
+- `status`: `booking_status` ('ACCEPTED', 'PENDING', 'CANCELLED')
+- `meet_url`: `text` (nullable, Google Meet link)
+- `created_at`: `timestamptz`
+- **Access**: Service-role only (RLS enabled, no client policies); reads go through the backend, which scopes by `user_id`.
+- **Sync**: mirrored from Cal.com webhooks (`BOOKING_CREATED`, `BOOKING_RESCHEDULED`, `BOOKING_CANCELLED`), upserted on `calcom_booking_uid`. Duration is fixed at 45 min, so there is no `end_time`.
 
 ### 2.3 Key Indexes
 
@@ -144,6 +145,7 @@ The frontend adheres to strict separation of concerns, heavily relying on **TanS
 - `idx_submissions_status`
 - `idx_payments_external_ref`
 - `idx_credit_history_user_id`
+- `idx_bookings_user_start_time` (`user_id`, `start_time` DESC)
 
 ## 3. AI Grading Engine & Cost Optimization
 
@@ -324,16 +326,32 @@ _Note: On the frontend, all endpoints below are wrapped in custom TanStack Query
 - `POST /v1/webhooks/payments/sepay`: SePay/VietQR verification.
 - `POST /v1/webhooks/payments/momo`: Momo IPN verification.
 
-## 9. Booking & Calendly Integration
+## 9. Booking & Cal.com Integration
+
+Hung's availability and bookings are managed entirely by **Cal.com** (Hung's personal account). The app does not build its own calendar or coaching payment flow.
 
 ### 9.1 Technical Flow
 
-1. **Selection**: User picks a coaching type on `nhuthungfoto-site`.
-2. **Booking**: User is redirected to Calendly with pre-filled fields (`?email=[email]&name=[name]`).
-3. **Webhook Sync**: Calendly hits our `POST /webhooks/calendly` endpoint on completion.
-   - Backend verifies the email matches an existing user.
-   - Backend creates a record in `public.bookings`.
-4. **Completion**: User receives a "Session Confirmed" notification via the app dashboard.
+1. **Entry**: A signed-in student opens `/booking` (navbar "Đặt lịch").
+2. **Redirect**: The app sends the student to Hung's hosted Cal.com event page with attendee `name` and `email` prefilled. Cal.com owns slot selection, the Google Meet link, and the confirmation and reminder emails.
+3. **Webhook Sync**: On booking, reschedule, or cancel, Cal.com POSTs to `POST /v1/webhooks/calcom`.
+   - Backend verifies the Cal.com webhook signature against the raw request body.
+   - Backend matches the attendee to a student and upserts `public.bookings`, idempotent on `calcom_booking_uid`.
+4. **Completion**: The student sees Cal.com's confirmation page and receives Cal.com's confirmation email. The session appears under "My lessons" once the webhook lands.
+
+### 9.2 Policies
+
+Cal.com owns the booking policy. The app mirrors state and does not enforce rules itself.
+
+- Lesson duration: **45 minutes**; location **Google Meet**; Hung's **Google Calendar** drives conflict checking.
+- Cancellation and rescheduling: handled entirely by Cal.com, including the **24-hour cutoff** and its own action links in confirmation emails and calendar invites. The app exposes no reschedule/cancel endpoints.
+
+### 9.3 Endpoints
+
+- `POST /v1/webhooks/calcom`: Cal.com event sink (public, signature-verified). Registered before the `/v1/*` auth middleware.
+- `GET /v1/bookings`: list the current student's bookings.
+
+> `GET /v1/bookings` is behind the auth middleware; the webhook is public but signature-verified.
 
 ## 10. Security, Validation & Rate Limiting
 

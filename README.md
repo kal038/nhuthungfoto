@@ -17,7 +17,7 @@ Photography education platform by Nhựt Hùng — learn photography from a 25+ 
 | Storage       | Cloudflare R2                                                                             |
 | Payments      | VietQR (SePay) + Momo                                                                     |
 | AI Grading    | Gemini Flash / GPT-4o-mini                                                                |
-| Booking       | Calendly API                                                                              |
+| Booking       | Cal.com (hosted booking page + webhooks)                                                  |
 | Observability | Sentry (errors) + CF Web Analytics (traffic) + Workers Analytics Engine (business events) |
 
 ## Getting Started
