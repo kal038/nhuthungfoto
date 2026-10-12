@@ -46,6 +46,7 @@ game-plan.md
 docs/antigravity-brain
 .claude
 .mcp.json
+.opencode
 
 
 #Justfile and Makefile
