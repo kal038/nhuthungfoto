@@ -2,7 +2,12 @@ import { Hono } from 'hono'
 import type { Env } from '@/types/env'
 import { createServiceClient } from '@/lib/supabase'
 import { approveOrder, rejectOrder } from '@/services/payments'
-import { answerCallbackQuery, editReviewMessage, escapeMarkdownV2 } from '@/services/telegram'
+import {
+  answerCallbackQuery,
+  editReviewKeyboard,
+  editReviewMessage,
+  escapeMarkdownV2,
+} from '@/services/telegram'
 import { telegramCallbackUpdateSchema, parseCallbackData } from '@/schema/telegram'
 import { AppError } from '@/lib/errors'
 
@@ -49,6 +54,62 @@ function buildResolvedText(
   ].join('\n')
 }
 
+function buildAlreadyResolvedText(
+  status: string,
+  orderCode: string,
+  amountVnd: number,
+  creditAmount: number,
+): string {
+  const statusLabel =
+    {
+      SUCCESS: 'ĐÃ DUYỆT',
+      CANCELLED: 'ĐÃ HỦY',
+      EXPIRED: 'ĐÃ HẾT HẠN',
+    }[status] ?? 'ĐÃ ĐƯỢC XỬ LÝ'
+  const formattedAmount = escapeMarkdownV2(new Intl.NumberFormat('vi-VN').format(amountVnd))
+
+  return [
+    `*${statusLabel}*`,
+    '',
+    `Mã đơn: \`${orderCode}\``,
+    `Số tiền: ${formattedAmount} VND`,
+    `Credits: ${creditAmount}`,
+  ].join('\n')
+}
+
+function buildActionErrorText(message: string): string {
+  return ['*KHÔNG THỂ XỬ LÝ ĐƠN HÀNG*', '', escapeMarkdownV2(message)].join('\n')
+}
+
+function buildReviewKeyboard(
+  orderId: string,
+  stage: 'actions' | 'approve' | 'reject' | 'closed',
+): Array<Array<{ text: string; callback_data: string }>> {
+  if (stage === 'closed') return []
+  if (stage === 'approve') {
+    return [
+      [
+        { text: '✅ Xác nhận duyệt', callback_data: `confirm_approve:${orderId}` },
+        { text: '↩ Quay lại', callback_data: `back:${orderId}` },
+      ],
+    ]
+  }
+  if (stage === 'reject') {
+    return [
+      [
+        { text: '⚠️ Xác nhận từ chối', callback_data: `confirm_reject:${orderId}` },
+        { text: '↩ Quay lại', callback_data: `back:${orderId}` },
+      ],
+    ]
+  }
+  return [
+    [
+      { text: '✅ Duyệt', callback_data: `approve:${orderId}` },
+      { text: '❌ Từ chối', callback_data: `reject:${orderId}` },
+    ],
+  ]
+}
+
 /**
  * POST /v1/telegram/webhook — receives updates from Telegram Bot API.
  */
@@ -79,22 +140,30 @@ telegramRouter.post('/webhook', async (c) => {
   const { action, orderId } = parseCallbackData(callback_query.data)
   const supabase = createServiceClient(c.env)
 
+  if (action === 'approve' || action === 'reject') {
+    const stage = action
+    await answerCallbackQuery(c.env, callbackQueryId)
+    await editReviewKeyboard(c.env, chatId, messageId, buildReviewKeyboard(orderId, stage))
+    return c.json({ ok: true }, 200)
+  }
+
+  if (action === 'back') {
+    await answerCallbackQuery(c.env, callbackQueryId)
+    await editReviewKeyboard(c.env, chatId, messageId, buildReviewKeyboard(orderId, 'actions'))
+    return c.json({ ok: true }, 200)
+  }
+
   const metadata = {
     method: 'telegram',
     chat_id: chatId,
     resolved_at: new Date().toISOString(),
   }
 
-  try {
-    if (action === 'approve') {
-      const updatedOrder = await approveOrder(supabase, orderId, metadata)
+  await answerCallbackQuery(c.env, callbackQueryId)
 
-      // Acknowledge before editing, so the spinner resolves regardless.
-      await answerCallbackQuery(
-        c.env,
-        callbackQueryId,
-        `Đã duyệt — ${updatedOrder.credit_amount} credits cấp cho user`,
-      )
+  try {
+    if (action === 'confirm_approve') {
+      const updatedOrder = await approveOrder(supabase, orderId, metadata)
 
       // Edit Telegram card to reflect resolution and remove buttons.
       await editReviewMessage(
@@ -113,16 +182,19 @@ telegramRouter.post('/webhook', async (c) => {
 
       // Reject is a no-op for terminal orders; don't relabel them as rejected.
       if (updatedOrder.status !== 'CANCELLED') {
-        await answerCallbackQuery(
+        await editReviewMessage(
           c.env,
-          callbackQueryId,
-          `Đơn hàng đã được xử lý (${updatedOrder.status})`,
-          true,
+          chatId,
+          messageId,
+          buildAlreadyResolvedText(
+            updatedOrder.status,
+            updatedOrder.order_code,
+            updatedOrder.amount_vnd,
+            updatedOrder.credit_amount,
+          ),
         )
         return c.json({ ok: true }, 200)
       }
-
-      await answerCallbackQuery(c.env, callbackQueryId, 'Đã từ chối đơn hàng')
 
       await editReviewMessage(
         c.env,
@@ -139,11 +211,21 @@ telegramRouter.post('/webhook', async (c) => {
   } catch (err) {
     if (err instanceof AppError) {
       if (err.status === 404) {
-        await answerCallbackQuery(c.env, callbackQueryId, 'Đơn hàng không tìm thấy', true)
+        await editReviewMessage(
+          c.env,
+          chatId,
+          messageId,
+          buildActionErrorText('Không tìm thấy đơn hàng.'),
+        )
         return c.json({ ok: true }, 200)
       }
       if (err.status === 409) {
-        await answerCallbackQuery(c.env, callbackQueryId, err.message, true)
+        await editReviewMessage(
+          c.env,
+          chatId,
+          messageId,
+          buildActionErrorText('Đơn hàng đã được xử lý hoặc không còn chờ xác minh.'),
+        )
         return c.json({ ok: true }, 200)
       }
     }

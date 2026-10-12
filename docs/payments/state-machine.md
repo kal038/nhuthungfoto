@@ -86,6 +86,12 @@ stateDiagram-v2
 
 `AWAITING_REVIEW` is resolved by the admin through the Telegram review card:
 
+The first approve/reject tap only changes the inline keyboard to a confirmation
+step; it does not mutate the order. The RPC runs only after the admin taps the
+explicit confirmation button. “Quay lại” restores the original choices.
+Callback queries are acknowledged to dismiss Telegram's spinner; prompts,
+errors, and final status are shown persistently on the card.
+
 - **approve** (`approve_manual_payment_order`) — grants credits exactly once
   (idempotency key `payment-order:<id>`), inserts the `payments` ledger row with
   `status='SUCCESS'`, then flips the order to `SUCCESS`. Already-`SUCCESS` calls

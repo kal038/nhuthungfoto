@@ -19,7 +19,7 @@ export function usePaymentStatus(orderId: string | null) {
     queryFn: () => fetchPaymentStatus(orderId as string),
     enabled: orderId !== null,
     staleTime: 0,
-    // don't have to retch terminals
+    // don't have to refetch terminals
     refetchOnWindowFocus: (q) => {
       const status = q.state.data?.status
       return !(status && TERMINAL_STATUSES.includes(status))

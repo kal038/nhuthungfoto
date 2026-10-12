@@ -4,13 +4,23 @@ import { z } from 'zod/v4'
 export const callbackDataSchema = z
   .string()
   .regex(
-    /^(approve|reject):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
+    /^(approve|reject|confirm_approve|confirm_reject|back):[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
     'Invalid callback data format',
   )
 
 /** Parses "action:uuid" into typed action + orderId. */
-export function parseCallbackData(data: string): { action: 'approve' | 'reject'; orderId: string } {
-  const [action, orderId] = data.split(':') as ['approve' | 'reject', string]
+export type TelegramCallbackAction =
+  | 'approve'
+  | 'reject'
+  | 'confirm_approve'
+  | 'confirm_reject'
+  | 'back'
+
+export function parseCallbackData(data: string): {
+  action: TelegramCallbackAction
+  orderId: string
+} {
+  const [action, orderId] = data.split(':') as [TelegramCallbackAction, string]
   return { action, orderId }
 }
 

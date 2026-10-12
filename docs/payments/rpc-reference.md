@@ -228,6 +228,9 @@ Notes
 
 ## Callers (backend)
 
+Telegram's first approve/reject button tap only stages a confirmation keyboard;
+these RPCs run only after the explicit confirm button is tapped.
+
 | RPC | Service | Route | Status |
 |---|---|---|---|
 | `create_manual_payment_order` | `createOrder` | `POST /v1/payments` | live |

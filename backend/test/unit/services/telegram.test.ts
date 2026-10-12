@@ -2,6 +2,7 @@ import { describe, expect, it, vi, beforeEach, afterEach } from 'vitest'
 import {
   sendPaymentReviewNotification,
   answerCallbackQuery,
+  editReviewKeyboard,
   editReviewMessage,
 } from '@/services/telegram'
 import type { Env } from '@/types/env'
@@ -35,7 +36,7 @@ describe('Telegram service', () => {
         }),
       } as Response)
 
-      const result = await sendPaymentReviewNotification(fakeEnv, {
+      await sendPaymentReviewNotification(fakeEnv, {
         orderId: '0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11',
         orderCode: 'ABC2345',
         amountVnd: 349_000,
@@ -44,7 +45,6 @@ describe('Telegram service', () => {
         confirmedAt: '2026-10-06T10:00:00Z',
       })
 
-      expect(result).toEqual({ messageId: 42, chatId: 123456789 })
       expect(globalThis.fetch).toHaveBeenCalledWith(
         'https://api.telegram.org/botfake-token-123/sendMessage',
         expect.objectContaining({
@@ -54,9 +54,7 @@ describe('Telegram service', () => {
         }),
       )
 
-      const requestBody = JSON.parse(
-        vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string,
-      )
+      const requestBody = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string)
       expect(requestBody.chat_id).toBe('123456789')
       expect(requestBody.reply_markup.inline_keyboard[0]).toEqual([
         { text: '✅ Duyệt', callback_data: 'approve:0b4b2c1e-9f6d-4a3f-8f1e-2c9d7a5b3e11' },
@@ -81,9 +79,7 @@ describe('Telegram service', () => {
         confirmedAt: '2026-10-06T10:00:00Z',
       })
 
-      const requestBody = JSON.parse(
-        vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string,
-      )
+      const requestBody = JSON.parse(vi.mocked(globalThis.fetch).mock.calls[0][1]?.body as string)
       expect(requestBody.text).toContain('349\\.000')
       expect(requestBody.text).toContain('2026\\-10\\-06T10:00:00Z')
     })
@@ -179,6 +175,51 @@ describe('Telegram service', () => {
       await expect(
         editReviewMessage(fakeEnv, '123456789', 42, '*ĐÃ DUYỆT*'),
       ).resolves.toBeUndefined()
+    })
+  })
+
+  describe('editReviewKeyboard', () => {
+    it('replaces review buttons without changing message text', async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        json: async () => ({ ok: true, result: true }),
+      } as Response)
+
+      await editReviewKeyboard(fakeEnv, '123456789', 42, [
+        [
+          { text: '✅ Xác nhận duyệt', callback_data: 'confirm_approve:order-id' },
+          { text: '↩ Quay lại', callback_data: 'back:order-id' },
+        ],
+      ])
+
+      expect(globalThis.fetch).toHaveBeenCalledWith(
+        'https://api.telegram.org/botfake-token-123/editMessageReplyMarkup',
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify({
+            chat_id: '123456789',
+            message_id: 42,
+            reply_markup: {
+              inline_keyboard: [
+                [
+                  { text: '✅ Xác nhận duyệt', callback_data: 'confirm_approve:order-id' },
+                  { text: '↩ Quay lại', callback_data: 'back:order-id' },
+                ],
+              ],
+            },
+          }),
+        }),
+      )
+    })
+
+    it('treats an unchanged keyboard as success on webhook retry', async () => {
+      vi.mocked(globalThis.fetch).mockResolvedValueOnce({
+        json: async () => ({
+          ok: false,
+          description: 'Bad Request: message is not modified',
+        }),
+      } as Response)
+
+      await expect(editReviewKeyboard(fakeEnv, '123456789', 42, [])).resolves.toBeUndefined()
     })
   })
 })
