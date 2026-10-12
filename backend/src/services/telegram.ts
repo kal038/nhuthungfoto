@@ -128,3 +128,23 @@ export async function editReviewMessage(
     throw err
   }
 }
+
+/** Replaces the review card's inline keyboard without changing its text. */
+export async function editReviewKeyboard(
+  env: Env,
+  chatId: number | string,
+  messageId: number,
+  inlineKeyboard: Array<Array<{ text: string; callback_data: string }>>,
+): Promise<void> {
+  try {
+    await callTelegramApi(env.TELEGRAM_BOT_TOKEN, 'editMessageReplyMarkup', {
+      chat_id: chatId,
+      message_id: messageId,
+      reply_markup: { inline_keyboard: inlineKeyboard },
+    })
+  } catch (err) {
+    const message = err instanceof AppError ? err.message : ''
+    if (/message is not modified/i.test(message)) return
+    throw err
+  }
+}
