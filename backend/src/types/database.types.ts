@@ -14,6 +14,41 @@ export type Database = {
   }
   public: {
     Tables: {
+      bookings: {
+        Row: {
+          calcom_booking_uid: string
+          created_at: string
+          meet_url: string | null
+          start_time: string
+          status: Database["public"]["Enums"]["booking_status"]
+          user_id: string
+        }
+        Insert: {
+          calcom_booking_uid: string
+          created_at?: string
+          meet_url?: string | null
+          start_time: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          user_id: string
+        }
+        Update: {
+          calcom_booking_uid?: string
+          created_at?: string
+          meet_url?: string | null
+          start_time?: string
+          status?: Database["public"]["Enums"]["booking_status"]
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       credit_history: {
         Row: {
           amount: number
@@ -688,6 +723,7 @@ export type Database = {
       }
     }
     Enums: {
+      booking_status: "ACCEPTED" | "PENDING" | "CANCELLED"
       order_status:
         | "PENDING_TRANSFER"
         | "AWAITING_REVIEW"
@@ -833,6 +869,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      booking_status: ["ACCEPTED", "PENDING", "CANCELLED"],
       order_status: [
         "PENDING_TRANSFER",
         "AWAITING_REVIEW",
