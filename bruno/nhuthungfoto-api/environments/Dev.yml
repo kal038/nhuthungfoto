@@ -10,3 +10,9 @@ variables:
   - secret: true
     name: TELEGRAM_WEBHOOK_SECRET
     description: ""
+  - secret: true
+    name: CALCOM_WEBHOOK_SECRET
+    description: Cal.com webhook signing secret
+  - name: BOOKER_EMAIL
+    value: ""
+    description: Email of a signed-up student to match the Cal.com attendee

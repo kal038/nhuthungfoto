@@ -1,0 +1,29 @@
+info:
+  name: GET MY BOOKINGS
+  type: http
+  seq: 1
+
+http:
+  method: GET
+  url: http://localhost:8787/v1/bookings
+  auth: inherit
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        const data = res.getBody();
+        expect(data.bookings).to.be.an("array");
+        data.bookings.forEach((b) => {
+          expect(b).to.have.property("uid");
+          expect(b).to.have.property("startTime");
+          expect(["ACCEPTED", "PENDING", "CANCELLED"]).to.include(b.status);
+          expect(b).to.have.property("meetUrl");
+        });
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
