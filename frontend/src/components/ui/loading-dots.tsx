@@ -16,7 +16,7 @@ export function LoadingDots({ className }: LoadingDotsProps) {
 
 export function LoadingScreen() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-white">
+    <div className="flex min-h-screen items-center justify-center bg-background">
       <LoadingDots />
     </div>
   )

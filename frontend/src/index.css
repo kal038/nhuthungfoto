@@ -60,7 +60,7 @@ html {
 body {
   margin: 0;
   font-family: var(--font-body);
-  color: var(--color-text);
+  color: var(--foreground);
   background-color: var(--color-background);
   font-synthesis: none;
   text-rendering: optimizeLegibility;

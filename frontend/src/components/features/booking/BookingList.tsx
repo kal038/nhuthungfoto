@@ -40,8 +40,8 @@ export function BookingList() {
 
   if (bookings.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
-        <CalendarClock className="mx-auto h-6 w-6 text-zinc-400" />
+      <div className="rounded-xl border border-dashed border-border bg-muted px-6 py-10 text-center">
+        <CalendarClock className="mx-auto h-6 w-6 text-muted-foreground" />
         <p className="mt-3 text-sm text-muted-foreground">Bạn chưa có buổi học nào.</p>
       </div>
     )
@@ -72,8 +72,8 @@ function BookingGroup({
 }) {
   return (
     <div>
-      <h3 className="mb-2 text-sm font-medium text-zinc-500">{title}</h3>
-      <ul className="divide-y divide-zinc-100 rounded-xl border border-zinc-100">
+      <h3 className="mb-2 text-sm font-medium text-muted-foreground">{title}</h3>
+      <ul className="divide-y divide-border rounded-xl border border-border">
         {bookings.map((booking) => (
           <BookingRow key={booking.uid} booking={booking} now={now} />
         ))}
@@ -90,7 +90,7 @@ function BookingRow({ booking, now }: { booking: Booking; now: number }) {
   return (
     <li className="flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3">
       <div className="min-w-0 flex-1">
-        <p className={bucket === 'past' ? 'text-sm text-zinc-400' : 'text-sm font-medium text-zinc-900'}>
+        <p className={bucket === 'past' ? 'text-sm text-muted-foreground' : 'text-sm font-medium text-foreground'}>
           {formatSession(booking.startTime)}
         </p>
         <p className="text-xs text-muted-foreground">45 phút · Google Meet</p>

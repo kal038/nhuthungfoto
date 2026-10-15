@@ -27,14 +27,14 @@ function getInitials(name: string): string {
 export function ProfileAvatar({ url, name, size = 'lg' }: ProfileAvatarProps) {
   return (
     <Avatar
-      className={cn(sizeClasses[size], 'ring-2 ring-zinc-100')}
+      className={cn(sizeClasses[size], 'ring-2 ring-border')}
     >
       <AvatarImage
         src={url ?? undefined}
         alt={name}
         className="object-cover"
       />
-      <AvatarFallback className="bg-zinc-100 text-zinc-600 font-heading text-xl">
+      <AvatarFallback className="bg-muted text-muted-foreground font-heading text-xl">
         {getInitials(name || 'User')}
       </AvatarFallback>
     </Avatar>

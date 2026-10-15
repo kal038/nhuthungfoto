@@ -59,7 +59,7 @@ export function AwaitingReviewCard({ order }: AwaitingReviewCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="min-h-11 text-zinc-500 hover:text-zinc-900"
+            className="min-h-11 text-muted-foreground hover:text-foreground"
             onClick={handleResend}
             disabled={confirmMutation.isPending}
           >
@@ -69,7 +69,7 @@ export function AwaitingReviewCard({ order }: AwaitingReviewCardProps) {
           <Button
             variant="ghost"
             size="sm"
-            className="min-h-11 text-zinc-500 hover:text-zinc-900"
+            className="min-h-11 text-muted-foreground hover:text-foreground"
             onClick={handleRefresh}
             disabled={refreshing}
           >
@@ -79,29 +79,29 @@ export function AwaitingReviewCard({ order }: AwaitingReviewCardProps) {
         </div>
       </div>
 
-      <div className="rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
+      <div className="rounded-xl bg-muted p-4 ring-1 ring-border">
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Gói</span>
-          <span className="font-medium text-zinc-900">
+          <span className="font-medium text-foreground">
             {order.package_label} · {order.credit_amount} credit
           </span>
         </div>
         <div className="mt-1.5 flex justify-between text-sm">
           <span className="text-muted-foreground">Số tiền</span>
-          <span className="font-semibold tabular-nums text-zinc-900">
+          <span className="font-semibold tabular-nums text-foreground">
             {formatVnd(order.amount_vnd)}
           </span>
         </div>
         <div className="mt-1.5 flex justify-between text-sm">
           <span className="text-muted-foreground">Mã đơn</span>
-          <span className="font-mono font-medium tracking-wider text-zinc-900">
+          <span className="font-mono font-medium tracking-wider text-foreground">
             {order.order_code}
           </span>
         </div>
         <Separator className="my-2.5" />
         <div className="flex justify-between text-sm">
           <span className="text-muted-foreground">Xác nhận lúc</span>
-          <span className="font-medium tabular-nums text-zinc-900">
+          <span className="font-medium tabular-nums text-foreground">
             {order.confirmed_at ? formatDateTime(order.confirmed_at) : '—'}
           </span>
         </div>

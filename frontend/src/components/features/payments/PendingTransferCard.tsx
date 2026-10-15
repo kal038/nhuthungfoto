@@ -98,14 +98,14 @@ export function PendingTransferCard({ order }: PendingTransferCardProps) {
         <p className="flex items-center gap-1.5 text-sm tabular-nums text-muted-foreground">
           <Clock className="h-4 w-4" />
           {pastDeadline ? 'Đang kiểm tra hạn đơn…' : `Còn ${minutesLeft} phút`}
-          <span className="text-zinc-300">•</span>
+          <span className="text-muted-foreground/60">•</span>
           hết hạn lúc {formatTime(order.expires_at)}
         </p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-[auto_1fr] sm:items-start">
         {/* VietQR */}
-        <div className="mx-auto w-44 rounded-xl bg-white p-3 ring-1 ring-zinc-200 sm:mx-0">
+        <div className="mx-auto w-44 rounded-xl bg-white p-3 ring-1 ring-border sm:mx-0">
           {qrFailed ? (
             <div className="flex aspect-square w-full flex-col items-center justify-center gap-2 rounded-lg bg-zinc-50 text-zinc-500">
               <QrCode className="h-10 w-10" />
@@ -130,16 +130,16 @@ export function PendingTransferCard({ order }: PendingTransferCardProps) {
         </div>
 
         {/* Receipt */}
-        <div className="rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
+        <div className="rounded-xl bg-muted p-4 ring-1 ring-border">
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Gói</span>
-            <span className="font-medium text-zinc-900">
+            <span className="font-medium text-foreground">
               {order.package_label} · {order.credit_amount} credit
             </span>
           </div>
           <div className="mt-1.5 flex justify-between text-sm">
             <span className="text-muted-foreground">Số tiền</span>
-            <span className="font-semibold tabular-nums text-zinc-900">
+            <span className="font-semibold tabular-nums text-foreground">
               {formatVnd(order.amount_vnd)}
             </span>
           </div>
@@ -155,7 +155,7 @@ export function PendingTransferCard({ order }: PendingTransferCardProps) {
           </div>
           <div className="mt-1.5 flex justify-between text-sm">
             <span className="text-muted-foreground">Hết hạn lúc</span>
-            <span className="font-medium tabular-nums text-zinc-900">
+            <span className="font-medium tabular-nums text-foreground">
               {formatTime(order.expires_at)}
             </span>
           </div>
@@ -177,7 +177,7 @@ export function PendingTransferCard({ order }: PendingTransferCardProps) {
           variant="ghost"
           onClick={() => setCancelOpen(true)}
           disabled={confirmMutation.isPending || cancelMutation.isPending}
-          className="min-h-11 text-zinc-500 hover:text-zinc-900"
+          className="min-h-11 text-muted-foreground hover:text-foreground"
         >
           Hủy đơn
         </Button>

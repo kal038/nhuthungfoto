@@ -104,11 +104,11 @@ export function GradeConfirmDialog({
 
         <div className="space-y-4">
           {/* Photo under review */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-zinc-100">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-lg bg-muted">
             {photoUrl ? (
               <img src={photoUrl} alt="Ảnh cần chấm" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center text-zinc-300">
+              <div className="flex h-full items-center justify-center text-muted-foreground/60">
                 <ImageOff className="h-8 w-8" />
               </div>
             )}
@@ -125,14 +125,14 @@ export function GradeConfirmDialog({
                   'cursor-pointer rounded-xl border p-3 text-left transition-all duration-150',
                   reviewType === option.type
                     ? 'border-cta ring-2 ring-cta/20 bg-cta/5'
-                    : 'border-zinc-200 hover:border-zinc-300',
+                    : 'border-border hover:border-border',
                 )}
               >
                 <div className="flex items-center justify-between">
-                  <option.Icon className="h-4 w-4 text-zinc-700" />
+                  <option.Icon className="h-4 w-4 text-foreground/80" />
                   {option.premium && <Badge variant="secondary">Premium</Badge>}
                 </div>
-                <p className="mt-2 text-sm font-semibold text-zinc-900">{option.title}</p>
+                <p className="mt-2 text-sm font-semibold text-foreground">{option.title}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">{option.description}</p>
                 <p className="mt-2 text-sm font-semibold text-cta tabular-nums">
                   {option.cost} credit
@@ -142,26 +142,26 @@ export function GradeConfirmDialog({
           </div>
 
           {/* Receipt */}
-          <div className="rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
+          <div className="rounded-xl bg-muted p-4 ring-1 ring-border">
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Số dư hiện tại</span>
-              <span className="tabular-nums font-medium text-zinc-900">
+              <span className="tabular-nums font-medium text-foreground">
                 {balanceLoading ? '…' : currentBalance}
               </span>
             </div>
             <div className="mt-1.5 flex justify-between text-sm">
               <span className="text-muted-foreground">Chi phí</span>
-              <span className="tabular-nums font-medium text-zinc-900">
+              <span className="tabular-nums font-medium text-foreground">
                 −{selected.cost}
               </span>
             </div>
             <Separator className="my-2.5" />
             <div className="flex justify-between text-sm">
-              <span className="font-medium text-zinc-900">Còn lại</span>
+              <span className="font-medium text-foreground">Còn lại</span>
               <span
                 className={cn(
                   'tabular-nums font-semibold',
-                  insufficient ? 'text-red-600' : 'text-zinc-900',
+                  insufficient ? 'text-red-600' : 'text-foreground',
                 )}
               >
                 {balanceLoading ? '…' : remaining}

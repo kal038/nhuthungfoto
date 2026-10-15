@@ -10,6 +10,26 @@
     />
     <title>nhuthungfoto — Học Nhiếp Ảnh</title>
 
+    <!-- Apply the stored theme before paint to avoid a flash of the wrong theme -->
+    <script>
+      (function () {
+        try {
+          var key = 'nhuthungfoto-theme'
+          var stored = localStorage.getItem(key)
+          var theme =
+            stored === 'light' || stored === 'dark' || stored === 'system' ? stored : 'system'
+          var dark =
+            theme === 'dark' ||
+            (theme === 'system' && window.matchMedia('(prefers-color-scheme: dark)').matches)
+          var root = document.documentElement
+          root.classList.toggle('dark', dark)
+          root.style.colorScheme = dark ? 'dark' : 'light'
+        } catch (e) {
+          /* Storage unavailable — fall back to the default light theme */
+        }
+      })()
+    </script>
+
     <!-- Google Fonts: Be Vietnam Pro + Noto Sans -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

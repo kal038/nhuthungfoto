@@ -36,11 +36,11 @@ export function ReviewDetailDialog({ submission, open, onOpenChange }: ReviewDet
 
         <div className="space-y-6 pt-2">
           {/* Photo */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-zinc-100 shadow-inner">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-xl bg-muted shadow-inner">
             {photoUrl ? (
               <img src={photoUrl} alt="Ảnh đã nộp" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full items-center justify-center text-zinc-300">
+              <div className="flex h-full items-center justify-center text-muted-foreground/60">
                 <ImageOff className="h-10 w-10" />
               </div>
             )}
@@ -57,11 +57,11 @@ export function ReviewDetailDialog({ submission, open, onOpenChange }: ReviewDet
           ) : review ? (
             <div className="space-y-6">
               {/* Overall Score */}
-              <div className="flex items-center justify-between rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
+              <div className="flex items-center justify-between rounded-xl bg-muted p-4 ring-1 ring-border">
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Điểm tổng kết</p>
                   {formattedDate && (
-                    <div className="mt-1 flex items-center text-xs text-zinc-500">
+                    <div className="mt-1 flex items-center text-xs text-muted-foreground">
                       <Calendar className="mr-1 h-3.5 w-3.5" />
                       {formattedDate}
                     </div>
@@ -76,8 +76,8 @@ export function ReviewDetailDialog({ submission, open, onOpenChange }: ReviewDet
 
               {/* 5 Category Bars */}
               <div className="space-y-3">
-                <h4 className="text-sm font-semibold text-zinc-900">Chi tiết tiêu chí</h4>
-                <div className="grid gap-3.5 rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
+                <h4 className="text-sm font-semibold text-foreground">Chi tiết tiêu chí</h4>
+                <div className="grid gap-3.5 rounded-xl bg-muted p-4 ring-1 ring-border">
                   {CATEGORY_KEYS.map((key) => {
                     const score = review.categoryScores?.[key] ?? 0
                     const label = CATEGORY_LABELS[key]
@@ -86,8 +86,8 @@ export function ReviewDetailDialog({ submission, open, onOpenChange }: ReviewDet
                     return (
                       <div key={key} className="space-y-1.5">
                         <div className="flex justify-between text-xs font-medium">
-                          <span className="text-zinc-700">{label}</span>
-                          <span className="font-semibold tabular-nums text-zinc-900">
+                          <span className="text-foreground/80">{label}</span>
+                          <span className="font-semibold tabular-nums text-foreground">
                             {score} / 10
                           </span>
                         </div>
@@ -101,8 +101,8 @@ export function ReviewDetailDialog({ submission, open, onOpenChange }: ReviewDet
               {/* Comments */}
               {review.comments && (
                 <div className="space-y-2">
-                  <h4 className="text-sm font-semibold text-zinc-900">Nhận xét của giảng viên</h4>
-                  <div className="rounded-xl border border-zinc-200 bg-white p-4 text-sm leading-relaxed text-zinc-700 shadow-sm">
+                  <h4 className="text-sm font-semibold text-foreground">Nhận xét của giảng viên</h4>
+                  <div className="rounded-xl border border-border bg-card p-4 text-sm leading-relaxed text-foreground/80 shadow-sm">
                     {review.comments}
                   </div>
                 </div>

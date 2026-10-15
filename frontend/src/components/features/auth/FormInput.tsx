@@ -45,7 +45,7 @@ export function FormInput({
           autoFocus={autoFocus}
           onChange={(e) => onChange(e.target.value)}
           className={`
-            h-11 rounded-lg border-zinc-200 bg-white
+            h-11 rounded-lg border-border bg-background
             font-body text-base text-primary
             placeholder:text-muted-foreground
             focus-visible:ring-2 focus-visible:ring-cta focus-visible:border-cta

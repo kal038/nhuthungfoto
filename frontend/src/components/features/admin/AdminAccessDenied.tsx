@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button'
 export function AdminAccessDenied() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center gap-2 px-4 text-center">
-      <h1 className="text-xl font-bold text-zinc-900">Không có quyền truy cập</h1>
+      <h1 className="text-xl font-bold text-foreground">Không có quyền truy cập</h1>
       <p className="text-sm text-muted-foreground">Trang này chỉ dành cho giảng viên.</p>
       <Button variant="outline" className="mt-4" asChild>
         <Link to="/">Về trang chủ</Link>

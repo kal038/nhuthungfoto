@@ -34,8 +34,8 @@ function ScoreSlider({
   return (
     <div className="space-y-1.5">
       <div className="flex items-center justify-between">
-        <Label className="text-sm font-medium text-zinc-700">{label}</Label>
-        <span className="text-sm font-semibold tabular-nums text-zinc-900">
+        <Label className="text-sm font-medium text-foreground/80">{label}</Label>
+        <span className="text-sm font-semibold tabular-nums text-foreground">
           {value} / 10
         </span>
       </div>
@@ -88,8 +88,8 @@ export function AdminGradingForm({
           disabled={isPending}
         />
 
-        <div className="space-y-4 rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
-          <h4 className="text-sm font-semibold text-zinc-900">Chi tiết tiêu chí</h4>
+        <div className="space-y-4 rounded-xl bg-muted p-4 ring-1 ring-border">
+          <h4 className="text-sm font-semibold text-foreground">Chi tiết tiêu chí</h4>
           {CATEGORY_KEYS.map((key) => (
             <ScoreSlider
               key={key}
@@ -104,7 +104,7 @@ export function AdminGradingForm({
         </div>
 
         <div className="space-y-1.5">
-          <Label htmlFor="hung-comments" className="text-sm font-medium text-zinc-700">
+          <Label htmlFor="hung-comments" className="text-sm font-medium text-foreground/80">
             Nhận xét của giảng viên
           </Label>
           <Textarea

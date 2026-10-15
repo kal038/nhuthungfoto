@@ -18,7 +18,7 @@ const RESULT_META: Record<
     iconClass: 'text-green-600',
     title: 'Nạp credit thành công',
   },
-  CANCELLED: { Icon: XCircle, iconClass: 'text-zinc-400', title: 'Đã hủy đơn hàng' },
+  CANCELLED: { Icon: XCircle, iconClass: 'text-muted-foreground', title: 'Đã hủy đơn hàng' },
   EXPIRED: { Icon: TimerOff, iconClass: 'text-destructive', title: 'Đơn đã hết hạn' },
 }
 
@@ -38,10 +38,10 @@ export function PaymentResultCard({ order, onNewOrder }: PaymentResultCardProps)
   const meta = RESULT_META[order.status as keyof typeof RESULT_META] ?? RESULT_META.EXPIRED
 
   return (
-    <div className="fade-in space-y-4 rounded-xl border border-zinc-100 p-6 text-center">
+    <div className="fade-in space-y-4 rounded-xl border border-border p-6 text-center">
       <meta.Icon className={cn('mx-auto h-10 w-10', meta.iconClass)} />
       <div className="space-y-1">
-        <h3 className="font-heading text-lg font-semibold text-zinc-900">{meta.title}</h3>
+        <h3 className="font-heading text-lg font-semibold text-foreground">{meta.title}</h3>
         <p className="text-sm text-muted-foreground">{detailFor(order)}</p>
       </div>
       <p className="text-xs tabular-nums text-muted-foreground">

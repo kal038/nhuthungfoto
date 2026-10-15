@@ -58,7 +58,7 @@ export function PhotoUploadDropZone({
         'cursor-pointer',
         isDragActive
           ? 'border-[var(--color-cta)] bg-blue-50/50'
-          : 'border-zinc-300 bg-zinc-50/50 hover:border-zinc-400 hover:bg-zinc-100/50',
+          : 'border-border bg-muted/50 hover:border-ring hover:bg-muted/50',
         disabled && 'pointer-events-none opacity-50',
       )}
     >
@@ -80,7 +80,7 @@ export function PhotoUploadDropZone({
           'flex size-14 items-center justify-center rounded-full transition-colors',
           isDragActive
             ? 'bg-blue-100 text-[var(--color-cta)]'
-            : 'bg-zinc-100 text-zinc-400',
+            : 'bg-muted text-muted-foreground',
         )}
       >
         {isDragActive ? (
@@ -92,10 +92,10 @@ export function PhotoUploadDropZone({
 
       {/* Text */}
       <div className="flex flex-col gap-1">
-        <p className="font-heading text-sm font-semibold text-zinc-700">
+        <p className="font-heading text-sm font-semibold text-foreground/80">
           {isDragActive ? 'Thả ảnh vào đây' : 'Kéo thả ảnh vào đây'}
         </p>
-        <p className="text-sm text-zinc-500">
+        <p className="text-sm text-muted-foreground">
           hoặc{' '}
           <span className="font-medium text-[var(--color-cta)] underline underline-offset-2">
             chọn từ máy
@@ -104,7 +104,7 @@ export function PhotoUploadDropZone({
       </div>
 
       {/* Hint */}
-      <p className="text-xs text-zinc-400">
+      <p className="text-xs text-muted-foreground">
         JPG, PNG hoặc WebP • Tối đa {maxFileSizeMB}MB mỗi ảnh
       </p>
     </div>

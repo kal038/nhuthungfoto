@@ -41,7 +41,7 @@ export function CopyButton({ value, label, className }: CopyButtonProps) {
       onClick={handleCopy}
       aria-label={copied ? 'Đã sao chép' : label}
       title={copied ? 'Đã sao chép' : label}
-      className={cn('min-h-11 min-w-11 text-zinc-500 hover:text-zinc-900', className)}
+      className={cn('min-h-11 min-w-11 text-muted-foreground hover:text-foreground', className)}
     >
       {copied ? <Check className="text-green-600" /> : <Copy />}
     </Button>

@@ -38,9 +38,9 @@ function CreditsContainer() {
     <AccountLayout username={profile?.username} creditBalance={balance}>
       <div className="fade-in space-y-8">
         {/* Balance summary */}
-        <section className="rounded-xl bg-zinc-50 p-6 ring-1 ring-zinc-100">
+        <section className="rounded-xl bg-muted p-6 ring-1 ring-border">
           <p className="text-sm text-muted-foreground">Số dư hiện tại</p>
-          <p className="mt-1 font-heading text-4xl font-semibold tabular-nums text-zinc-900">
+          <p className="mt-1 font-heading text-4xl font-semibold tabular-nums text-foreground">
             {balanceLoading ? '…' : (balance ?? 0)}
             <span className="ml-2 text-base font-normal text-muted-foreground">credit</span>
           </p>
@@ -51,7 +51,7 @@ function CreditsContainer() {
 
         {/* Transaction ledger */}
         <section>
-          <h2 className="font-heading text-lg font-semibold text-zinc-900 mb-4">
+          <h2 className="font-heading text-lg font-semibold text-foreground mb-4">
             Lịch sử giao dịch
           </h2>
           <CreditHistoryList />

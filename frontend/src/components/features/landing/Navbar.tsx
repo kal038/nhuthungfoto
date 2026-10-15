@@ -11,6 +11,7 @@ import {
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from '@tanstack/react-router'
 import { CreditBalanceBadge } from '@/components/features/credits/CreditBalanceBadge'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 import { useCreditBalance } from '@/hooks/queries/useCredits'
 
 const LEFT_LINKS = [
@@ -79,6 +80,11 @@ export function Navbar() {
             </a>
           ))}
 
+          <ThemeToggle
+            variant="overlay"
+            className="transition-opacity duration-300 hover:!opacity-100 group-hover:opacity-30"
+          />
+
           {/* Auth item — 3rd right slot */}
           {user ? (
             <>
@@ -102,7 +108,7 @@ export function Navbar() {
                   className="text-sm cursor-pointer"
                   onClick={() => navigate({ to: '/credits' })}
                 >
-                  <Coins className="h-4 w-4 text-zinc-500" />
+                  <Coins className="h-4 w-4 text-muted-foreground" />
                   Credit
                   <span className="ml-auto tabular-nums font-medium">{balance ?? 0}</span>
                 </DropdownMenuItem>
@@ -181,14 +187,17 @@ export function Navbar() {
               <SheetTitle className="font-heading text-lg font-semibold text-white">
                 nhuthungfoto
               </SheetTitle>
-              <SheetClose asChild>
-                <button
-                  className="p-1 rounded-lg hover:bg-white/10 cursor-pointer"
-                  aria-label="Đóng menu"
-                >
-                  <X className="h-5 w-5 text-white/60" />
-                </button>
-              </SheetClose>
+              <div className="flex items-center gap-1">
+                <ThemeToggle variant="overlay" />
+                <SheetClose asChild>
+                  <button
+                    className="p-1 rounded-lg hover:bg-white/10 cursor-pointer"
+                    aria-label="Đóng menu"
+                  >
+                    <X className="h-5 w-5 text-white/60" />
+                  </button>
+                </SheetClose>
+              </div>
             </div>
             <div className="flex flex-col gap-4">
               {allLinks.map((link) => (
