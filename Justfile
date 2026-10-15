@@ -84,3 +84,6 @@ db-local-stop:
 
 check-migration:
   cd backend && postgres-language-server check --changed --since=main supabase/migrations
+
+wrangler-type:
+  cd backend && npm run types

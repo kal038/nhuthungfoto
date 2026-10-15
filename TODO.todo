@@ -1,35 +1,68 @@
-CURRENT PROGRESS
-
-manually verify the payment flow end to end, including the Telegram bot.
-
-Create the Telegram service:- Create backend/src/services/telegram.ts.
-- Send a review notification after customer confirmation.
-- Include order ID, order code, amount, credit quantity, customer identifier, and confirmation time.
-- Include an explicit warning requiring bank-app verification before approval.
-- Add approve and reject inline buttons.
-- Keep callback payloads below Telegram’s size limit.
-- Treat Telegram network failures as retryable.
-- Leave the order in AWAITING_REVIEW when notification delivery fails.
-
-Make customer confirmation retry notification:- Store Telegram notification status as PENDING, SENT, or FAILED.
-- When confirmation is repeated, avoid changing the order state or confirmation timestamp.
-- Retry Telegram delivery whenever the notification status is not SENT.
-- Return success only after notification delivery succeeds.
-- Return a retryable gateway error when Telegram delivery fails.
-- Keep the same order, status, and confirmation timestamp across retries.
-
-Create the Telegram webhook:- Create backend/src/schema/telegram.ts.
-- Validate Telegram updates, callback data, and order IDs.
-- Create backend/src/routes/telegram.ts.
-- Mount the route before global Supabase authentication middleware in backend/src/index.ts.
-- Require the Telegram secret-token header.
-- Require the exact configured admin chat ID.
-- Return 403 with no side effects for an unknown chat.
-- Route approve callbacks to the shared credit-grant RPC.
-- Route reject callbacks to the admin-rejection RPC.
-- Acknowledge callbacks after processing.
-- Show ALREADY_GRANTED for repeated approval clicks.
-- Show a clear error when the order is pending customer confirmation, expired, or already cancelled.
-
-
-
+0. Quick Schema & Migration Touch-ups (Foundations)
+Before building the service and routes, three small details in the existing files need attention:
+1. Extract meet_url from the Cal.com payload (backend/src/schema/calcom.ts):
+- public.bookings has a meet_url column, and the UI displays a "Tham gia Google Meet" link for upcoming sessions.
+- Because Zod strips unmodeled fields, bookingPayloadBaseSchema currently drops the Meet link. Cal.com sends it under payload.videoCallData?.url (and/or payload.metadata?.videoCallUrl).
+- Action: Add optional videoCallData: z.object({ url: z.url().optional() }).optional() and metadata: z.object({ videoCallUrl: z.url().optional() }).optional() to bookingPayloadBaseSchema, plus a getMeetUrl(payload): string | null helper.
+2. ESLint comment rule in backend/src/schema/calcom.ts:
+- Lines 3–5 have three consecutive // comments, which triggers the repo's local/one-line-comment ESLint error. Convert it to a /** ... */ JSDoc block.
+3. RLS backstop on public.bookings:
+- 20261012000001_calcom_bookings.sql revoked grants from PUBLIC, anon, authenticated, but skipped -- 4. ROW LEVEL SECURITY (ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;). Add it (or a follow-up migration if already pushed) to match docs/tdd-nhuthungfoto.md §2.2.
+1. Bookings Service (backend/src/services/bookings.ts)
+1. Webhook Signature Verification (verifyCalcomSignature):
+- Cal.com signs the raw request body with HMAC-SHA256 using CALCOM_WEBHOOK_SECRET and sends the hex digest in the X-Cal-Signature-256 header.
+- Implement verifyCalcomSignature(rawBody: string, signatureHeader: string | undefined, secret: string): Promise<boolean> using the Workers Web Crypto API (crypto.subtle.importKey + crypto.subtle.sign + constant-time comparison).
+2. Student Lookup by Email:
+- Normalize getBookerEmail(payload) (trim().toLowerCase()) and query public.profiles (ilike('email', email) or .eq('email', email)).
+- If no profile matches the booker's email, return { synced: false, reason: 'user_not_found' } (so the webhook route still returns 200 and prevents Cal.com from infinitely retrying bookings made with an external email).
+3. Event Handling (handleCalcomWebhook):
+- BOOKING_CREATED: Upsert into public.bookings on onConflict: 'calcom_booking_uid':
+- calcom_booking_uid: payload.uid
+- user_id: profile.id
+- start_time: payload.startTime
+- status: payload.status ?? 'ACCEPTED'
+- meet_url: getMeetUrl(payload)
+- BOOKING_RESCHEDULED:
+- Cal.com creates a new booking uid on reschedule and passes the previous booking's UID in payload.rescheduleUid.
+- If payload.rescheduleUid is present and differs from payload.uid, mark the old calcom_booking_uid = payload.rescheduleUid row as CANCELLED (or delete/replace it), then upsert the new payload.uid row with the new start_time, status: payload.status ?? 'ACCEPTED', and meet_url (preserving existing meet_url if the reschedule payload omits it).
+- BOOKING_CANCELLED:
+- Update public.bookings setting status = 'CANCELLED' where calcom_booking_uid = payload.uid (and .eq('user_id', profile.id)), or upsert as CANCELLED if webhooks arrive out of order.
+4. List Student Bookings (listUserBookings):
+- Query public.bookings scoped with .eq('user_id', userId).order('start_time', { ascending: false }) (uses idx_bookings_user_start_time).
+2. Backend Routes & Wiring
+1. Webhook Endpoint (backend/src/routes/calcom.ts or webhooks.ts):
+- Route: POST /v1/webhooks/calcom
+- Mounted in backend/src/index.ts under Routes Public (before app.use('/v1/*', authMiddleware)), just like /v1/telegram.
+- Flow:
+1. Read raw body via await c.req.text().
+2. Verify c.req.header('X-Cal-Signature-256') with c.env.CALCOM_WEBHOOK_SECRET → 401 on failure.
+3. Parse JSON (400 on invalid JSON).
+4. If body?.triggerEvent === 'PING' (sent by Cal.com's "Test webhook" button), return 200 { ok: true }.
+5. Validate with calcomWebhookSchema.safeParse(body) → 400 (or ZodParseError) on invalid payload.
+6. Call handleCalcomWebhook(supabase, parsed.data) and return 200 { ok: true }.
+2. Student Bookings Endpoint (backend/src/routes/bookings.ts):
+- Route: GET /v1/bookings
+- Mounted in backend/src/index.ts under Routes Protected (after authMiddleware).
+- Returns { bookings: BookingItem[] } for c.get('user').id.
+3. Backend Tests & API Collection
+1. Unit tests:
+- backend/test/unit/schema/calcom.test.ts: test BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED, unknown event rejection, missing attendees rejection, getBookerEmail, and getMeetUrl.
+- backend/test/unit/services/bookings.test.ts: test HMAC signature verification, BOOKING_CREATED upsert, BOOKING_RESCHEDULED with rescheduleUid transition, BOOKING_CANCELLED, and unknown email handling.
+2. Integration tests:
+- backend/test/integration/routes/calcom.test.ts: test POST /v1/webhooks/calcom (401 bad signature, 200 PING, 400 invalid schema, 200 valid events) and GET /v1/bookings (401 unauthenticated, 200 user bookings list).
+3. Bruno collection (bruno/nhuthungfoto-api/Bookings/):
+- Sample webhook requests (BOOKING_CREATED, BOOKING_RESCHEDULED, BOOKING_CANCELLED) and GET MY BOOKINGS.
+4. Frontend Booking Page (/booking)
+1. Config & Types:
+- Add VITE_CALCOM_BOOKING_URL to frontend env config.
+- Create frontend/src/types/booking.ts mirroring GET /v1/bookings.
+- Add bookingKeys to frontend/src/lib/queryKeys.ts and useBookings() hook in frontend/src/hooks/queries/useBookings.ts.
+2. Page & Components (frontend/src/routes/booking.tsx + frontend/src/components/features/booking/):
+- Auth-gated route (redirects unauthenticated visitors to /login, matching /credits and /submissions).
+- Launcher section (docs/design/design-system.md §3.5):
+- Header: "Đặt lịch 1-1 với Nhựt Hùng"
+- Session Summary (45 phút, Google Meet, 1-1 với Nhựt Hùng, "Huỷ hoặc đổi lịch trước 24 giờ") + Instructor Card.
+- CTA "Tiếp tục đặt lịch": opens VITE_CALCOM_BOOKING_URL in a new tab with ?name=<username>&email=<user.email> prefilled.
+- *My Lessons section ("Buổi học của tôi")*:
+- Lists bookings from useBookings() with local date/time, status badge (Upcoming / Pending / Cancelled / Past), and "Tham gia Google Meet" link when meet_url is present on an upcoming accepted session.
+- Empty state: "Bạn chưa có buổi học nào."

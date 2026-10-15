@@ -16,6 +16,7 @@ import { Route as ProfileRouteImport } from './routes/profile'
 import { Route as ModulesRouteImport } from './routes/modules'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as CreditsRouteImport } from './routes/credits'
+import { Route as BookingRouteImport } from './routes/booking'
 import { Route as UsernameRouteImport } from './routes/$username'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as ModulesIndexRouteImport } from './routes/modules/index'
@@ -59,6 +60,11 @@ const CreditsRoute = CreditsRouteImport.update({
   path: '/credits',
   getParentRoute: () => rootRouteImport,
 } as any)
+const BookingRoute = BookingRouteImport.update({
+  id: '/booking',
+  path: '/booking',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const UsernameRoute = UsernameRouteImport.update({
   id: '/$username',
   path: '/$username',
@@ -98,6 +104,7 @@ const AdminGradeIdRoute = AdminGradeIdRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/booking': typeof BookingRoute
   '/credits': typeof CreditsRoute
   '/login': typeof LoginRoute
   '/modules': typeof ModulesRouteWithChildren
@@ -114,6 +121,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/booking': typeof BookingRoute
   '/credits': typeof CreditsRoute
   '/login': typeof LoginRoute
   '/profile': typeof ProfileRoute
@@ -130,6 +138,7 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$username': typeof UsernameRoute
+  '/booking': typeof BookingRoute
   '/credits': typeof CreditsRoute
   '/login': typeof LoginRoute
   '/modules': typeof ModulesRouteWithChildren
@@ -148,6 +157,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$username'
+    | '/booking'
     | '/credits'
     | '/login'
     | '/modules'
@@ -164,6 +174,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$username'
+    | '/booking'
     | '/credits'
     | '/login'
     | '/profile'
@@ -179,6 +190,7 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$username'
+    | '/booking'
     | '/credits'
     | '/login'
     | '/modules'
@@ -196,6 +208,7 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   UsernameRoute: typeof UsernameRoute
+  BookingRoute: typeof BookingRoute
   CreditsRoute: typeof CreditsRoute
   LoginRoute: typeof LoginRoute
   ModulesRoute: typeof ModulesRouteWithChildren
@@ -257,6 +270,13 @@ declare module '@tanstack/react-router' {
       path: '/credits'
       fullPath: '/credits'
       preLoaderRoute: typeof CreditsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/booking': {
+      id: '/booking'
+      path: '/booking'
+      fullPath: '/booking'
+      preLoaderRoute: typeof BookingRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$username': {
@@ -327,6 +347,7 @@ const ModulesRouteWithChildren =
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   UsernameRoute: UsernameRoute,
+  BookingRoute: BookingRoute,
   CreditsRoute: CreditsRoute,
   LoginRoute: LoginRoute,
   ModulesRoute: ModulesRouteWithChildren,

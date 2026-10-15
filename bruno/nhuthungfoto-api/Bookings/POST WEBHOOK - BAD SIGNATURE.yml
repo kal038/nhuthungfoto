@@ -1,0 +1,39 @@
+info:
+  name: POST WEBHOOK - BAD SIGNATURE
+  type: http
+  seq: 5
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/webhooks/calcom
+  auth: none
+  headers:
+    - name: Content-Type
+      value: application/json
+    - name: X-Cal-Signature-256
+      value: deadbeef
+  body:
+    type: json
+    data: |-
+      {
+        "triggerEvent": "BOOKING_CREATED",
+        "createdAt": "2026-10-14T00:00:00.000Z",
+        "payload": {
+          "uid": "bruno-booking-bad-sig",
+          "startTime": "2099-01-01T10:00:00Z",
+          "attendees": [{ "email": "{{BOOKER_EMAIL}}" }]
+        }
+      }
+
+runtime:
+  scripts:
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(401);
+        expect(res.getBody().error).to.equal("Unauthorized");
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

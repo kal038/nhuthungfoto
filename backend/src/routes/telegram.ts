@@ -10,6 +10,7 @@ import {
 } from '@/services/telegram'
 import { telegramCallbackUpdateSchema, parseCallbackData } from '@/schema/telegram'
 import { AppError } from '@/lib/errors'
+import { safeSecretCompare } from '@/lib/utils'
 
 export type TelegramWebhookAction = 'approve' | 'reject'
 
@@ -19,14 +20,6 @@ export interface TelegramActionPayload {
 }
 
 export const telegramRouter = new Hono<{ Bindings: Env }>()
-
-export function isCorrectWebhookSecret(
-  providedSecret: string | undefined,
-  expectedSecret: string,
-): boolean {
-  if (!providedSecret || !expectedSecret) return false
-  return providedSecret === expectedSecret
-}
 
 export function isCorrectChat(
   chatId: number | string | undefined,
@@ -111,11 +104,11 @@ function buildReviewKeyboard(
 }
 
 /**
- * POST /v1/telegram/webhook — receives updates from Telegram Bot API.
+ * POST /v1/webhooks/telegram — receives updates from Telegram Bot API.
  */
-telegramRouter.post('/webhook', async (c) => {
+telegramRouter.post('/', async (c) => {
   const secretHeader = c.req.header('X-Telegram-Bot-Api-Secret-Token')
-  if (!isCorrectWebhookSecret(secretHeader, c.env.TELEGRAM_WEBHOOK_SECRET)) {
+  if (!(await safeSecretCompare(secretHeader, c.env.TELEGRAM_WEBHOOK_SECRET))) {
     return c.json({ error: 'Unauthorized' }, 401)
   }
 

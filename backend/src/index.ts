@@ -16,7 +16,8 @@ import { galleryRouter } from './routes/gallery'
 import { profileRouter } from './routes/profile'
 import { authRouter } from './routes/auth'
 import { paymentsRouter } from './routes/payments'
-import { telegramRouter } from './routes/telegram'
+import { webhooksRouter } from './routes/webhooks'
+import { bookingsRouter } from './routes/bookings'
 import { HTTPException } from 'hono/http-exception'
 import { AppError } from './lib/errors'
 import { sentry } from '@sentry/hono/cloudflare'
@@ -57,7 +58,7 @@ app.onError((err, c) => {
 app.route('/health', healthRouter)
 app.route('/portfolio', portfolioRouter)
 app.route('/v1/auth', authRouter)
-app.route('/v1/telegram', telegramRouter)
+app.route('/v1/webhooks', webhooksRouter)
 
 // Routes Protected
 app.use('/v1/*', authMiddleware)
@@ -67,6 +68,7 @@ app.route('/v1/modules', modulesRouter)
 app.route('/v1/gallery', galleryRouter)
 app.route('/v1/credits', creditsRouter)
 app.route('/v1/payments', paymentsRouter)
+app.route('/v1/bookings', bookingsRouter)
 app.route('/v1/admin', adminRouter)
 
 export default app

@@ -5,7 +5,7 @@ info:
 
 http:
   method: POST
-  url: http://localhost:8787/v1/telegram/webhook
+  url: http://localhost:8787/v1/webhooks/telegram
   auth: none
   headers:
     - name: X-Telegram-Bot-Api-Secret-Token

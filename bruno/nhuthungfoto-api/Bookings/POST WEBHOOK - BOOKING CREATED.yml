@@ -1,0 +1,46 @@
+info:
+  name: POST WEBHOOK - BOOKING CREATED
+  type: http
+  seq: 2
+
+http:
+  method: POST
+  url: http://localhost:8787/v1/webhooks/calcom
+  auth: none
+  headers:
+    - name: Content-Type
+      value: application/json
+  body:
+    type: json
+    data: |-
+      {
+        "triggerEvent": "BOOKING_CREATED",
+        "createdAt": "2026-10-14T00:00:00.000Z",
+        "payload": {
+          "uid": "bruno-booking-created-1",
+          "startTime": "2099-01-01T10:00:00Z",
+          "status": "ACCEPTED",
+          "attendees": [{ "email": "{{BOOKER_EMAIL}}", "name": "Bruno Booker" }],
+          "videoCallData": { "url": "https://meet.google.com/bruno-created" }
+        }
+      }
+
+runtime:
+  scripts:
+    - type: before-request
+      code: |-
+        const crypto = require("crypto");
+        const secret = bru.getEnvVar("CALCOM_WEBHOOK_SECRET");
+        const body = req.getBody().json ? JSON.stringify(req.getBody().json) : req.getBody().text;
+        const signature = crypto.createHmac("sha256", secret).update(body).digest("hex");
+        req.setHeader("X-Cal-Signature-256", signature);
+    - type: after-response
+      code: |-
+        expect(res.getStatus()).to.equal(200);
+        expect(res.getBody().ok).to.equal(true);
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5

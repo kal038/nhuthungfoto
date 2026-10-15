@@ -44,7 +44,7 @@ describe('Telegram Webhook Route', () => {
   })
 
   it('rejects requests with missing or invalid secret token header with 401', async () => {
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: { 'X-Telegram-Bot-Api-Secret-Token': 'wrong-secret' },
     })
@@ -52,7 +52,7 @@ describe('Telegram Webhook Route', () => {
   })
 
   it('acknowledges non-callback updates with 200 without processing', async () => {
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -66,7 +66,7 @@ describe('Telegram Webhook Route', () => {
   })
 
   it('asks for explicit approval before calling the approval RPC', async () => {
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -101,7 +101,7 @@ describe('Telegram Webhook Route', () => {
   })
 
   it('asks for explicit rejection before calling the rejection RPC', async () => {
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -136,7 +136,7 @@ describe('Telegram Webhook Route', () => {
   })
 
   it('restores the original action buttons when admin goes back', async () => {
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -171,7 +171,7 @@ describe('Telegram Webhook Route', () => {
   })
 
   it('rejects callback queries from unauthorized chat with 403', async () => {
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -203,7 +203,7 @@ describe('Telegram Webhook Route', () => {
       user_id: 'user-1',
     } as never)
 
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -257,7 +257,7 @@ describe('Telegram Webhook Route', () => {
       user_id: 'user-1',
     } as never)
 
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -302,7 +302,7 @@ describe('Telegram Webhook Route', () => {
       user_id: 'user-1',
     } as never)
 
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -342,7 +342,7 @@ describe('Telegram Webhook Route', () => {
       new AppError('Order cannot be approved in its current state', 409),
     )
 
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
@@ -374,7 +374,7 @@ describe('Telegram Webhook Route', () => {
   it('writes a persistent card error when order is not found', async () => {
     vi.mocked(approveOrder).mockRejectedValue(new AppError('Order not found', 404))
 
-    const res = await app.request('/webhook/webhook', {
+    const res = await app.request('/webhook', {
       method: 'POST',
       headers: {
         'X-Telegram-Bot-Api-Secret-Token': 'secret-xyz',
