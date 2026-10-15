@@ -107,8 +107,8 @@ function AdminGradeRouteContainer() {
         {submissionLoading ? (
           <LoadingScreen />
         ) : notAwaiting ? (
-          <div className="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-12 text-center">
-            <h3 className="text-base font-semibold text-zinc-900">
+          <div className="rounded-2xl border border-dashed border-border bg-muted p-12 text-center">
+            <h3 className="text-base font-semibold text-foreground">
               Bài nộp không còn chờ chấm
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -122,7 +122,7 @@ function AdminGradeRouteContainer() {
           <div className="grid grid-cols-1 gap-8 lg:grid-cols-5">
             {/* Photo */}
             <div className="lg:col-span-3">
-              <div className="overflow-hidden rounded-xl bg-zinc-100 ring-1 ring-zinc-200">
+              <div className="overflow-hidden rounded-xl bg-muted ring-1 ring-border">
                 {submission.photoUrl ? (
                   <img
                     src={submission.photoUrl}
@@ -130,7 +130,7 @@ function AdminGradeRouteContainer() {
                     className="max-h-[70vh] w-full object-contain"
                   />
                 ) : (
-                  <div className="flex aspect-[4/3] items-center justify-center text-sm text-zinc-400">
+                  <div className="flex aspect-[4/3] items-center justify-center text-sm text-muted-foreground">
                     Không có ảnh
                   </div>
                 )}
@@ -139,20 +139,20 @@ function AdminGradeRouteContainer() {
 
             {/* Info + grading form */}
             <div className="space-y-6 lg:col-span-2">
-              <div className="space-y-1 rounded-xl bg-zinc-50 p-4 ring-1 ring-zinc-100">
-                <p className="font-semibold text-zinc-900">
+              <div className="space-y-1 rounded-xl bg-muted p-4 ring-1 ring-border">
+                <p className="font-semibold text-foreground">
                   {submission.student.username ?? 'Không tên'}
                   <span className="ml-2 text-xs font-normal text-muted-foreground">
                     {submission.student.email}
                   </span>
                 </p>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-muted-foreground">
                   Bài học: {submission.module.title ?? '—'}
                 </p>
-                <p className="text-sm text-zinc-500">
+                <p className="text-sm text-muted-foreground">
                   Trình độ: {submission.student.skillLevel?.toLowerCase() ?? '—'}
                 </p>
-                <p className="text-xs tabular-nums text-zinc-400">
+                <p className="text-xs tabular-nums text-muted-foreground">
                   Nộp lúc{' '}
                   {new Date(submission.createdAt).toLocaleString('vi-VN', {
                     day: 'numeric',

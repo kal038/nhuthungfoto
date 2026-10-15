@@ -35,7 +35,7 @@ export function PaymentOrderPanel() {
 
   return (
     <section id="nap-credit" className="space-y-4">
-      <h2 className="font-heading text-lg font-semibold text-zinc-900">Nạp credit</h2>
+      <h2 className="font-heading text-lg font-semibold text-foreground">Nạp credit</h2>
       {content}
     </section>
   )

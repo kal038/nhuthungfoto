@@ -17,7 +17,7 @@ function getStrength(password: string): { level: number; label: string } {
 }
 
 const STRENGTH_COLORS: Record<number, string> = {
-  0: 'bg-zinc-200',
+  0: 'bg-muted',
   1: 'bg-red-500',
   2: 'bg-amber-500',
   3: 'bg-emerald-500',
@@ -43,7 +43,7 @@ export function PasswordStrengthBar({ password }: PasswordStrengthBarProps) {
             key={segment}
             className={`
               h-1 flex-1 rounded-full transition-colors duration-300
-              ${segment <= level ? STRENGTH_COLORS[level] : 'bg-zinc-200'}
+              ${segment <= level ? STRENGTH_COLORS[level] : 'bg-muted'}
             `}
           />
         ))}

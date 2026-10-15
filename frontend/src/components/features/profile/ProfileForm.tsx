@@ -87,7 +87,7 @@ export function ProfileForm({
     <div className="space-y-8">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <h1 className="text-xl font-semibold text-zinc-900 font-heading">
+        <h1 className="text-xl font-semibold text-foreground font-heading">
           Chỉnh sửa hồ sơ
         </h1>
         <Badge
@@ -103,24 +103,24 @@ export function ProfileForm({
       <div className="flex items-center gap-6">
         <ProfileAvatar url={formData.avatarUrl} name={displayName} size="xl" />
         <div className="flex flex-col gap-1">
-          <span className="text-sm font-medium text-zinc-900">
+          <span className="text-sm font-medium text-foreground">
             {displayName}
           </span>
           <button
             type="button"
             onClick={handleAvatarChange}
-            className="text-sm text-zinc-500 underline underline-offset-2 decoration-zinc-300 hover:text-zinc-900 hover:decoration-zinc-500 transition-colors duration-150"
+            className="text-sm text-muted-foreground underline underline-offset-2 decoration-border hover:text-foreground hover:decoration-muted-foreground transition-colors duration-150"
           >
             Đổi ảnh hồ sơ
           </button>
         </div>
       </div>
 
-      <hr className="border-zinc-100" />
+      <hr className="border-border" />
 
       {/* Basic Information */}
       <div className="space-y-6">
-        <h2 className="text-base font-semibold text-zinc-900 font-heading">
+        <h2 className="text-base font-semibold text-foreground font-heading">
           Thông tin cơ bản
         </h2>
 
@@ -130,14 +130,14 @@ export function ProfileForm({
               type="text"
               value={formData.username}
               disabled
-              className="h-10 rounded-lg border-zinc-200 bg-zinc-50 font-body text-sm text-zinc-500 cursor-not-allowed transition-all duration-200"
+              className="h-10 rounded-lg border-border bg-muted font-body text-sm text-muted-foreground cursor-not-allowed transition-all duration-200"
             />
-            <p className="text-xs text-zinc-400 mt-1">Tên người dùng không thể thay đổi</p>
+            <p className="text-xs text-muted-foreground mt-1">Tên người dùng không thể thay đổi</p>
           </ProfileField>
 
           <ProfileField label="Trình độ">
-            <div className="flex items-center h-10 px-3 rounded-lg border border-zinc-200 bg-zinc-50">
-              <span className="text-sm text-zinc-700 font-body">
+            <div className="flex items-center h-10 px-3 rounded-lg border border-border bg-muted">
+              <span className="text-sm text-foreground font-body">
                 {skillLabelMap[formData.skillLevel] || formData.skillLevel}
               </span>
             </div>
@@ -149,7 +149,7 @@ export function ProfileForm({
             type="email"
             value={formData.email}
             disabled
-            className="h-10 rounded-lg border-zinc-200 bg-zinc-50 font-body text-sm text-zinc-500 cursor-not-allowed"
+            className="h-10 rounded-lg border-border bg-muted font-body text-sm text-muted-foreground cursor-not-allowed"
           />
         </ProfileField>
 
@@ -159,12 +159,12 @@ export function ProfileForm({
             value={formData.phone}
             onChange={(e) => handleChange('phone', e.target.value)}
             placeholder="0912345678"
-            className="h-10 rounded-lg border-zinc-200 bg-white font-body text-sm text-zinc-900 placeholder:text-zinc-400 focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all duration-200"
+            className="h-10 rounded-lg border-border bg-background font-body text-sm text-foreground placeholder:text-muted-foreground focus-visible:ring-2 focus-visible:ring-blue-600 focus-visible:border-blue-600 transition-all duration-200"
           />
         </ProfileField>
       </div>
 
-      <hr className="border-zinc-100" />
+      <hr className="border-border" />
 
       {/* Save Button */}
       <div className="flex justify-end">
@@ -172,7 +172,7 @@ export function ProfileForm({
           type="button"
           disabled={!isDirty || isSaving}
           onClick={handleSubmit}
-          className="h-10 px-6 rounded-lg bg-zinc-900 hover:bg-zinc-800 text-white text-sm font-medium transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
+          className="h-10 px-6 rounded-lg bg-primary hover:opacity-90 text-primary-foreground text-sm font-medium transition-colors duration-200 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {isSaving ? 'Đang lưu...' : 'Lưu thay đổi'}
         </Button>

@@ -22,7 +22,7 @@ export function PhotoUploadThumbnail({
 
   return (
     <div
-      className="group relative aspect-square overflow-hidden rounded-lg ring-1 ring-zinc-200"
+      className="group relative aspect-square overflow-hidden rounded-lg ring-1 ring-border"
       title={file.file.name}
     >
       {/* Preview image */}

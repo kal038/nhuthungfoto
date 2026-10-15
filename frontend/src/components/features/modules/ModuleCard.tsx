@@ -30,11 +30,11 @@ export function ModuleCard({ module, isCurrent }: ModuleCardProps) {
             className="aspect-video w-full object-cover"
           />
         ) : (
-          <div className="aspect-video w-full bg-gradient-to-br from-zinc-100 to-zinc-200" />
+          <div className="aspect-video w-full bg-gradient-to-br from-muted to-muted" />
         )}
         <CardHeader>
           <div className="flex items-center justify-between gap-2">
-            <CardTitle className="font-heading text-zinc-900">{module.title}</CardTitle>
+            <CardTitle className="font-heading text-foreground">{module.title}</CardTitle>
             {isCurrent && (
               <Badge className="bg-cta text-white">Đang học</Badge>
             )}

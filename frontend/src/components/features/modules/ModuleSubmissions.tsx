@@ -21,12 +21,12 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
 
   return (
     <section className="space-y-4">
-      <h2 className="font-heading text-lg font-semibold text-zinc-900">Bài nộp của bạn</h2>
+      <h2 className="font-heading text-lg font-semibold text-foreground">Bài nộp của bạn</h2>
 
       {isLoading ? (
         <LoadingDots className="py-6" />
       ) : moduleSubmissions.length === 0 ? (
-        <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
+        <div className="rounded-xl border border-dashed border-border bg-muted px-6 py-10 text-center">
           <p className="text-sm text-muted-foreground">Bạn chưa nộp bài cho khóa học này.</p>
         </div>
       ) : (
@@ -36,7 +36,7 @@ export function ModuleSubmissions({ moduleId }: ModuleSubmissionsProps) {
             return (
               <div
                 key={sub.id}
-                className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100 fade-in"
+                className="relative aspect-square overflow-hidden rounded-lg bg-muted fade-in"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <img

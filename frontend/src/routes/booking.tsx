@@ -3,6 +3,7 @@ import { createFileRoute, Link, useNavigate } from '@tanstack/react-router'
 import { useAuth } from '@/context/AuthContext'
 import { LoadingScreen } from '@/components/ui/loading-dots'
 import { BookingLauncher, BookingList } from '@/components/features/booking'
+import { ThemeToggle } from '@/components/ui/theme-toggle'
 
 export const Route = createFileRoute('/booking')({
   component: BookingRoute,
@@ -27,14 +28,15 @@ function BookingRoute() {
   }
 
   return (
-    <div className="min-h-screen bg-white">
-      <header className="border-b border-zinc-100">
-        <div className="mx-auto max-w-4xl px-4 py-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen bg-background">
+      <header className="border-b border-border">
+        <div className="mx-auto flex max-w-4xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
           <Link to="/" className="inline-flex items-center gap-2 group">
-            <span className="text-lg font-semibold tracking-wide text-zinc-900 font-heading transition-colors duration-200 group-hover:text-zinc-600">
+            <span className="text-lg font-semibold tracking-wide text-foreground font-heading transition-colors duration-200 group-hover:text-muted-foreground">
               nhuthungfoto
             </span>
           </Link>
+          <ThemeToggle />
         </div>
       </header>
 
@@ -42,7 +44,7 @@ function BookingRoute() {
         <BookingLauncher />
 
         <section>
-          <h2 className="mb-4 font-heading text-lg font-semibold text-zinc-900">
+          <h2 className="mb-4 font-heading text-lg font-semibold text-foreground">
             Buổi học của tôi
           </h2>
           <BookingList />

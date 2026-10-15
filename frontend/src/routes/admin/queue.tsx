@@ -50,7 +50,7 @@ function AdminQueueRouteContainer() {
       <div className="fade-in space-y-6">
         <header className="flex items-baseline justify-between gap-4">
           <div>
-            <h1 className="font-heading text-2xl font-bold text-zinc-900">
+            <h1 className="font-heading text-2xl font-bold text-foreground">
               Chấm bài
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
@@ -58,7 +58,7 @@ function AdminQueueRouteContainer() {
             </p>
           </div>
           {submissions.length > 0 && (
-            <span className="shrink-0 rounded-full bg-zinc-100 px-3 py-1 text-sm font-medium tabular-nums text-zinc-700">
+            <span className="shrink-0 rounded-full bg-muted px-3 py-1 text-sm font-medium tabular-nums text-foreground">
               {submissions.length} bài chờ
             </span>
           )}
@@ -71,9 +71,9 @@ function AdminQueueRouteContainer() {
             Không thể tải hàng chờ. Vui lòng thử lại sau.
           </div>
         ) : submissions.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-12 text-center">
-            <Inbox className="h-12 w-12 text-zinc-300" />
-            <h3 className="mt-4 text-base font-semibold text-zinc-900">
+          <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted p-12 text-center">
+            <Inbox className="h-12 w-12 text-muted-foreground/60" />
+            <h3 className="mt-4 text-base font-semibold text-foreground">
               Hàng chờ trống
             </h3>
             <p className="mt-1 text-sm text-muted-foreground">

@@ -95,7 +95,7 @@ export function PhotoUploadPanel({
         {/* Footer: file count + upload button */}
         {hasFiles && (
           <div className="flex items-center justify-between">
-            <p className="text-sm text-zinc-500">
+            <p className="text-sm text-muted-foreground">
               {files.length} / {maxFiles} ảnh
               {allUploaded && (
                 <span className="ml-2 text-emerald-600">

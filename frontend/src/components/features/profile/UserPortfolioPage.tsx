@@ -47,11 +47,11 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
     return (
       <AccountLayout username={currentProfile?.username} creditBalance={balance}>
         <div className="flex flex-col items-center justify-center py-20 text-center">
-          <h1 className="text-4xl font-bold text-zinc-900">404</h1>
-          <p className="mt-2 text-zinc-500">Người dùng @{username} không tồn tại.</p>
+          <h1 className="text-4xl font-bold text-foreground">404</h1>
+          <p className="mt-2 text-muted-foreground">Người dùng @{username} không tồn tại.</p>
           <Link
             to="/"
-            className="mt-6 inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
+            className="mt-6 inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-colors"
           >
             Về trang chủ
           </Link>
@@ -71,13 +71,13 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
             size="lg"
           />
           <div>
-            <h1 className="text-xl font-semibold text-zinc-900">
+            <h1 className="text-xl font-semibold text-foreground">
               @{ownerProfile?.username ?? username}
             </h1>
             {ownerProfile?.skill_level && (
-              <p className="text-sm text-zinc-500">{ownerProfile.skill_level}</p>
+              <p className="text-sm text-muted-foreground">{ownerProfile.skill_level}</p>
             )}
-            <p className="text-sm text-zinc-400">{submissions?.length ?? 0} ảnh</p>
+            <p className="text-sm text-muted-foreground">{submissions?.length ?? 0} ảnh</p>
           </div>
         </div>
 
@@ -87,7 +87,7 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
             <Link
               to="/upload"
               search={{ moduleId: undefined }}
-              className="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition-colors"
+              className="inline-flex items-center justify-center rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition-colors"
             >
               Tải ảnh lên
             </Link>
@@ -98,13 +98,13 @@ export function UserPortfolioPage({ username }: UserPortfolioPageProps) {
         {isLoading ? (
           <LoadingDots className="justify-center py-12" />
         ) : !submissions?.length ? (
-          <p className="text-zinc-500">Chưa có ảnh nào.</p>
+          <p className="text-muted-foreground">Chưa có ảnh nào.</p>
         ) : (
           <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4">
             {submissions.map((sub, i) => (
               <div
                 key={sub.id}
-                className="relative aspect-square overflow-hidden rounded-lg bg-zinc-100 fade-in"
+                className="relative aspect-square overflow-hidden rounded-lg bg-muted fade-in"
                 style={{ animationDelay: `${i * 60}ms` }}
               >
                 <img

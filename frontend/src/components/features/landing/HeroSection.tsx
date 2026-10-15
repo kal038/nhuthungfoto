@@ -1,5 +1,7 @@
-import { motion, motionValue, useTransform, type MotionValue } from 'framer-motion'
+import { useEffect } from 'react'
+import { motion, motionValue, useTransform, useReducedMotion, type MotionValue } from 'framer-motion'
 import { ChevronDown } from 'lucide-react'
+import { useTheme } from '@/context/ThemeContext'
 
 interface HeroSectionProps {
   scrollProgress?: MotionValue<number>
@@ -8,9 +10,17 @@ interface HeroSectionProps {
 /** Static fallback so useTransform hooks can always run (rules of hooks). */
 const STATIC_ZERO = motionValue(0)
 
+const HERO_PHOTOS = {
+  light: '/images/hero-bg.jpg',
+  dark: '/images/hero-bg-night.jpg',
+} as const
+
 export function HeroSection({ scrollProgress }: HeroSectionProps) {
   const progress = scrollProgress ?? STATIC_ZERO
   const isScrollLinked = !!scrollProgress
+  const { resolvedTheme } = useTheme()
+  const prefersReducedMotion = useReducedMotion()
+  const isDark = resolvedTheme === 'dark'
 
   // Derive scroll-linked opacity values
   // scrollProgress: 0 = top of container, 1 = bottom
@@ -18,16 +28,36 @@ export function HeroSection({ scrollProgress }: HeroSectionProps) {
   const contentOpacity = useTransform(progress, [0, 0.4], [1, 0])
   const overlayOpacity = useTransform(progress, [0.3, 0.6], [0.3, 0.8])
 
+  // Warm the browser cache so the day/night swap never stalls on a fetch.
+  useEffect(() => {
+    for (const src of Object.values(HERO_PHOTOS)) {
+      const image = new Image()
+      image.src = src
+    }
+  }, [])
+
   return (
     <section
       id="hero"
       className="relative h-screen flex items-center justify-center overflow-hidden"
     >
-      {/* Background Image */}
-      <img
-        src="/images/hero-bg.jpg"
+      {/* Day/night photograph layers — crossfade when the theme flips */}
+      <motion.img
+        src={HERO_PHOTOS.light}
         alt="Nhựt Hùng photography showcase"
         className="absolute inset-0 w-full h-full object-cover"
+        initial={false}
+        animate={{ opacity: isDark ? 0 : 1 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: 'easeInOut' }}
+      />
+      <motion.img
+        src={HERO_PHOTOS.dark}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 w-full h-full object-cover"
+        initial={false}
+        animate={{ opacity: isDark ? 1 : 0 }}
+        transition={{ duration: prefersReducedMotion ? 0 : 0.6, ease: 'easeInOut' }}
       />
 
       {/* Dark Gradient Overlay — intensifies on scroll */}

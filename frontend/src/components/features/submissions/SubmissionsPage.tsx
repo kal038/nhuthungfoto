@@ -59,7 +59,7 @@ export function SubmissionsPage() {
     <div className="space-y-10 fade-in">
       <header className="flex items-start justify-between gap-4">
         <div>
-          <h1 className="font-heading text-2xl font-bold text-zinc-900">Bài nộp của tôi</h1>
+          <h1 className="font-heading text-2xl font-bold text-foreground">Bài nộp của tôi</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Theo dõi tiến độ chấm bài và xem kết quả đánh giá ảnh của bạn.
           </p>
@@ -68,7 +68,7 @@ export function SubmissionsPage() {
           type="button"
           onClick={() => refetch()}
           disabled={isFetching}
-          className="inline-flex items-center gap-2 rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-medium text-zinc-700 shadow-sm transition-colors hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-background px-3 py-2 text-sm font-medium text-foreground shadow-sm transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-60"
         >
           <RefreshCw className={`h-4 w-4 ${isFetching ? 'animate-spin' : ''}`} />
           Làm mới
@@ -76,9 +76,9 @@ export function SubmissionsPage() {
       </header>
 
       {!hasSubmissions ? (
-        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 p-12 text-center">
-          <Inbox className="h-12 w-12 text-zinc-300" />
-          <h3 className="mt-4 text-base font-semibold text-zinc-900">Chưa có bài nộp nào</h3>
+        <div className="flex flex-col items-center justify-center rounded-2xl border border-dashed border-border bg-muted p-12 text-center">
+          <Inbox className="h-12 w-12 text-muted-foreground/60" />
+          <h3 className="mt-4 text-base font-semibold text-foreground">Chưa có bài nộp nào</h3>
           <p className="mt-1 text-sm text-muted-foreground">
             Các bức ảnh bạn nộp trong các bài học sẽ xuất hiện ở đây.
           </p>
@@ -90,7 +90,7 @@ export function SubmissionsPage() {
             <section className="space-y-4">
               <div className="flex items-center gap-2">
                 <Clock className="h-5 w-5 text-amber-500" />
-                <h2 className="font-heading text-lg font-semibold text-zinc-900">
+                <h2 className="font-heading text-lg font-semibold text-foreground">
                   Chờ chấm ({pendingSubmissions.length})
                 </h2>
               </div>
@@ -107,7 +107,7 @@ export function SubmissionsPage() {
             <section className="space-y-4">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                <h2 className="font-heading text-lg font-semibold text-zinc-900">
+                <h2 className="font-heading text-lg font-semibold text-foreground">
                   Đã chấm ({completedSubmissions.length})
                 </h2>
               </div>
@@ -128,7 +128,7 @@ export function SubmissionsPage() {
             <section className="space-y-4">
               <div className="flex items-center gap-2">
                 <UploadCloud className="h-5 w-5 text-blue-500" />
-                <h2 className="font-heading text-lg font-semibold text-zinc-900">
+                <h2 className="font-heading text-lg font-semibold text-foreground">
                   Chưa gửi chấm ({uploadedSubmissions.length})
                 </h2>
               </div>

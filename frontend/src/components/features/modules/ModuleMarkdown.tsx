@@ -15,7 +15,7 @@ export function ModuleMarkdown({ content }: ModuleMarkdownProps) {
   }
 
   return (
-    <div className="prose prose-zinc max-w-none prose-headings:font-heading prose-headings:text-zinc-900 prose-a:text-cta prose-img:rounded-lg">
+    <div className="prose prose-zinc max-w-none dark:prose-invert prose-headings:font-heading prose-headings:text-foreground prose-a:text-cta prose-img:rounded-lg">
       <ReactMarkdown remarkPlugins={[remarkGfm]}>{content}</ReactMarkdown>
     </div>
   )

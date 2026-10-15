@@ -7,13 +7,13 @@ function SkeletonGrid() {
       {Array.from({ length: 3 }).map((_, i) => (
         <div
           key={i}
-          className="overflow-hidden rounded-xl bg-white ring-1 ring-foreground/10"
+          className="overflow-hidden rounded-xl bg-card ring-1 ring-border"
         >
-          <div className="aspect-video w-full animate-pulse bg-zinc-100" />
+          <div className="aspect-video w-full animate-pulse bg-muted" />
           <div className="space-y-2 p-4">
-            <div className="h-4 w-2/3 animate-pulse rounded bg-zinc-100" />
-            <div className="h-3 w-full animate-pulse rounded bg-zinc-100" />
-            <div className="h-3 w-1/2 animate-pulse rounded bg-zinc-100" />
+            <div className="h-4 w-2/3 animate-pulse rounded bg-muted" />
+            <div className="h-3 w-full animate-pulse rounded bg-muted" />
+            <div className="h-3 w-1/2 animate-pulse rounded bg-muted" />
           </div>
         </div>
       ))}
@@ -35,7 +35,7 @@ export function ModuleList() {
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-zinc-600">Không thể tải danh sách khóa học.</p>
+        <p className="text-muted-foreground">Không thể tải danh sách khóa học.</p>
       </div>
     )
   }
@@ -46,7 +46,7 @@ export function ModuleList() {
   if (modules.length === 0) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-center">
-        <p className="text-zinc-600">Chưa có khóa học nào.</p>
+        <p className="text-muted-foreground">Chưa có khóa học nào.</p>
       </div>
     )
   }

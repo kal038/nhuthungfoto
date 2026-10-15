@@ -36,13 +36,13 @@ export function AdminSubmissionCard({
         }
       }}
       className={cn(
-        'group flex flex-col overflow-hidden rounded-xl bg-white ring-1 ring-zinc-200 transition-all duration-200',
+        'group flex flex-col overflow-hidden rounded-xl bg-card ring-1 ring-border transition-all duration-200',
         onSelect &&
-          'cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:ring-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta',
+          'cursor-pointer hover:-translate-y-0.5 hover:shadow-md hover:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta',
         className,
       )}
     >
-      <div className="relative aspect-[4/3] w-full overflow-hidden bg-zinc-100">
+      <div className="relative aspect-[4/3] w-full overflow-hidden bg-muted">
         {item.photoUrl ? (
           <img
             src={item.photoUrl}
@@ -52,7 +52,7 @@ export function AdminSubmissionCard({
             className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
           />
         ) : (
-          <div className="flex h-full items-center justify-center text-sm text-zinc-400">
+          <div className="flex h-full items-center justify-center text-sm text-muted-foreground">
             Không có ảnh
           </div>
         )}
@@ -65,16 +65,16 @@ export function AdminSubmissionCard({
       </div>
 
       <div className="space-y-0.5 px-3 py-2.5">
-        <p className="truncate text-sm font-semibold text-zinc-900">
+        <p className="truncate text-sm font-semibold text-foreground">
           {item.studentName ?? 'Không tên'}
           <span className="ml-1.5 truncate text-xs font-normal text-muted-foreground">
             {item.studentEmail}
           </span>
         </p>
-        <p className="truncate text-xs text-zinc-500">
+        <p className="truncate text-xs text-muted-foreground">
           {item.moduleTitle ?? 'Không có bài học'}
         </p>
-        <p className="text-xs tabular-nums text-zinc-400">{createdLabel}</p>
+        <p className="text-xs tabular-nums text-muted-foreground">{createdLabel}</p>
       </div>
     </div>
   )

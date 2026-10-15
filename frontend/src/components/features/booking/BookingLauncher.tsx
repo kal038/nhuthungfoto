@@ -41,7 +41,7 @@ export function BookingLauncher() {
   return (
     <section className="space-y-6">
       <header>
-        <h1 className="font-heading text-2xl font-semibold text-zinc-900">
+        <h1 className="font-heading text-2xl font-semibold text-foreground">
           Đặt lịch 1-1 với Nhựt Hùng
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -49,23 +49,23 @@ export function BookingLauncher() {
         </p>
       </header>
 
-      <div className="rounded-xl border border-zinc-100 bg-zinc-50/60 p-6">
+      <div className="rounded-xl border border-border bg-muted/60 p-6">
         <ul className="flex flex-wrap gap-x-6 gap-y-2">
           {SUMMARY.map(({ Icon, text }) => (
-            <li key={text} className="inline-flex items-center gap-2 text-sm text-zinc-600">
-              <Icon className="h-4 w-4 text-zinc-400" />
+            <li key={text} className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+              <Icon className="h-4 w-4 text-muted-foreground" />
               {text}
             </li>
           ))}
         </ul>
-        <p className="mt-4 text-xs text-zinc-400">Huỷ hoặc đổi lịch trước 24 giờ.</p>
+        <p className="mt-4 text-xs text-muted-foreground">Huỷ hoặc đổi lịch trước 24 giờ.</p>
       </div>
 
-      <div className="flex items-center gap-4 rounded-xl border border-zinc-100 p-4">
+      <div className="flex items-center gap-4 rounded-xl border border-border p-4">
         <Avatar />
         <div>
-          <p className="font-heading text-base font-semibold text-zinc-900">Nhựt Hùng</p>
-          <p className="text-sm text-zinc-500">25+ năm kinh nghiệm nhiếp ảnh</p>
+          <p className="font-heading text-base font-semibold text-foreground">Nhựt Hùng</p>
+          <p className="text-sm text-muted-foreground">25+ năm kinh nghiệm nhiếp ảnh</p>
         </div>
       </div>
 
@@ -76,7 +76,7 @@ export function BookingLauncher() {
               Tiếp tục đặt lịch
             </a>
           </Button>
-          <p className="text-xs text-zinc-400">Bạn sẽ nhận email xác nhận từ Cal.com.</p>
+          <p className="text-xs text-muted-foreground">Bạn sẽ nhận email xác nhận từ Cal.com.</p>
         </>
       ) : (
         <p className="text-sm text-destructive">
@@ -89,7 +89,7 @@ export function BookingLauncher() {
 
 function Avatar() {
   return (
-    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-zinc-100 font-heading text-lg font-semibold text-zinc-500">
+    <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-border bg-muted font-heading text-lg font-semibold text-muted-foreground">
       H
     </div>
   )

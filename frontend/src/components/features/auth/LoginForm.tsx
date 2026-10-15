@@ -100,7 +100,7 @@ export function LoginForm({
 
       {/* Separator */}
       <div className="relative">
-        <Separator className="bg-zinc-200" />
+        <Separator className="bg-muted" />
         <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-3 text-xs text-muted-foreground font-body">
           hoặc
         </span>

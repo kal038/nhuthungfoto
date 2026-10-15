@@ -65,9 +65,9 @@ export function SubmissionCard({
         }
       }}
       className={cn(
-        'group relative aspect-square overflow-hidden rounded-xl bg-zinc-100 ring-1 ring-zinc-200 transition-all duration-200',
+        'group relative aspect-square overflow-hidden rounded-xl bg-muted ring-1 ring-border transition-all duration-200',
         isClickable &&
-          'cursor-pointer hover:shadow-md hover:ring-zinc-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta',
+          'cursor-pointer hover:shadow-md hover:ring-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta',
         className,
       )}
     >

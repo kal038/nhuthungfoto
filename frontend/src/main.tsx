@@ -7,9 +7,16 @@ import { RouterProvider } from '@tanstack/react-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { Toaster } from 'sonner'
 import { AuthProvider } from './context/AuthContext'
+import { ThemeProvider, useTheme } from './context/ThemeContext'
 import { myQueryClient } from '@/lib/queryClient'
 import { router } from './router'
 import './index.css'
+
+// Keep the toast surface in sync with the active theme.
+function ThemedToaster() {
+  const { resolvedTheme } = useTheme()
+  return <Toaster position="top-right" richColors theme={resolvedTheme} />
+}
 
 createRoot(document.getElementById('root')!, {
   onUncaughtError: Sentry.reactErrorHandler(),
@@ -18,10 +25,12 @@ createRoot(document.getElementById('root')!, {
 }).render(
   <StrictMode>
     <QueryClientProvider client={myQueryClient}>
-      <AuthProvider>
-        <RouterProvider router={router} />
-        <Toaster position="top-right" richColors />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <RouterProvider router={router} />
+          <ThemedToaster />
+        </AuthProvider>
+      </ThemeProvider>
     </QueryClientProvider>
   </StrictMode>,
 )

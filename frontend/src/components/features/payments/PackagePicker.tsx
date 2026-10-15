@@ -113,16 +113,16 @@ function PackageCard({
         'cursor-pointer rounded-xl border p-4 text-left transition-all duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cta',
         selected
           ? 'border-cta bg-cta/5 ring-2 ring-cta/20'
-          : 'border-zinc-200 hover:border-zinc-300',
+          : 'border-border hover:border-border',
       )}
     >
       <div className="flex items-center justify-between gap-2">
-        <p className="font-heading font-semibold text-zinc-900">{pkg.label}</p>
+        <p className="font-heading font-semibold text-foreground">{pkg.label}</p>
         {pkg.isPopular && (
           <Badge className="border-amber-200 bg-amber-50 text-amber-700">Phổ biến</Badge>
         )}
       </div>
-      <p className="mt-3 text-2xl font-semibold tabular-nums text-zinc-900">
+      <p className="mt-3 text-2xl font-semibold tabular-nums text-foreground">
         {pkg.credits}
         <span className="ml-1 text-sm font-normal text-muted-foreground">credit</span>
       </p>

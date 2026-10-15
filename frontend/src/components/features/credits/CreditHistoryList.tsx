@@ -53,7 +53,7 @@ export function CreditHistoryList() {
 
   if (entries.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed border-zinc-200 bg-zinc-50 px-6 py-10 text-center">
+      <div className="rounded-xl border border-dashed border-border bg-muted px-6 py-10 text-center">
         <p className="text-sm text-muted-foreground">Chưa có giao dịch nào.</p>
       </div>
     )
@@ -61,17 +61,17 @@ export function CreditHistoryList() {
 
   return (
     <div className="space-y-1">
-      <ul className="divide-y divide-zinc-100">
+      <ul className="divide-y divide-border">
         {entries.map((entry) => {
           const { label, Icon } = entryMeta(entry)
           const positive = entry.amount > 0
           return (
             <li key={entry.id} className="flex items-center gap-3 py-3">
-              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-zinc-100 text-zinc-600">
+              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
                 <Icon className="h-4 w-4" />
               </span>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-medium text-zinc-900">{label}</p>
+                <p className="text-sm font-medium text-foreground">{label}</p>
                 <p className="text-xs text-muted-foreground tabular-nums">
                   {formatDate(entry.created_at)}
                 </p>
@@ -79,7 +79,7 @@ export function CreditHistoryList() {
               <span
                 className={cn(
                   'text-sm font-semibold tabular-nums',
-                  positive ? 'text-green-600' : 'text-zinc-900',
+                  positive ? 'text-green-600' : 'text-foreground',
                 )}
               >
                 {positive ? '+' : ''}
