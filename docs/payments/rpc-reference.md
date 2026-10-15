@@ -236,7 +236,7 @@ these RPCs run only after the explicit confirm button is tapped.
 | `create_manual_payment_order` | `createOrder` | `POST /v1/payments` | live |
 | `confirm_manual_payment_order` | `confirmOrder` | `POST /v1/payments/:id/confirm` | live |
 | `cancel_manual_payment_order` | `cancelOrder` | `POST /v1/payments/:id/cancel` | live |
-| `approve_manual_payment_order` | `approveOrder` | `POST /v1/telegram/webhook` (approve button) | live |
-| `reject_manual_payment_order` | `rejectOrder` | `POST /v1/telegram/webhook` (reject button) | live |
+| `approve_manual_payment_order` | `approveOrder` | `POST /v1/webhooks/telegram` (approve button) | live |
+| `reject_manual_payment_order` | `rejectOrder` | `POST /v1/webhooks/telegram` (reject button) | live |
 | `claim_telegram_notification` | `confirmOrder` | internal (before Telegram send) | live |
 | `update_telegram_notification_status` | `confirmOrder` | internal (after Telegram delivery) | live |

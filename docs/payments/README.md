@@ -58,12 +58,12 @@ environment (dev and prod bots each need their own call).
 
 ```sh
 # reads TELEGRAM_BOT_TOKEN / TELEGRAM_WEBHOOK_SECRET from the env or backend/.dev.vars
-npm run telegram:webhook -- set --url=https://<worker-domain>/v1/telegram/webhook
+npm run telegram:webhook -- set --url=https://<worker-domain>/v1/webhooks/telegram
 npm run telegram:webhook -- info     # verify the active url / last_error_message
 npm run telegram:webhook -- delete   # clear (Telegram stops delivering)
 ```
 
-- The URL must be public HTTPS and end in `/v1/telegram/webhook`.
+- The URL must be public HTTPS and end in `/v1/webhooks/telegram`.
 - `TELEGRAM_WEBHOOK_SECRET` is sent as `secret_token`; Telegram echoes it back
   as `X-Telegram-Bot-Api-Secret-Token`, which the route verifies.
 - Change the route path or rotate the secret → re-run `set`.

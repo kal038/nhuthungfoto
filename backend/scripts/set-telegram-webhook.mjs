@@ -4,7 +4,7 @@
 // per environment via the Bot API setWebhook method.
 //
 // Usage:
-//   node scripts/set-telegram-webhook.mjs set --url=https://<worker>/v1/telegram/webhook
+//   node scripts/set-telegram-webhook.mjs set --url=https://<worker>/v1/webhooks/telegram
 //   node scripts/set-telegram-webhook.mjs info
 //   node scripts/set-telegram-webhook.mjs delete
 //
@@ -18,7 +18,7 @@ import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const TELEGRAM_API = 'https://api.telegram.org'
-const WEBHOOK_PATH = '/v1/telegram/webhook'
+const WEBHOOK_PATH = '/v1/webhooks/telegram'
 
 /** Minimal KEY=VALUE / dotenv reader for backend/.dev.vars. */
 function loadDevVars() {
@@ -108,7 +108,7 @@ try {
     const secret = env('TELEGRAM_WEBHOOK_SECRET')
     if (!url.startsWith('https://')) {
       console.error(
-        'Provide --url=https://<worker-domain>/v1/telegram/webhook (Telegram requires HTTPS).',
+        'Provide --url=https://<worker-domain>/v1/webhooks/telegram (Telegram requires HTTPS).',
       )
       process.exit(1)
     }
