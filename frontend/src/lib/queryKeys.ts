@@ -5,6 +5,11 @@ const adminKeys = {
   submission: (id: string) => [...adminKeys.queue(), id] as const,
 }
 
+const bookingKeys = {
+  all: ['bookings'] as const,
+  list: () => [...bookingKeys.all, 'list'] as const,
+}
+
 const creditKeys = {
   all: ['credits'] as const,
   balance: () => [...creditKeys.all, 'balance'] as const,
@@ -60,6 +65,7 @@ const submissionKeys = {
  */
 export const queryKeys = {
   admin: adminKeys,
+  bookings: bookingKeys,
   credits: creditKeys,
   galleries: galleryKeys,
   modules: moduleKeys,
