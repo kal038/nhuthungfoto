@@ -29,7 +29,7 @@ const REVIEW_OPTIONS = [
   },
   {
     type: 'HUNG' as const,
-    cost: 3,
+    cost: 10,
     Icon: User,
     title: 'Nhựt Hùng chấm',
     description: 'Nhận xét cá nhân — phản hồi trong 24–48 giờ',

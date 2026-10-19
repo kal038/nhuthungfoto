@@ -11,24 +11,24 @@ describe('payment package catalog', () => {
       {
         id: 'trial',
         label: 'Trải nghiệm',
-        credits: 3,
-        amountVnd: 99_000,
+        credits: 30,
+        amountVnd: 29_000,
         isPopular: false,
         enabled: true,
       },
       {
         id: 'practice',
         label: 'Luyện tập',
-        credits: 12,
-        amountVnd: 349_000,
+        credits: 120,
+        amountVnd: 99_000,
         isPopular: true,
         enabled: true,
       },
       {
         id: 'progress',
         label: 'Tiến bộ',
-        credits: 30,
-        amountVnd: 749_000,
+        credits: 320,
+        amountVnd: 249_000,
         isPopular: false,
         enabled: true,
       },
@@ -46,7 +46,7 @@ describe('payment package catalog', () => {
 
   it('returns enabled packages and resolves enabled IDs', () => {
     expect(getEnabledPaymentPackages()).toHaveLength(3)
-    expect(getPaymentPackage('practice')?.credits).toBe(12)
+    expect(getPaymentPackage('practice')?.credits).toBe(120)
     expect(getPaymentPackage('unknown')).toBeUndefined()
   })
 })

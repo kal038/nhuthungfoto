@@ -16,8 +16,8 @@ runtime:
         const data = res.getBody();
         const ids = data.packages.map(p => p.id).sort();
         expect(ids).to.eql(["practice", "progress", "trial"]);
-        expect(data.packages.find(p => p.id === "practice").amountVnd).to.equal(349000);
-        expect(data.packages.find(p => p.id === "practice").credits).to.equal(12);
+        expect(data.packages.find(p => p.id === "practice").amountVnd).to.equal(99000);
+        expect(data.packages.find(p => p.id === "practice").credits).to.equal(120);
         expect(data.packages.find(p => p.id === "practice").isPopular).to.equal(true);
 
 settings:

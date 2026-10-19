@@ -20,8 +20,8 @@ const fakeOrderRow = {
   order_code: 'ABC2345',
   package_id: 'practice',
   package_label: 'Luyện tập',
-  credit_amount: 12,
-  amount_vnd: 349_000,
+  credit_amount: 120,
+  amount_vnd: 99_000,
   status: 'PENDING_TRANSFER' as const,
   expires_at: '2026-09-09T10:00:00.000Z',
 }
@@ -70,8 +70,8 @@ describe('createOrder', () => {
     expect(args.p_package_snapshot).toEqual({
       id: 'practice',
       label: 'Luyện tập',
-      credits: 12,
-      amountVnd: 349_000,
+      credits: 120,
+      amountVnd: 99_000,
     })
     expect(args.p_order_code).toMatch(/^[A-Z0-9]{7}$/)
     // Server-owned expiry: ~30 minutes out.

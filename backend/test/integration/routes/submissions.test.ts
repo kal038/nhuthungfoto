@@ -425,18 +425,18 @@ describe('Submissions Route', () => {
       })
     })
 
-    it('should deduct 3 credits for HUNG review', async () => {
-      mockRpc.mockResolvedValueOnce({ data: 6, error: null })
+    it('should deduct 10 credits for HUNG review', async () => {
+      mockRpc.mockResolvedValueOnce({ data: 0, error: null })
 
       const response = await postGrade('sub-123', { reviewType: 'HUNG' })
 
       expect(response.status).toBe(200)
       const data = await response.json()
-      expect(data).toHaveProperty('creditsSpent', 3)
-      expect(data).toHaveProperty('newBalance', 6)
+      expect(data).toHaveProperty('creditsSpent', 10)
+      expect(data).toHaveProperty('newBalance', 0)
       expect(mockRpc).toHaveBeenCalledWith(
         'spend_and_start_grading',
-        expect.objectContaining({ p_amount: 3, p_review_type: 'HUNG' }),
+        expect.objectContaining({ p_amount: 10, p_review_type: 'HUNG' }),
       )
     })
 

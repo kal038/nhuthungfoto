@@ -11,5 +11,5 @@ export const creditHistoryQuerySchema = z.object({
 
 export const CREDIT_COST = {
   AI: 1,
-  HUNG: 3,
+  HUNG: 10,
 } as const satisfies Record<string, number>
